@@ -1,0 +1,17 @@
+Package: rupturesRcpp
+Type: Package
+Title: An Object-Oriented R Package for Change Point Detection via Modern C++
+Version: 0.1.0
+Authors@R: 
+    person("Minh Long", "Nguyen", , "edelweiss611428@gmail.com", role = c("aut", "cre"))
+Description: A collection of efficient implementations of classical and modern algorithms for change point detection, featuring consistent interfaces for practical use and comparative analysis.
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+License: CC BY 4.0
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo
+Imports: 
+    Rcpp,
+    R6
