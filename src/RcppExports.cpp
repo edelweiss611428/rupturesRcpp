@@ -11,34 +11,21 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// slowBinSegCpp
-List slowBinSegCpp(const arma::mat& tsMat, const int& maxNRegimes);
-RcppExport SEXP _rupturesRcpp_slowBinSegCpp(SEXP tsMatSEXP, SEXP maxNRegimesSEXP) {
+// binSegCpp
+List binSegCpp(const arma::mat& tsMat, const int& maxNRegimes);
+RcppExport SEXP _rupturesRcpp_binSegCpp(SEXP tsMatSEXP, SEXP maxNRegimesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type tsMat(tsMatSEXP);
     Rcpp::traits::input_parameter< const int& >::type maxNRegimes(maxNRegimesSEXP);
-    rcpp_result_gen = Rcpp::wrap(slowBinSegCpp(tsMat, maxNRegimes));
-    return rcpp_result_gen;
-END_RCPP
-}
-// fastBinSegCpp
-List fastBinSegCpp(const arma::mat& tsMat, const int& maxNRegimes);
-RcppExport SEXP _rupturesRcpp_fastBinSegCpp(SEXP tsMatSEXP, SEXP maxNRegimesSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type tsMat(tsMatSEXP);
-    Rcpp::traits::input_parameter< const int& >::type maxNRegimes(maxNRegimesSEXP);
-    rcpp_result_gen = Rcpp::wrap(fastBinSegCpp(tsMat, maxNRegimes));
+    rcpp_result_gen = Rcpp::wrap(binSegCpp(tsMat, maxNRegimes));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rupturesRcpp_slowBinSegCpp", (DL_FUNC) &_rupturesRcpp_slowBinSegCpp, 2},
-    {"_rupturesRcpp_fastBinSegCpp", (DL_FUNC) &_rupturesRcpp_fastBinSegCpp, 2},
+    {"_rupturesRcpp_binSegCpp", (DL_FUNC) &_rupturesRcpp_binSegCpp, 2},
     {NULL, NULL, 0}
 };
 
