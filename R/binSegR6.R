@@ -21,7 +21,7 @@ BinSegL2 <- R6Class(
     },
 
     fit = function() {
-      self$output = fastBinSegCpp(self$tsMat, self$k)
+      self$output = binSegCpp(self$tsMat, self$k)
       self$cp = self$output$changePoints
       self$cost = self$output$cost
       self$fitted = TRUE
