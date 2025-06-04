@@ -36,17 +36,21 @@ inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end
   if(len < 2*minSize){
 
     return Segment{start, end, true, start,
-                   -1,
+                   -9999,
                    std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity()};
   } else if(len == 2*minSize){
 
-    return Segment{start, end, true, start+1,
-                   totalErr,
-                   0,
-                   0,
-                   0};
+    int cp = start + jump;
+    double lErr = Xnew.effEvalCpp(start, cp);
+    double rErr = Xnew.effEvalCpp(cp, end);
+    double err = lErr + rErr;
+    return Segment{start, end, true, start+jump,
+                   totalErr - err, //gain
+                   lErr,
+                   rErr,
+                   err};
   }
 
   double minErr = std::numeric_limits<double>::infinity();
@@ -77,7 +81,7 @@ inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end
   }
 
   return Segment{start, end, true, cp,
-                 totalErr - minErr,
+                 totalErr - minErr, //gain
                  minlErr,
                  minrErr,
                  minErr};
@@ -108,37 +112,41 @@ List binSegCpp(const arma::mat& tsMat, const double& penalty = 0,
 
   int nRegimes = 2;
   int idx = 0;
-
+  bool failed = false;
   do {
 
     Segment bestSeg = heap.top();
     heap.pop();
-
-    if(bestSeg.gain < -1){
-      break;
-    }
 
     changePoints[idx] = bestSeg.cp;
     idx++;
     cost[idx] = cost[idx-1] - bestSeg.gain + penalty;
     Segment leftSeg = miniOptHeapCpp(Xnew, bestSeg.start, bestSeg.cp, minSize, jump, bestSeg.lErr);
     Segment rightSeg = miniOptHeapCpp(Xnew, bestSeg.cp, bestSeg.end, minSize, jump, bestSeg.rErr);
-
     heap.push(leftSeg);
     heap.push(rightSeg);
 
+    if(heap.top().gain < 0){ //negative gain is equiv to no valid interval to split
+      //check if nRegimes is correctly computed? should be nRegimes -=1;
+      failed = true;
+      break;
+    }
+
     nRegimes++;
 
-  } while(nRegimes < maxNRegimes);
+  } while(nRegimes <= maxNRegimes);
   //Need to check if the last cost has been computed? NO! => future feature
-  Segment bestSeg = heap.top();
-  changePoints[idx] = bestSeg.cp;
+
+  if(not failed){
+    changePoints[idx] = heap.top().cp;
+    cost[idx] = cost[idx-1] - heap.top().gain + penalty;
+  }
 
 
   return List::create(
     Named("nBkps") = nRegimes-1,
     Named("Bkps") = changePoints[Range(0,nRegimes-2)],
-    Named("cost") = cost[Range(0,nRegimes-2)]
+    Named("cost") = cost[Range(0,nRegimes-1)]
   );
 
 
