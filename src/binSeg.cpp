@@ -21,10 +21,11 @@ struct Segment {
 };
 
 // Fast implementation based on heap, which involves an O(1) search instead
-// of O(k) (see ../deprecated)
+// of O(k) (see ../deprecated); also supports minSize, jump, and linear penalty
 
-inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end,
-                              double totalErr = -1) {
+inline Segment miniOptHeapCpp2(const Cost& Xnew, const int& start, const int& end,
+                               const int& minSize = 1,  const int& jump = 1,
+                               double totalErr = -1) {
 
   int len = end - start;
 
@@ -32,14 +33,14 @@ inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end
     totalErr = Xnew.effEvalCpp(start, end);
   }
 
-  if(len == 1 or len == 0){
+  if(len < 2*minSize){
 
     return Segment{start, end, true, start,
-                   - std::numeric_limits<double>::infinity(),
+                   -1,
                    std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity()};
-  } else if(len == 2){
+  } else if(len == 2*minSize){
 
     return Segment{start, end, true, start+1,
                    totalErr,
@@ -50,15 +51,19 @@ inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end
 
   double minErr = std::numeric_limits<double>::infinity();
   int cp;
-  int tempCp;
+  int tempCp = start;
   double err;
   double lErr;
   double rErr;
   double minlErr;
   double minrErr;
 
-  for(int i = 0; i < (len-1); i++){
-    tempCp = start+i+1;
+  auto allBkps = arma::regspace<arma::ivec>(start, jump, end); //all breakpoinbts
+  allBkps = allBkps(arma::find((allBkps - start >= minSize) % (end - allBkps >= minSize)));
+
+  for(int i = 0; i < allBkps.n_elem; i++){
+
+    tempCp = allBkps(i);
     lErr = Xnew.effEvalCpp(start,tempCp);
     rErr = Xnew.effEvalCpp(tempCp,end);
     err = lErr + rErr;
@@ -79,14 +84,20 @@ inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end
 }
 
 // [[Rcpp::export]]
-List binSegCpp(const arma::mat& tsMat, const int& maxNRegimes) {
+List binSegCpp2(const arma::mat& tsMat, const double& penalty = 0,
+                const int& minSize = 1,  const int& jump = 1) {
 
   Cost Xnew(tsMat);
   int nr = Xnew.nr;
 
+  if(nr < 2*minSize){
+    stop("Number of observations < 2*minSize");
+  }
+
+  const int& maxNRegimes = std::floor(nr / minSize);
   NumericVector cost(maxNRegimes);
   double initCost = Xnew.effEvalCpp(0,nr);
-  Segment seg0 = miniOptHeapCpp(Xnew, 0, nr, initCost);
+  Segment seg0 = miniOptHeapCpp2(Xnew, 0, nr, minSize, jump, initCost);
 
   IntegerVector changePoints(maxNRegimes-1);
 
@@ -103,11 +114,15 @@ List binSegCpp(const arma::mat& tsMat, const int& maxNRegimes) {
     Segment bestSeg = heap.top();
     heap.pop();
 
+    if(bestSeg.gain < -1){
+      break;
+    }
+
     changePoints[idx] = bestSeg.cp;
     idx++;
-    cost[idx] = cost[idx-1] - bestSeg.gain;
-    Segment leftSeg = miniOptHeapCpp(Xnew, bestSeg.start, bestSeg.cp, bestSeg.lErr);
-    Segment rightSeg = miniOptHeapCpp(Xnew, bestSeg.cp, bestSeg.end, bestSeg.rErr);
+    cost[idx] = cost[idx-1] - bestSeg.gain + penalty;
+    Segment leftSeg = miniOptHeapCpp2(Xnew, bestSeg.start, bestSeg.cp, minSize, jump, bestSeg.lErr);
+    Segment rightSeg = miniOptHeapCpp2(Xnew, bestSeg.cp, bestSeg.end, minSize, jump, bestSeg.rErr);
 
     heap.push(leftSeg);
     heap.push(rightSeg);
@@ -121,8 +136,9 @@ List binSegCpp(const arma::mat& tsMat, const int& maxNRegimes) {
 
 
   return List::create(
-    Named("changePoints") = changePoints,
-    Named("cost") = cost
+    Named("nBkps") = nRegimes-1,
+    Named("Bkps") = changePoints[Range(0,nRegimes-2)],
+                                Named("cost") = cost[Range(0,nRegimes-2)]
   );
 
 
