@@ -130,7 +130,7 @@ List binSegCpp(const arma::mat& tsMat, const double& penalty = 0,
     nRegimes++;
 
   } while(nRegimes < maxNRegimes);
-
+  //Need to check if the last cost has been computed? NO! => future feature
   Segment bestSeg = heap.top();
   changePoints[idx] = bestSeg.cp;
 
@@ -138,7 +138,7 @@ List binSegCpp(const arma::mat& tsMat, const double& penalty = 0,
   return List::create(
     Named("nBkps") = nRegimes-1,
     Named("Bkps") = changePoints[Range(0,nRegimes-2)],
-                                Named("cost") = cost[Range(0,nRegimes-2)]
+    Named("cost") = cost[Range(0,nRegimes-2)]
   );
 
 
