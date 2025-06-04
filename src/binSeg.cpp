@@ -23,7 +23,7 @@ struct Segment {
 // Fast implementation based on heap, which involves an O(1) search instead
 // of O(k) (see ../deprecated); also supports minSize, jump, and linear penalty
 
-inline Segment miniOptHeapCpp2(const Cost& Xnew, const int& start, const int& end,
+inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end,
                                const int& minSize = 1,  const int& jump = 1,
                                double totalErr = -1) {
 
@@ -84,7 +84,7 @@ inline Segment miniOptHeapCpp2(const Cost& Xnew, const int& start, const int& en
 }
 
 // [[Rcpp::export]]
-List binSegCpp2(const arma::mat& tsMat, const double& penalty = 0,
+List binSegCpp(const arma::mat& tsMat, const double& penalty = 0,
                 const int& minSize = 1,  const int& jump = 1) {
 
   Cost Xnew(tsMat);
@@ -97,7 +97,7 @@ List binSegCpp2(const arma::mat& tsMat, const double& penalty = 0,
   const int& maxNRegimes = std::floor(nr / minSize);
   NumericVector cost(maxNRegimes);
   double initCost = Xnew.effEvalCpp(0,nr);
-  Segment seg0 = miniOptHeapCpp2(Xnew, 0, nr, minSize, jump, initCost);
+  Segment seg0 = miniOptHeapCpp(Xnew, 0, nr, minSize, jump, initCost);
 
   IntegerVector changePoints(maxNRegimes-1);
 
@@ -121,8 +121,8 @@ List binSegCpp2(const arma::mat& tsMat, const double& penalty = 0,
     changePoints[idx] = bestSeg.cp;
     idx++;
     cost[idx] = cost[idx-1] - bestSeg.gain + penalty;
-    Segment leftSeg = miniOptHeapCpp2(Xnew, bestSeg.start, bestSeg.cp, minSize, jump, bestSeg.lErr);
-    Segment rightSeg = miniOptHeapCpp2(Xnew, bestSeg.cp, bestSeg.end, minSize, jump, bestSeg.rErr);
+    Segment leftSeg = miniOptHeapCpp(Xnew, bestSeg.start, bestSeg.cp, minSize, jump, bestSeg.lErr);
+    Segment rightSeg = miniOptHeapCpp(Xnew, bestSeg.cp, bestSeg.end, minSize, jump, bestSeg.rErr);
 
     heap.push(leftSeg);
     heap.push(rightSeg);
