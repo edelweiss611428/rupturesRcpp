@@ -3,7 +3,7 @@ using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
 #include "../src/Cost.h"
 
-inline List miniOptCpp(const Cost& Xnew, const int& start, const int& end) {
+inline List miniOptCpp_v1(const Cost& Xnew, const int& start, const int& end) {
 
   int len = end - start;
 
@@ -68,7 +68,7 @@ List binSegCpp_v1(const arma::mat& tsMat, const int& maxNRegimes) {
 
   Cost Xnew(tsMat);
   int nr = Xnew.nr;
-  List cpd0 = miniOptCpp(Xnew, 0, nr);
+  List cpd0 = miniOptCpp_v1(Xnew, 0, nr);
   if(maxNRegimes > nr){
     stop("The maximum number of regimes must be less than or equal to the number of observations.");;
   }
@@ -114,7 +114,7 @@ List binSegCpp_v1(const arma::mat& tsMat, const int& maxNRegimes) {
 
     for(int i = 0; i < nRegimes; i++){
 
-      List cpdi = miniOptCpp(Xnew, regimes[2*i], regimes[2*i+1]);
+      List cpdi = miniOptCpp_v1(Xnew, regimes[2*i], regimes[2*i+1]);
 
 
       if(not cpdi["valid"]){
@@ -159,7 +159,7 @@ List binSegCpp_v2(const arma::mat& tsMat, const int& maxNRegimes) {
 
   Cost Xnew(tsMat);
   int nr = Xnew.nr;
-  List cpd0 = miniOptCpp(Xnew, 0, nr);
+  List cpd0 = miniOptCpp_v1(Xnew, 0, nr);
   if(maxNRegimes > nr){
     stop("The maximum number of regimes must be less than or equal to the number of observations.");;
   }
@@ -214,7 +214,7 @@ List binSegCpp_v2(const arma::mat& tsMat, const int& maxNRegimes) {
       if(not visited[i]){
 
         visited[i] = true;
-        List cpdi = miniOptCpp(Xnew, regimes[2*i], regimes[2*i+1]);
+        List cpdi = miniOptCpp_v1(Xnew, regimes[2*i], regimes[2*i+1]);
 
 
         if(not cpdi["valid"]){
@@ -257,4 +257,130 @@ List binSegCpp_v2(const arma::mat& tsMat, const int& maxNRegimes) {
 
 }
 
+
+// Current structure for a segment:
+struct Segment {
+  int start;
+  int end;
+  bool valid;
+  int cp;
+  double gain;
+  double lErr;
+  double rErr;
+  double err;
+
+  // Max-heap: higher gain has higher priority
+  bool operator<(const Segment& other) const {
+    return gain < other.gain;
+  }
+};
+
+// miniOptHeap but does not support minSize & jump
+inline Segment miniOptHeapCpp_v1(const Cost& Xnew, const int& start, const int& end,
+                              double totalErr = -1) {
+
+  int len = end - start;
+
+  if(totalErr < 0){
+    totalErr = Xnew.effEvalCpp(start, end);
+  }
+
+  if(len == 1 or len == 0){
+
+    return Segment{start, end, true, start,
+                   - std::numeric_limits<double>::infinity(),
+                   std::numeric_limits<double>::infinity(),
+                   std::numeric_limits<double>::infinity(),
+                   std::numeric_limits<double>::infinity()};
+  } else if(len == 2){
+
+    return Segment{start, end, true, start+1,
+                   totalErr,
+                   0,
+                   0,
+                   0};
+  }
+
+  double minErr = std::numeric_limits<double>::infinity();
+  int cp;
+  int tempCp;
+  double err;
+  double lErr;
+  double rErr;
+  double minlErr;
+  double minrErr;
+
+  for(int i = 0; i < (len-1); i++){
+    tempCp = start+i+1;
+    lErr = Xnew.effEvalCpp(start,tempCp);
+    rErr = Xnew.effEvalCpp(tempCp,end);
+    err = lErr + rErr;
+
+    if(err < minErr){
+      minErr = err;
+      minlErr = lErr;
+      minrErr = rErr;
+      cp = tempCp;
+    }
+  }
+
+  return Segment{start, end, true, cp,
+                 totalErr - minErr,
+                 minlErr,
+                 minrErr,
+                 minErr};
+}
+
+// Fast implementation based on heap, which involves an O(1) search instead
+// of O(k) (see ../deprecated) ; however, it does not support minSize, jump, and penalty
+
+// // [[Rcpp::export]]
+List binSegCpp_v3(const arma::mat& tsMat, const int& maxNRegimes) {
+
+  Cost Xnew(tsMat);
+  int nr = Xnew.nr;
+
+  NumericVector cost(maxNRegimes);
+  double initCost = Xnew.effEvalCpp(0,nr);
+  Segment seg0 = miniOptHeapCpp_v1(Xnew, 0, nr, initCost);
+
+  IntegerVector changePoints(maxNRegimes-1);
+
+  cost[0] = initCost;
+
+  std::priority_queue<Segment> heap;
+  heap.push(Segment{0, nr, true, seg0.cp, seg0.gain, seg0.lErr, seg0.rErr, seg0.err});
+
+  int nRegimes = 2;
+  int idx = 0;
+
+  do {
+
+    Segment bestSeg = heap.top();
+    heap.pop();
+
+    changePoints[idx] = bestSeg.cp;
+    idx++;
+    cost[idx] = cost[idx-1] - bestSeg.gain;
+    Segment leftSeg = miniOptHeapCpp_v1(Xnew, bestSeg.start, bestSeg.cp, bestSeg.lErr);
+    Segment rightSeg = miniOptHeapCpp_v1(Xnew, bestSeg.cp, bestSeg.end, bestSeg.rErr);
+
+    heap.push(leftSeg);
+    heap.push(rightSeg);
+
+    nRegimes++;
+
+  } while(nRegimes < maxNRegimes);
+
+  Segment bestSeg = heap.top();
+  changePoints[idx] = bestSeg.cp;
+
+
+  return List::create(
+    Named("changePoints") = changePoints,
+    Named("cost") = cost
+  );
+
+
+}
 
