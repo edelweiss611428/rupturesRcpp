@@ -51,7 +51,7 @@ BinSegL2 <- R6Class(
         stop("d exceeds the number of dimensions in tsMat!!!")
       }
 
-      optBkps = self$predict(pen) #Optimal regimes
+      optBkps = self$predict(pen) #Optimal set of bkps
       nOptBkps = length(optBkps)
       color = rainbow(nOptBkps+1)
 
