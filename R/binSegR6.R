@@ -1,100 +1,70 @@
 #' @importFrom R6 R6Class
 #' @export
 
+library("R6")
+#Current only supports L2 metric
 BinSegL2 <- R6Class(
   "BinSegL2",
 
   public = list(
-    nr = NULL,
-    cp = NULL,
-    tsMat = NULL,
-    k = NULL,
-    fitted = FALSE,
-    output = NULL,
-    cost = NULL,
 
-    initialize = function(tsMat, k) {
-      self$tsMat = tsMat
-      self$nr = nrow(tsMat)
-      self$k = k
+    tsMat = NULL,
+    minSize = NULL,
+    jump = NULL,
+    fitted = FALSE,
+    bkps = NULL,
+    cost = NULL,
+    n = NULL,
+    p = NULL,
+
+    initialize = function(minSize = 1, jump = 1) {
+      self$minSize = minSize
+      self$jump = jump
       print("You have created a BinSegL2 object!")
     },
 
-    fit = function() {
-      self$output = binSegCpp(self$tsMat, self$k)
-      self$cp = self$output$changePoints
-      self$cost = self$output$cost
+    fit = function(tsMat) { #Add error handling for tsMat
+      self$tsMat = tsMat
+      self$n = nrow(tsMat)
+      self$p = ncol(tsMat)
+      detection = binSegCpp(self$tsMat, self$minSize, self$jump)
+      self$bkps = detection$bkps
+      self$cost = detection$cost
       self$fitted = TRUE
     },
 
-    plot = function(what = NULL,
-                    nRegimes = NULL, #number of changepoints
-                    main = NULL) {
+    predict = function(pen){
+      if(!self$fitted){
+        stop("Must run $fit() before running $predict()!!!")
+      }
+      return(sort(binSegPredCpp(self$bkps, self$cost, pen)))
+    },
 
-      if(is.null(main)){
-        main = "binSeg clustering"
+    plot = function(pen, d = 1, xlab = "Iteration", ylab = "Value", #Add error handling for (pen, d)
+                    main = paste0("Optimal binSeg with pen = ", round(pen,2))){
+
+      if(!self$fitted){
+        stop("Must run $fit() before running $plot()!!!")
       }
 
-      if(is.null(what)){
+      if(d > self$p){
+        stop("d exceeds the number of dimensions in tsMat!!!")
+      }
 
-        if(ncol(self$tsMat == 1)){ #Current version only plot the k-partition
+      optBkps = self$predict(pen) #Optimal regimes
+      nOptBkps = length(optBkps)
+      color = rainbow(nOptBkps+1)
 
-          if(!self$fitted){
-            ts.plot(self$tsMat, ylab = "X", main = main)
-            warning("Should have run the fit() method first!")
-          } else if (is.null(nRegimes)){
+      ts.plot(self$tsMat[,d], xlab = xlab, ylab = ylab, main = main, col = color[1])
 
-            ts.plot(self$tsMat, ylab = "X",
-                    main = main)
+      for(i in 1:nOptBkps){
 
-            sortedRegimes = c(sort(self$cp), self$nr)
-            colors = rainbow(self$k)
-            for(i in self$k:1){
-
-              lines(self$tsMat[1:sortedRegimes[i]], col = colors[i])
-
-            }
-
-          } else if (is.numeric(nRegimes) &
-                     length(nRegimes) == 1){
-
-            if(nRegimes == 1){
-              ts.plot(self$tsMat, ylab = "X",
-                      main = main)
-            } else if(nRegimes <= self$k){
-
-              tempCPts = self$cp[1:(nRegimes-1)]
-              ts.plot(self$tsMat, ylab = "X",
-                      main = main)
-
-              sortedRegimes = c(sort(tempCPts), self$nr)
-              colors = rainbow(nRegimes)
-              for(i in nRegimes:1){
-
-                lines(self$tsMat[1:sortedRegimes[i]], col = colors[i])
-
-              }
-
-            } else{
-              print("Invalid nRegimes!")
-            }
-          } else {
-            print("Invalid or unsupported method!")
-          }
-
-        } else {
-          print("Currently does not support high-dimensional plots!")
-        }
-
-      } else if (what == "cost"){
-
-        if(!self$fitted){
-          stop("Should have run the fit() method first!")
-        } else {
-          ts.plot(self$cost, xlab = "Number of regimes", ylab = "Cost")
-        }
+        lines(self$tsMat[1:optBkps[nOptBkps-i+1],d], col = color[i+1])
 
       }
+
+
+
 
     }
 
