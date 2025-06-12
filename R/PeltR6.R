@@ -2,9 +2,9 @@
 #' @export
 
 library("R6")
-#Current only supports L2 metric
-BinSegL2 <- R6Class(
-  "BinSegL2",
+
+PeltL2 <- R6Class(
+  "PeltL2",
 
   public = list(
 
@@ -12,24 +12,19 @@ BinSegL2 <- R6Class(
     minSize = NULL,
     jump = NULL,
     fitted = FALSE,
-    bkps = NULL,
-    cost = NULL,
     n = NULL,
     p = NULL,
 
     initialize = function(minSize = 1, jump = 1) {
       self$minSize = minSize
       self$jump = jump
-      print("You have created a BinSegL2 object!")
+      print("You have created a PeltL2 object!")
     },
 
     fit = function(tsMat) { #Add error handling for tsMat
       self$tsMat = tsMat
       self$n = nrow(tsMat)
       self$p = ncol(tsMat)
-      detection = binSegCpp(self$tsMat, self$minSize, self$jump)
-      self$bkps = detection$bkps
-      self$cost = detection$cost
       self$fitted = TRUE
     },
 
@@ -37,11 +32,17 @@ BinSegL2 <- R6Class(
       if(!self$fitted){
         stop("Must run $fit() before running $predict()!!!")
       }
-      return(sort(binSegPredCpp(self$bkps, self$cost, pen)))
+
+      endPts = sort(peltL2(self$tsMat, pen, #Change the function's name to PeltCpp
+                           minSize = self$minSize,
+                           jump = self$jump))
+      nEndPts = length(endPts)
+
+      return(endPts[-nEndPts]) #Remove n
     },
 
     plot = function(pen, d = 1, xlab = "Iteration", ylab = "Value", #Add error handling for (pen, d)
-                    main = paste0("Optimal binSeg with pen = ", round(pen,2))){
+                    main = paste0("peltSeg with pen = ", round(pen,2))){
 
       if(!self$fitted){
         stop("Must run $fit() before running $plot()!!!")
@@ -51,7 +52,7 @@ BinSegL2 <- R6Class(
         stop("d exceeds the number of dimensions in tsMat!!!")
       }
 
-      optBkps = self$predict(pen) #Optimal set of bkps
+      optBkps = self$predict(pen) #optimal set of bkps
       nOptBkps = length(optBkps)
       color = rainbow(nOptBkps+1)
 
@@ -62,9 +63,6 @@ BinSegL2 <- R6Class(
         lines(self$tsMat[1:optBkps[nOptBkps-i+1],d], col = color[i+1])
 
       }
-
-
-
 
     }
 
