@@ -21,7 +21,7 @@ struct Segment {
 };
 
 // Fast implementation based on heap, which involves an O(1) search instead
-// of O(k) (see ../deprecated); also supports minSize, jump, and linear penalty
+// of O(k) (see ../deprecated); also supports minSize, and jump.
 
 inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end,
                                const int& minSize = 1,  const int& jump = 1,
@@ -88,8 +88,7 @@ inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end
 }
 
 // [[Rcpp::export]]
-List binSegCpp(const arma::mat& tsMat, const double& penalty = 0,
-                const int& minSize = 1,  const int& jump = 1) {
+List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump = 1) {
 
   Cost Xnew(tsMat);
   int nr = Xnew.nr;
@@ -102,7 +101,6 @@ List binSegCpp(const arma::mat& tsMat, const double& penalty = 0,
   NumericVector cost(maxNRegimes);
   double initCost = Xnew.effEvalCpp(0,nr);
   Segment seg0 = miniOptHeapCpp(Xnew, 0, nr, minSize, jump, initCost);
-
   IntegerVector changePoints(maxNRegimes-1);
 
   cost[0] = initCost;
@@ -120,7 +118,8 @@ List binSegCpp(const arma::mat& tsMat, const double& penalty = 0,
 
     changePoints[idx] = bestSeg.cp;
     idx++;
-    cost[idx] = cost[idx-1] - bestSeg.gain + penalty;
+    cost[idx] = cost[idx-1] - bestSeg.gain;
+
     Segment leftSeg = miniOptHeapCpp(Xnew, bestSeg.start, bestSeg.cp, minSize, jump, bestSeg.lErr);
     Segment rightSeg = miniOptHeapCpp(Xnew, bestSeg.cp, bestSeg.end, minSize, jump, bestSeg.rErr);
     heap.push(leftSeg);
@@ -139,15 +138,40 @@ List binSegCpp(const arma::mat& tsMat, const double& penalty = 0,
 
   if(not failed){
     changePoints[idx] = heap.top().cp;
-    cost[idx] = cost[idx-1] - heap.top().gain + penalty;
+    cost[idx] = cost[idx-1] - heap.top().gain;
   }
 
 
   return List::create(
-    Named("nBkps") = nRegimes-1,
-    Named("Bkps") = changePoints[Range(0,nRegimes-2)],
+    Named("bkps") = changePoints[Range(0,nRegimes-2)],
     Named("cost") = cost[Range(0,nRegimes-1)]
   );
 
 
 }
+
+
+// [[Rcpp::export]]
+IntegerVector binSegPredCpp(const IntegerVector& bkps,
+                            const NumericVector& cost,
+                            const double& penalty = 0){
+
+  if(penalty <0){
+    stop("Penalty should be non-negative!");
+  }
+  NumericVector penCost = clone(cost);
+
+  for(int i = 0; i < cost.size(); i++){
+    penCost[i] = cost[i] + penalty*i;
+  }
+
+  int minIdx = which_min(penCost);
+
+  if(minIdx == 0){
+    stop("Wow, that's pretty bad that minIdx = 0!!!");
+  }
+
+  return bkps[Range(0, minIdx-1)];
+
+}
+
