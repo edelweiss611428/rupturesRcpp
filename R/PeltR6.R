@@ -71,40 +71,8 @@ PeltL2 <- R6Class(
       nEndPts = length(endPts)
 
       return(endPts[-nEndPts]) #Remove n
-    },
-
-    #' Plot PeltL2 segmentation results for a specified dimension - must be run after fitted
-    #' @param pen A non-negative double specifying a linear penaltu value for each additional
-    #' change-point.
-    #'
-    #' @return Return no value but input tsMat, n, and p, and fitted = TRUE.
-    #'
-    plot = function(pen, d = 1, xlab = "Iteration", ylab = "Value", #Add error handling for (pen, d)
-                    main = paste0("peltSeg with pen = ", round(pen,2))){
-
-      if(!self$fitted){
-        stop("Must run $fit() before running $plot()!!!")
-      }
-
-      if(d > self$p){
-        stop("d exceeds the number of dimensions in tsMat!!!")
-      }
-
-      optBkps = self$predict(pen) #optimal set of bkps
-      nOptBkps = length(optBkps)
-      color = rainbow(nOptBkps+1)
-
-      ts.plot(self$tsMat[,d], xlab = xlab, ylab = ylab, main = main, col = color[1])
-
-      for(i in 1:nOptBkps){
-
-        lines(self$tsMat[1:optBkps[nOptBkps-i+1],d], col = color[i+1])
-
-      }
-
     }
-
-  ),
+  )
 
 )
 
