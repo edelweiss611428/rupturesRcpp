@@ -1,76 +1,187 @@
-#' PeltL2
+#' Pruned Exact Linear Time (PELT)
 #'
-#' An R6 class implements Pelt for offline changepoint detection,
-#' currently only supports the L2 cost function.
+#' An R6 class implements PELT for offline changepoint detection, currently only supports the L2 cost function.
 #'
 #' @docType class
 #'
 #' @importFrom R6 R6Class
 #' @export
-#'
-#' @field tsMat A time series matrix of size $n \times p$ where
-#' where each row is an observation ordered in time.
-#' @field minSize An integer specifying the minimum size of a segment; by default, minSize = 1.
-#' @field jump  An integer value defines the step size for the search grid during changepoint
-#' detection -  only candidates changepoints \{1,k+1,2k+1,...\}  will be considered.
-#' @field fitted  A boolean value specifies whether or not PeltL2 has been fitted on a dataset
-#'- otherwise methods like $plot() and $predict() will return an error; by default, fitted = FALSE.
-#' @field n The number of observations.
-#' @field p The number of dimensions.
 
-PeltL2 <- R6Class(
-  "PeltL2",
+PELT = R6Class(
+  "PELT",
+
+  private = list(
+
+    .minSize = 1L,
+    .jump = 1L,
+    .costFunc = "L2",
+    .tsMat = NULL,
+    .fitted = FALSE,
+    .n = NULL,
+    .p = NULL
+
+  ),
+
+  active = list(
+
+    #' @field minSize An active binding. Sets the internal variable \code{.minSize} but should not be called directly.
+    minSize = function(intVal) {
+      if (missing(intVal)) return(private$.minSize)
+      if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
+        stop("minSize must be a single positive integer!")
+      }
+      private$.minSize = as.integer(intVal)
+    },
+
+    #' @field jump An active binding. Sets the internal variable \code{.jump} but should not be called directly.
+    jump = function(intVal) {
+      if (missing(intVal)) return(private$.jump)
+      if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
+        stop("jump must be a single positive integer!")
+      }
+      private$.jump = as.integer(intVal)
+    },
+
+    #' @field costFunc An active binding. Sets the internal variable \code{.costFunc} but should not be called directly.
+    costFunc = function(charVal) {
+      if (missing(charVal)) return(private$.costFunc)
+      if (is.null(charVal) || !is.character(charVal) || length(charVal) != 1) {
+        stop("costFunc must be a single string!")
+      } else{
+        if(!charVal %in% c("L2")){
+          stop("costFunc is not support!")
+        }
+      }
+      private$.costFunc = charVal
+    },
+
+    #' @field tsMat An active binding. Sets the internal variable \code{.tsMat} but should not be called directly.
+    tsMat = function(numMat) {
+      if (is.null(tsMat) || !is.numeric(numMat) || !is.matrix(numMat)) {
+        stop("tsMat must be a numeric time series matrix!")
+      }
+      private$.tsMat = numMat
+    }
+
+  ),
 
   public = list(
 
-    tsMat = NULL,
-    minSize = NULL,
-    jump = NULL,
-    fitted = FALSE,
-    n = NULL,
-    p = NULL,
+    #' @description Initialises a PELT object.
+    #'
+    #' @param minSize An integer specifying the minimum segment size. By default, minSize = 1L.
+    #' @param jump An integer $k$ defining the search grid - only candidate changepoints in \{1,k+1,2k+1,...\}
+    #' will be considered. By default, jump = 1L.
+    #' @param costFunc A string specifying a cost function. Currently, only "L2" is supported.
+    #'
+    #' @return Invisibly returns NULL. Creates a PELT object with params minSize, jump, and costFunc.
+    #'
+    #' @examples
+    #' peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
 
-    #' Initialise a PeltL2 object
-    #' @param minSize An integer specifying the minimum regime size - is 1 by default.
-    #' @param jump <int> An integer determines the search space - only changepoints
-    #'  \{1,k+1,2k+1,...\}  will be considered; by default jump = 1.
-    #' @return Return no value but initialise a PeltL2 object with minSize and jump
-    #' parameters.
-    #
-    initialize = function(minSize = 1, jump = 1) {
+    initialize = function(minSize = 1L, jump = 1L, costFunc = "L2") {
       self$minSize = minSize
       self$jump = jump
-      print("You have created a PeltL2 object!")
+      self$costFunc = costFunc
+      print("You have created a PELT object!")
+
+      invisible(NULL)
     },
 
-    #' Input a time series matrix for PeltL2 changepoint detection
-    #' @param tsMat A time series matrix of size $n \times p$ where
-    #' where each row is an observation ordered in time.
-    #' @return Return no value but input tsMat, n, and p, and fitted = TRUE.
+    #' @description Describes a PELT object.
     #'
-    fit = function(tsMat) { #Add error handling for tsMat
+    #' @return Invisibly returns a list containing the following fields of the PELT object:
+    #' \describe{
+    #'   \item{\code{minSize}}{The minimum segment size.}
+    #'   \item{\code{jump}}{The integer $k$ defining the search grid \{1,k+1,2k+1,...\}.}
+    #'   \item{\code{costFunc}}{The cost function.}
+    #'   \item{\code{fitted}}{A boolean indicating whether or not $fit() has been run.}
+    #'   \item{\code{tsMat}}{The input time series matrix.}
+    #'   \item{\code{n}}{The number of observations in tsMat.}
+    #'   \item{\code{p}}{The number of features in tsMat.}
+    #' }
+    #'
+    #' @examples
+    #' peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+    #' peltObj$describe()
+
+    describe = function() {
+
+      cat(sprintf("Pruned Exact Linear Time (PELT) \n"))
+      cat(sprintf("minSize  : %sL\n", private$.minSize))
+      cat(sprintf("jump     : %sL\n", private$.jump))
+      cat(sprintf("costFunc : \"%s\"\n", private$.costFunc))
+      cat(sprintf("fitted   : %s\n", private$.fitted))
+      cat(sprintf("n        : %sL\n", private$.n))
+      cat(sprintf("p        : %sL\n", private$.p))
+
+
+      params = list(minSize = private$.minSize,
+                    jump = private$.minSize,
+                    costFunc = private$.costFunc,
+                    fitted = private$.fitted,
+                    tsMat = private$.tsMat,
+                    n = private$.n,
+                    p = private$.p)
+
+      invisible(params)
+
+    },
+
+    #' @description Takes a time series matrix as input.
+    #'
+    #' @param tsMat tsMat A time series matrix of size \eqn{n \times p}whose rows are observations ordered in time.
+    #'
+    #' @return Invisibly returns NULL. Initialises .tsMat, .n, and .p, and sets private$.fitted to TRUE,
+    #' enabling the use of $predict().
+    #'
+    #' @examples
+    #' peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+    #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+    #' peltObj$fit(tsMat)
+
+    fit = function(tsMat) {
       self$tsMat = tsMat
-      self$n = nrow(tsMat)
-      self$p = ncol(tsMat)
-      self$fitted = TRUE
+      private$.n = nrow(tsMat)
+      private$.p = ncol(tsMat)
+      private$.fitted = TRUE #Needed for the $predict() method.
+      invisible(NULL)
     },
 
-    #' Carry out change-point detection for a specified penalty - must be run after fitted!
-    #' @param pen A non-negative double specifying a linear penaltu value for each additional
-    #' change-point.
-    #' @return Return no value but input tsMat, n, and p, and fitted = TRUE.
+    #' @description Performs PELT given a linear penalty value.
     #'
-    predict = function(pen = 0){
-      if(!self$fitted){
-        stop("Must run $fit() before running $predict()!!!")
+    #' @param pen A single non-negative numeric value specifying a penalty for each additional changepoint. By default,
+    #' pen = NULL, which forces pen = 2*log(n).
+    #'
+    #' @return A vector of indexes corresponding to the end point of each regime. By design, the last element
+    #' of the vector is the number of observations.
+    #'
+    #' @examples
+    #' peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+    #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+    #' peltObj$fit(tsMat)
+    #' peltObj$predict(pen = NULL)
+
+    predict = function(pen = NULL){
+
+      if(is.null(pen)){
+         pen = 2*log(private$.n)
       }
 
-      endPts = sort(peltL2(self$tsMat, pen, #Change the function's name to PeltCpp
-                           minSize = self$minSize,
-                           jump = self$jump))
-      nEndPts = length(endPts)
+      if(!private$.fitted){
+        stop("$fit() must be run before $predict()!")
+      }
 
-      return(endPts[-nEndPts]) #Remove n
+      if(!is.numeric(pen) || length(pen)!= 1 || pen < 0){
+        stop("pen must be a single non-negative numeric value!")
+      }
+
+      endPts = sort(peltL2(private$.tsMat,
+                           pen,
+                           minSize = private$.minSize,
+                           jump = private$.jump))
+
+      return(endPts)
     }
   )
 
