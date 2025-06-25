@@ -3,23 +3,24 @@
 \docType{class}
 \name{binSeg}
 \alias{binSeg}
-\title{Pruned Exact Linear Time (PELT)}
+\title{Binary Segmentation (binSeg)}
 \description{
-An R6 class implementing the PELT algorithm for offline changepoint detection.
+An R6 class implementing binary segmentation for offline changepoint detection.
 }
 \details{
-PELT (Pruned Exact Linear Time) is an efficient algorithm for changepoint detection
-that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
+Binary segmentation is a classic algorithm for changepoint detection that recursively
+splits the data at locations that minimise the cost function.
 
-This implementation currently only supports the L2 cost function.
+This implementation currently only supports L2 cost function.
 }
 \section{Methods}{
 
 \describe{
-\item{\code{$new()}}{Initialises a PELT object.}
-\item{\code{$describe()}}{Describes a PELT object.}
-\item{\code{$fit()}}{Takes a time series matrix as input.}
-\item{\code{$predict()}}{Performs PELT given a linear penalty value.}
+\item{\code{$new()}}{Initialises a binSeg object.}
+\item{\code{$describe()}}{Describes a binSeg object.}
+\item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
+maximum number of changepoints.}
+\item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
 }
 }
 
@@ -55,6 +56,12 @@ binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
 binSegObj$fit(tsMat)
 binSegObj$predict(pen = NULL)
+}
+\references{
+Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
+Signal Processing, 167, 107299.
+
+Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation. arXiv preprint arXiv:2410.08654.
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}

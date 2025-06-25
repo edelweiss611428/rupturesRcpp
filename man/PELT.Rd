@@ -5,13 +5,24 @@
 \alias{PELT}
 \title{Pruned Exact Linear Time (PELT)}
 \description{
-Pruned Exact Linear Time (PELT)
-
-Pruned Exact Linear Time (PELT)
+An R6 class implementing the PELT algorithm for offline changepoint detection.
 }
 \details{
-An R6 class implements PELT for offline changepoint detection, currently only supports the L2 cost function.
+PELT (Pruned Exact Linear Time) is an efficient algorithm for changepoint detection
+that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
+
+This implementation currently only supports the L2 cost function.
 }
+\section{Methods}{
+
+\describe{
+\item{\code{$new()}}{Initialises a PELT object.}
+\item{\code{$describe()}}{Describes a PELT object.}
+\item{\code{$fit()}}{Takes a time series matrix as input.}
+\item{\code{$predict()}}{Performs PELT given a linear penalty value.}
+}
+}
+
 \examples{
 
 ## ------------------------------------------------
@@ -43,6 +54,13 @@ peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
 peltObj$fit(tsMat)
 peltObj$predict(pen = NULL)
+}
+\references{
+Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
+Signal Processing, 167, 107299.
+
+Killick, R., Fearnhead, P., & Eckley, I. A. (2012). Optimal detection of changepoints with a linear computational cost.
+Journal of the American Statistical Association, 107(500), 1590-1598.
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
