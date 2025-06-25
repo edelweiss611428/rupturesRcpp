@@ -1,23 +1,25 @@
-#' Pruned Exact Linear Time (PELT)
+#' Binary Segmentation (binSeg)
 #'
-#' @description An R6 class implementing the PELT algorithm for offline changepoint detection.
+#' @description An R6 class implementing binary segmentation for offline changepoint detection.
+#'
 #'
 #' @docType class
 #' @importFrom R6 R6Class
 #' @export
 #'
 #' @details
-#' PELT (Pruned Exact Linear Time) is an efficient algorithm for changepoint detection
-#' that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
+#' Binary segmentation is a classic algorithm for changepoint detection that recursively
+#' splits the data at locations that minimise the cost function.
 #'
-#' This implementation currently only supports the L2 cost function.
+#' This implementation currently only supports L2 cost function.
 #'
 #' @section Methods:
 #' \describe{
-#'   \item{\code{$new()}}{Initialises a PELT object.}
-#'   \item{\code{$describe()}}{Describes a PELT object.}
-#'   \item{\code{$fit()}}{Takes a time series matrix as input.}
-#'   \item{\code{$predict()}}{Performs PELT given a linear penalty value.}
+#'   \item{\code{$new()}}{Initialises a binSeg object.}
+#'   \item{\code{$describe()}}{Describes a binSeg object.}
+#'   \item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
+#' maximum number of changepoints.}
+#'   \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
 #' }
 #'
 #' @docType class

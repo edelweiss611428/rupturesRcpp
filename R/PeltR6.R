@@ -1,6 +1,24 @@
 #' Pruned Exact Linear Time (PELT)
 #'
-#' An R6 class implements PELT for offline changepoint detection, currently only supports the L2 cost function.
+#' @description An R6 class implementing the PELT algorithm for offline changepoint detection.
+#'
+#' @docType class
+#' @importFrom R6 R6Class
+#' @export
+#'
+#' @details
+#' PELT (Pruned Exact Linear Time) is an efficient algorithm for changepoint detection
+#' that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
+#'
+#' This implementation currently only supports the L2 cost function.
+#'
+#' @section Methods:
+#' \describe{
+#'   \item{\code{$new()}}{Initialises a PELT object.}
+#'   \item{\code{$describe()}}{Describes a PELT object.}
+#'   \item{\code{$fit()}}{Takes a time series matrix as input.}
+#'   \item{\code{$predict()}}{Performs PELT given a linear penalty value.}
+#' }
 #'
 #' @docType class
 #'
