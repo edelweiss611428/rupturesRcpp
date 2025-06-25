@@ -189,7 +189,7 @@ binSeg = R6Class(
     #' @description Performs binSeg given a linear penalty value.
     #'
     #' @param pen A single non-negative numeric value specifying a penalty for each additional changepoint. By default,
-    #' pen = NULL, which forces pen = 2*log(n).
+    #' pen = NULL, which forces pen = log(n).
     #'
     #' @return A vector of indexes corresponding to the end point of each regime. By design, the last element
     #' of the vector is the number of observations.
@@ -203,7 +203,7 @@ binSeg = R6Class(
     predict = function(pen = NULL){
 
       if(is.null(pen)){
-        pen = 2*log(private$.n)
+        pen = log(private$.n)
       }
 
       if(!private$.fitted){
