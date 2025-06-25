@@ -1,4 +1,5 @@
 #include <RcppArmadillo.h>
+#include <queue>
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
 #include "Cost.h"
