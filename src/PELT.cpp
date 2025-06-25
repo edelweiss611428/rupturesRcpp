@@ -80,8 +80,8 @@ std::vector<int> peltL2(const arma::mat& tsMat, const double penalty, const int 
     for (int kLastBkp = 0; kLastBkp < nAdmissibleBkps; ++kLastBkp)
     {
       const int lastBkp = admissibleBkps[kLastBkp];
-      if (const double currentCost = tmpCostVec[kLastBkp]; socVec[lastBkp] + currentCost <= minSoc)
-      {
+      const double currentCost = tmpCostVec[kLastBkp];
+      if (socVec[lastBkp] + currentCost <= minSoc) {
         admissibleBkps[nAdmissibleBkpsNew++] = lastBkp;
       }
     }
