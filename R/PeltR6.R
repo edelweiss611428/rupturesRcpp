@@ -20,6 +20,13 @@
 #'   \item{\code{$predict()}}{Performs PELT given a linear penalty value.}
 #' }
 #'
+#' @references
+#' Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
+#' Signal Processing, 167, 107299.
+#'
+#' Killick, R., Fearnhead, P., & Eckley, I. A. (2012). Optimal detection of changepoints with a linear computational cost.
+#' Journal of the American Statistical Association, 107(500), 1590-1598.
+#'
 #' @docType class
 #'
 #' @importFrom R6 R6Class

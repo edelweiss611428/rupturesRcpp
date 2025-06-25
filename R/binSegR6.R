@@ -22,6 +22,12 @@
 #'   \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
 #' }
 #'
+#' @references
+#' Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
+#' Signal Processing, 167, 107299.
+#'
+#' Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation. arXiv preprint arXiv:2410.08654.
+#'
 #' @docType class
 #'
 #' @importFrom R6 R6Class
