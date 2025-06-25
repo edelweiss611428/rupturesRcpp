@@ -11,21 +11,51 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// binSegCpp
-List binSegCpp(const arma::mat& tsMat, const int& maxNRegimes);
-RcppExport SEXP _rupturesRcpp_binSegCpp(SEXP tsMatSEXP, SEXP maxNRegimesSEXP) {
+// peltL2
+std::vector<int> peltL2(const arma::mat& tsMat, const double penalty, const int minSize, const int jump);
+RcppExport SEXP _rupturesRcpp_peltL2(SEXP tsMatSEXP, SEXP penaltySEXP, SEXP minSizeSEXP, SEXP jumpSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type tsMat(tsMatSEXP);
-    Rcpp::traits::input_parameter< const int& >::type maxNRegimes(maxNRegimesSEXP);
-    rcpp_result_gen = Rcpp::wrap(binSegCpp(tsMat, maxNRegimes));
+    Rcpp::traits::input_parameter< const double >::type penalty(penaltySEXP);
+    Rcpp::traits::input_parameter< const int >::type minSize(minSizeSEXP);
+    Rcpp::traits::input_parameter< const int >::type jump(jumpSEXP);
+    rcpp_result_gen = Rcpp::wrap(peltL2(tsMat, penalty, minSize, jump));
+    return rcpp_result_gen;
+END_RCPP
+}
+// binSegCpp
+List binSegCpp(const arma::mat& tsMat, const int& minSize, const int& jump);
+RcppExport SEXP _rupturesRcpp_binSegCpp(SEXP tsMatSEXP, SEXP minSizeSEXP, SEXP jumpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type tsMat(tsMatSEXP);
+    Rcpp::traits::input_parameter< const int& >::type minSize(minSizeSEXP);
+    Rcpp::traits::input_parameter< const int& >::type jump(jumpSEXP);
+    rcpp_result_gen = Rcpp::wrap(binSegCpp(tsMat, minSize, jump));
+    return rcpp_result_gen;
+END_RCPP
+}
+// binSegPredCpp
+IntegerVector binSegPredCpp(const IntegerVector& bkps, const NumericVector& cost, const double& penalty);
+RcppExport SEXP _rupturesRcpp_binSegPredCpp(SEXP bkpsSEXP, SEXP costSEXP, SEXP penaltySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerVector& >::type bkps(bkpsSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type cost(costSEXP);
+    Rcpp::traits::input_parameter< const double& >::type penalty(penaltySEXP);
+    rcpp_result_gen = Rcpp::wrap(binSegPredCpp(bkps, cost, penalty));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rupturesRcpp_binSegCpp", (DL_FUNC) &_rupturesRcpp_binSegCpp, 2},
+    {"_rupturesRcpp_peltL2", (DL_FUNC) &_rupturesRcpp_peltL2, 4},
+    {"_rupturesRcpp_binSegCpp", (DL_FUNC) &_rupturesRcpp_binSegCpp, 3},
+    {"_rupturesRcpp_binSegPredCpp", (DL_FUNC) &_rupturesRcpp_binSegPredCpp, 3},
     {NULL, NULL, 0}
 };
 
