@@ -1,6 +1,32 @@
 #' Binary Segmentation (binSeg)
 #'
-#' An R6 class implements binSeg for offline changepoint detection, currently only supports the L2 cost function.
+#' @description An R6 class implementing binary segmentation for offline changepoint detection.
+#'
+#'
+#' @docType class
+#' @importFrom R6 R6Class
+#' @export
+#'
+#' @details
+#' Binary segmentation is a classic algorithm for changepoint detection that recursively
+#' splits the data at locations that minimise the cost function.
+#'
+#' This implementation currently only supports L2 cost function.
+#'
+#' @section Methods:
+#' \describe{
+#'   \item{\code{$new()}}{Initialises a binSeg object.}
+#'   \item{\code{$describe()}}{Describes a binSeg object.}
+#'   \item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
+#' maximum number of changepoints.}
+#'   \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
+#' }
+#'
+#' @references
+#' Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
+#' Signal Processing, 167, 107299.
+#'
+#' Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation. arXiv preprint arXiv:2410.08654.
 #'
 #' @docType class
 #'
@@ -72,7 +98,7 @@ binSeg = R6Class(
     #' @description Initialises a binSeg object.
     #'
     #' @param minSize An integer specifying the minimum segment size. By default, minSize = 1L.
-    #' @param jump An integer $k$ defining the search grid - only candidate changepoints in \{1,k+1,2k+1,...\}
+    #' @param jump An integer k defining the search grid - only candidate changepoints in \{1,k+1,2k+1,...\}
     #' will be considered. By default, jump = 1L.
     #' @param costFunc A string specifying a cost function. Currently, only "L2" is supported.
     #'
@@ -95,7 +121,7 @@ binSeg = R6Class(
     #' @return Invisibly returns a list containing the following fields of the binSeg object:
     #' \describe{
     #'   \item{\code{minSize}}{The minimum segment size.}
-    #'   \item{\code{jump}}{The integer $k$ defining the search grid \{1,k+1,2k+1,...\}.}
+    #'   \item{\code{jump}}{The integer k defining the search grid \{1,k+1,2k+1,...\}.}
     #'   \item{\code{costFunc}}{The cost function.}
     #'   \item{\code{fitted}}{A boolean indicating whether or not $fit() has been run.}
     #'   \item{\code{tsMat}}{The input time series matrix.}

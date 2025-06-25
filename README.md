@@ -23,7 +23,8 @@
 
 If you use `ruptures` in a scientific publication, we would appreciate citations to the following paper:
 
-- C. Truong, L. Oudre, N. Vayatis. Selective review of offline change point detection methods. _Signal Processing_, 167:107299, 2020. [[journal]](https://doi.org/10.1016/j.sigpro.2019.107299) [[pdf]](http://www.laurentoudre.fr/publis/TOG-SP-19.pdf)
+- Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
+#' Signal Processing, 167, 107299. [[journal]](https://doi.org/10.1016/j.sigpro.2019.107299) [[pdf]](http://www.laurentoudre.fr/publis/TOG-SP-19.pdf)
 
 
 ## Installation
