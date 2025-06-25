@@ -81,7 +81,7 @@ Initialises a PELT object.
 \describe{
 \item{\code{minSize}}{An integer specifying the minimum segment size. By default, minSize = 1L.}
 
-\item{\code{jump}}{An integer $k$ defining the search grid - only candidate changepoints in \{1,k+1,2k+1,...\}
+\item{\code{jump}}{An integer k defining the search grid - only candidate changepoints in \{1,k+1,2k+1,...\}
 will be considered. By default, jump = 1L.}
 
 \item{\code{costFunc}}{A string specifying a cost function. Currently, only "L2" is supported.}
@@ -113,7 +113,7 @@ Describes a PELT object.
 Invisibly returns a list containing the following fields of the PELT object:
 \describe{
 \item{\code{minSize}}{The minimum segment size.}
-\item{\code{jump}}{The integer $k$ defining the search grid \{1,k+1,2k+1,...\}.}
+\item{\code{jump}}{The integer k defining the search grid \{1,k+1,2k+1,...\}.}
 \item{\code{costFunc}}{The cost function.}
 \item{\code{fitted}}{A boolean indicating whether or not $fit() has been run.}
 \item{\code{tsMat}}{The input time series matrix.}

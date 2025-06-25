@@ -70,7 +70,7 @@ PELT = R6Class(
     #' @description Initialises a PELT object.
     #'
     #' @param minSize An integer specifying the minimum segment size. By default, minSize = 1L.
-    #' @param jump An integer $k$ defining the search grid - only candidate changepoints in \{1,k+1,2k+1,...\}
+    #' @param jump An integer k defining the search grid - only candidate changepoints in \{1,k+1,2k+1,...\}
     #' will be considered. By default, jump = 1L.
     #' @param costFunc A string specifying a cost function. Currently, only "L2" is supported.
     #'
@@ -93,7 +93,7 @@ PELT = R6Class(
     #' @return Invisibly returns a list containing the following fields of the PELT object:
     #' \describe{
     #'   \item{\code{minSize}}{The minimum segment size.}
-    #'   \item{\code{jump}}{The integer $k$ defining the search grid \{1,k+1,2k+1,...\}.}
+    #'   \item{\code{jump}}{The integer k defining the search grid \{1,k+1,2k+1,...\}.}
     #'   \item{\code{costFunc}}{The cost function.}
     #'   \item{\code{fitted}}{A boolean indicating whether or not $fit() has been run.}
     #'   \item{\code{tsMat}}{The input time series matrix.}
