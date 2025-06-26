@@ -79,34 +79,49 @@ n        : 200L
 p        : 2L
 </pre>
 
-To obtain an estimated segmentation, we can run $predict() and specify a non-negative penalty value for each additional change point. After running $predict(), a temporary segmentation result is saved to the object, which allows us to plot the segmentation results by dimension without explicitly specifying the segmentation results, although that option is viable.
+To obtain an estimated segmentation, we can run $predict() and specify a non-negative penalty value for each additional change point. This returns a sorted integer vector of end points,which includes the number of observations by design.
 
-The $plot() method is based on facet_wrap from ggplot2, allowing users to specify the number of columns in the layout. Users can also use the layout operators | and / from patchwork to stack plots.
+After running $predict(), a temporary segmentation result is saved to the object, which allows us to plot the segmentation results by dimension without explicitly specifying the segmentation results, although that option is viable. The $plot() method is based on facet_wrap from ggplot2, allowing users to specify the number of columns in the layout. Users can also use the layout operators | and / from patchwork to stack plots.
 
 #### pen = 1 
 
 ```r
 binSegObj$predict(pen = 1)
+```
+
+```r
 pen1 = binSegObj$plot(d = 1:2, main = "binSeg: pen = 1", ncol = 2L)
 pen1
 ```
 
-![image](https://github.com/user-attachments/assets/97889fb6-216f-478f-a333-96d661496619)
+![image](https://github.com/user-attachments/assets/603095ed-71a0-4c22-8dc5-af38c5269e1a)
+
 
 #### pen = 25
 ```r
-
-binSegObj$predict(pen = 25)
+binSegObj$predict(pen = 25) 
 pen25 = binSegObj$plot(d = 1:2, main = "binSeg: pen = 25", ncol = 2L)
 pen25
 ```
-![image](https://github.com/user-attachments/assets/3b8db331-e3ad-413d-bdc1-2aa7b6320f20)
+![image](https://github.com/user-attachments/assets/dea22543-e057-44ae-a174-197d9c704aa5)
+
 
 #### Vertically stacked
 ```r
 
 pen1/pen25
 ```
-![image](https://github.com/user-attachments/assets/af085b6d-abc0-498c-a86a-77c14e8e8905)
+![image](https://github.com/user-attachments/assets/66c21f4a-bc9d-4096-8be8-464b16340952)
+
+#### User-provided endPts
+
+
+```r
+pred25 = binSegObj$predict(pen = 25) 
+pen25 = binSegObj$plot(d = 1:2, endPts = pred25, main = "binSeg: pen = 25", ncol = 2L)
+pen25
+```
+
+![image](https://github.com/user-attachments/assets/1ef897b6-9756-40c7-97fc-8819c6632101)
 
 
