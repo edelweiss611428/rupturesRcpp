@@ -40,20 +40,7 @@ install_github("edelweiss611428/rupturesRcpp")
 
 ### Data-generating process  
   
-We consider a simple 2d time series with two piecewise Gaussian regimes and constant spherical covariance:
-
-\[
-\mathbf{y}_t \sim \mathcal{N}(\boldsymbol{\mu}_t, \mathbf{I}_2),
-\]
-
-where $t = 1,2,\ldots,200$ and
-
-\[
-\boldsymbol{\mu}_t = \begin{cases}
-(0,0)^\top & \text{if } t \leq 100 \\
-(5,5)^\top & \text{if } t > 100.
-\end{cases}
-\]
+We consider a simple 2d time series with two piecewise Gaussian regimes and constant spherical covariance.
 
 
 ```r
@@ -72,12 +59,12 @@ First, we initialise a binSeg object with minSize = 1L, jump = 1L, and costFunc 
 ```r
 binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2") 
 ```
-To input a time series matrix and perform binSeg with the maximum number of regimes, we can use $fit(). This is needed for $predict().
+To input a time series matrix and perform binSeg with the maximum number of regimes, we can use $fit(). This is also needed for $predict(). 
 
 ```r
 binSegObj$fit(tsMat) 
 ```
-To print configurations of the binSeg object, we can use $describe(). This will invisibly return a list containing several fields of the binSeg object.
+To print the configurations of the binSeg object, we can use $describe(). This will invisibly return a list containing several fields of the binSeg object.
 
 ```r
 binSegObj$describe() 
@@ -94,7 +81,7 @@ p        : 2L
 
 To obtain an estimated segmentation, we can run $predict() and specify a non-negative penalty value for each additional change point. After running $predict(), a temporary segmentation result is saved to the object, which allows us to plot the segmentation results by dimension without explicitly specifying the segmentation results, although that option is viable.
 
-The $plot() method is based on facet_wrap from ggplot2, allowing users to specify the number of columns in the layout. Users can also use the layout operators | and / from "patchwork" to stack plots.
+The $plot() method is based on facet_wrap from ggplot2, allowing users to specify the number of columns in the layout. Users can also use the layout operators | and / from patchwork to stack plots.
 
 #### pen = 1 
 
@@ -110,7 +97,7 @@ pen1
 ```r
 
 binSegObj$predict(pen = 25)
-pen25 = binSegObj$plot(d = 1:2, main = "binSeg: pen = 25", ncol = 1L)
+pen25 = binSegObj$plot(d = 1:2, main = "binSeg: pen = 25", ncol = 2L)
 pen25
 ```
 ![image](https://github.com/user-attachments/assets/3b8db331-e3ad-413d-bdc1-2aa7b6320f20)
