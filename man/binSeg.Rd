@@ -21,7 +21,8 @@ This implementation currently only supports L2 cost function.
 \item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
 maximum number of change points.}
 \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
-\item{\code{$predict()}}{Clone the binSeg object.}
+\item{\code{$plot()}}{Plots change point segmentation in ggplot/patchwork style.}
+\item{\code{$clone()}}{Clone the binSeg object.}
 }
 }
 
@@ -56,7 +57,20 @@ binSegObj$fit(tsMat)
 binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
 binSegObj$fit(tsMat)
-binSegObj$predict(pen = NULL)
+binSegObj$predict()
+
+## ------------------------------------------------
+## Method `binSeg$plot`
+## ------------------------------------------------
+
+binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
+tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+binSegObj$fit(tsMat)
+binSegObj$predict(pen = 1)
+pen1 = binSegObj$plot(main = "binSeg: pen = 1")
+binSegObj$predict(pen = 25)
+pen25 = binSegObj$plot(main = "binSeg: pen = 25")
+pen 1 | pen 25
 }
 \references{
 Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
@@ -84,6 +98,7 @@ Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation.
 \item \href{#method-binSeg-describe}{\code{binSeg$describe()}}
 \item \href{#method-binSeg-fit}{\code{binSeg$fit()}}
 \item \href{#method-binSeg-predict}{\code{binSeg$predict()}}
+\item \href{#method-binSeg-plot}{\code{binSeg$plot()}}
 \item \href{#method-binSeg-clone}{\code{binSeg$clone()}}
 }
 }
@@ -206,14 +221,88 @@ pen is missing, which forces pen = log(n).}
 }
 \subsection{Returns}{
 A vector of indexes corresponding to the end point of each regime. By design, the last element
-of the vector is the number of observations.
+of the vector is the number of observations. Temporary end points are saved to private$.tmpEndPoints,
+which allows users to usethe $plot() method without specifying end points.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
 binSegObj$fit(tsMat)
-binSegObj$predict(pen = NULL)
+binSegObj$predict()
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-binSeg-plot"></a>}}
+\if{latex}{\out{\hypertarget{method-binSeg-plot}{}}}
+\subsection{Method \code{plot()}}{
+Plots change point segmentation
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$plot(
+  d = 1L,
+  endPts,
+  dimNames,
+  main,
+  xlab,
+  tsWidth = 0.25,
+  tsCol = "#5B9BD5",
+  bgCol = c("#A3C4F3", "#FBB1BD"),
+  bgAlpha = 0.5
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{d}}{An integer vector specifying dimensions to plot. By default, d = 1L.}
+
+\item{\code{endPts}}{An integer vector specifying end points! Could be obtained via $predict().").
+By default, endPts is missing, in which, the method will proceed to use the (latest) temporary
+changepoints obtained by running $predict().}
+
+\item{\code{dimNames}}{A character vector specifying feature names!", whose length must match that of d if not missing.
+By default, dimNames is missing, which forces dimNames = ("X1", "X2",...).}
+
+\item{\code{main}}{A character specifying the main title of the plot. By default, main is missing, in which the method
+will use the default title "binSeg: d = ...".}
+
+\item{\code{xlab}}{A character specifying the x-axis label. By default, xlab is missing, which force xlab = "Time".}
+
+\item{\code{tsWidth}}{A numeric value specifying the linewidth of the time series and also that of the segments' dashed lines.
+By default, tsWidth = 0.25.}
+
+\item{\code{tsCol}}{A character color of the plotted time series. By default, tsCol = "#5B9BD5".}
+
+\item{\code{bgCol}}{A character vector specifying segment colors. This will be repeated up to the length of
+endPts. By defaults, bgCol = c("#A3C4F3", "#FBB1BD").}
+
+\item{\code{bgAlpha}}{A numeric value specifying the degree of transparency of the background.
+By default, bgAlpha = 0.5.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+Plots change point segmentation results. Based on ggplot2 and patchwork. Multiple plots can easily be
+combined using / (vertically) and | (horizontally) operator.
+}
+
+\subsection{Returns}{
+An object of classes "patchwork"/"gg"/"ggplot".
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
+tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+binSegObj$fit(tsMat)
+binSegObj$predict(pen = 1)
+pen1 = binSegObj$plot(main = "binSeg: pen = 1")
+binSegObj$predict(pen = 25)
+pen25 = binSegObj$plot(main = "binSeg: pen = 25")
+pen 1 | pen 25
 }
 \if{html}{\out{</div>}}
 
