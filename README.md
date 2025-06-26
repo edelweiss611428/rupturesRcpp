@@ -19,7 +19,7 @@
 </pre>
 
 
-#### How to cite?
+### How to cite?
 
 If you use `ruptures` in a scientific publication, we would appreciate citations to the following paper:
 
@@ -29,9 +29,97 @@ If you use `ruptures` in a scientific publication, we would appreciate citations
 
 ## Installation
 
- To download the newest version of the package, use the following R code: 
+To download the newest version of the package, use the following R code: 
 
 ```
 library(devtools)
 install_github("edelweiss611428/rupturesRcpp") 
 ```
+
+## Basic usage
+
+### Data-generating process  
+  
+We consider a simple 2d time series with two piecewise Gaussian regimes and constant spherical covariance:
+
+\[
+\mathbf{y}_t \sim \mathcal{N}(\boldsymbol{\mu}_t, \mathbf{I}_2),
+\]
+
+where $t = 1,2,\ldots,200$ and
+
+\[
+\boldsymbol{\mu}_t = \begin{cases}
+(0,0)^\top & \text{if } t \leq 100 \\
+(5,5)^\top & \text{if } t > 100.
+\end{cases}
+\]
+
+
+```r
+set.seed(1)
+tsMat = cbind(c(rnorm(100,0), rnorm(100,5)),
+              c(rnorm(100,0), rnorm(100,5)))
+```
+
+
+### Binary segmentation (binSeg)
+
+To demonstrate the usage of our package, we will use the binSeg class as an example. The PELT class and future classes will follow the same interface. 
+
+First, we initialise a binSeg object with minSize = 1L, jump = 1L, and costFunc = "L2". Currently, "L2" is the only supported cost function.
+
+```r
+binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2") 
+```
+To input a time series matrix and perform binSeg with the maximum number of regimes, we can use $fit(). This is needed for $predict().
+
+```r
+binSegObj$fit(tsMat) 
+```
+To print configurations of the binSeg object, we can use $describe(). This will invisibly return a list containing several fields of the binSeg object.
+
+```r
+binSegObj$describe() 
+```
+<pre>
+Binary Segmentation (binSeg)
+minSize  : 1L
+jump     : 1L
+costFunc : "L2"
+fitted   : TRUE
+n        : 200L
+p        : 2L
+</pre>
+
+To obtain an estimated segmentation, we can run $predict() and specify a non-negative penalty value for each additional change point. After running $predict(), a temporary segmentation result is saved to the object, which allows us to plot the segmentation results by dimension without explicitly specifying the segmentation results, although that option is viable.
+
+The $plot() method is based on facet_wrap from ggplot2, allowing users to specify the number of columns in the layout. Users can also use the layout operators | and / from "patchwork" to stack plots.
+
+#### pen = 1 
+
+```r
+binSegObj$predict(pen = 1)
+pen1 = binSegObj$plot(d = 1:2, main = "binSeg: pen = 1", ncol = 2L)
+pen1
+```
+
+![image](https://github.com/user-attachments/assets/97889fb6-216f-478f-a333-96d661496619)
+
+#### pen = 25
+```r
+
+binSegObj$predict(pen = 25)
+pen25 = binSegObj$plot(d = 1:2, main = "binSeg: pen = 25", ncol = 1L)
+pen25
+```
+![image](https://github.com/user-attachments/assets/3b8db331-e3ad-413d-bdc1-2aa7b6320f20)
+
+#### Vertically stacked
+```r
+
+pen1/pen25
+```
+![image](https://github.com/user-attachments/assets/af085b6d-abc0-498c-a86a-77c14e8e8905)
+
+
