@@ -123,4 +123,10 @@ pen25
 
 ![image](https://github.com/user-attachments/assets/1ef897b6-9756-40c7-97fc-8819c6632101)
 
+## Future development
+
+- Provide additional cost functions (e.g., L1, Poisson).  
+- Implement other change point detection methods (e.g., Opt and Win).  
+- Develop methods for tuning the linear penalty.
+
 
