@@ -306,7 +306,7 @@ binSeg = R6Class(
             stop("min(endPts) >= 1!")
           }
 
-          if(max(endPts) != n){
+          if(max(endPts) != private$.n){
             stop("By construction, max(endPts) must be n! Can use $predict() to obtain endPts.")
           }
 
