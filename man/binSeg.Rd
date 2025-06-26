@@ -193,14 +193,14 @@ binSegObj$fit(tsMat)
 \subsection{Method \code{predict()}}{
 Performs binSeg given a linear penalty value.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{binSeg$predict(pen = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$predict(pen)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{pen}}{A single non-negative numeric value specifying a penalty for each additional change point. By default,
-pen = NULL, which forces pen = log(n).}
+pen is missing, which forces pen = log(n).}
 }
 \if{html}{\out{</div>}}
 }

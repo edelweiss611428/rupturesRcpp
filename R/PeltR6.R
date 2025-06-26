@@ -44,7 +44,8 @@ PELT = R6Class(
     .tsMat = NULL,
     .fitted = FALSE,
     .n = NULL,
-    .p = NULL
+    .p = NULL,
+    .tmpEndPts = NULL #Temporary end points - obtained after running $predict()
 
   ),
 
@@ -177,7 +178,7 @@ PELT = R6Class(
     #' @description Performs PELT given a linear penalty value.
     #'
     #' @param pen A single non-negative numeric value specifying a penalty for each additional change point. By default,
-    #' pen = NULL, which forces pen = log(n).
+    #' pen is missing, which forces pen = log(n).
     #'
     #' @return A vector of indexes corresponding to the end point of each regime. By design, the last element
     #' of the vector is the number of observations.
@@ -188,9 +189,9 @@ PELT = R6Class(
     #' peltObj$fit(tsMat)
     #' peltObj$predict(pen = NULL)
 
-    predict = function(pen = NULL){
+    predict = function(pen){
 
-      if(is.null(pen)){
+      if(missing(pen)){
          pen = log(private$.n)
       }
 
