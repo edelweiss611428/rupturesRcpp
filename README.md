@@ -57,6 +57,7 @@ To demonstrate the usage of our package, we will use the binSeg class as an exam
 First, we initialise a binSeg object with minSize = 1L, jump = 1L, and costFunc = "L2". Currently, "L2" is the only supported cost function.
 
 ```r
+library("rupturesRcpp")
 binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2") 
 ```
 To input a time series matrix and perform binSeg with the maximum number of regimes, we can use $fit(). This is also needed for $predict(). 
@@ -79,7 +80,7 @@ n        : 200L
 p        : 2L
 </pre>
 
-To obtain an estimated segmentation, we can run $predict() and specify a non-negative penalty value for each additional change point. This returns a sorted integer vector of end points,which includes the number of observations by design.
+To obtain an estimated segmentation, we can run $predict() and specify a non-negative penalty value for each additional change point. This returns a sorted integer vector of end points, which includes the number of observations by design. Future development will implement methods for tuning the linear penalty.
 
 After running $predict(), a temporary segmentation result is saved to the object, which allows us to plot the segmentation results by dimension without explicitly specifying the segmentation results, although that option is viable. The $plot() method is based on facet_wrap from ggplot2, allowing users to specify the number of columns in the layout. Users can also use the layout operators | and / from patchwork to stack plots.
 
