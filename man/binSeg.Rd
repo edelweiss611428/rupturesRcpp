@@ -21,7 +21,7 @@ This implementation currently only supports L2 cost function.
 \item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
 maximum number of change points.}
 \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
-\item{\code{$plot()}}{Plots change point segmentation in ggplot/patchwork style.}
+\item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
 \item{\code{$clone()}}{Clone the binSeg object.}
 }
 }
@@ -251,7 +251,8 @@ Plots change point segmentation
   tsWidth = 0.25,
   tsCol = "#5B9BD5",
   bgCol = c("#A3C4F3", "#FBB1BD"),
-  bgAlpha = 0.5
+  bgAlpha = 0.5,
+  ncol = 1L
 )}\if{html}{\out{</div>}}
 }
 
@@ -282,16 +283,18 @@ endPts. By defaults, bgCol = c("#A3C4F3", "#FBB1BD").}
 
 \item{\code{bgAlpha}}{A numeric value specifying the degree of transparency of the background.
 By default, bgAlpha = 0.5.}
+
+\item{\code{ncol}}{An integer specifying the number of columns to be used in the facet layout. By default, ncol  = 1L.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Plots change point segmentation results. Based on ggplot2 and patchwork. Multiple plots can easily be
-combined using / (vertically) and | (horizontally) operator.
+Plots change point segmentation results. Based on ggplot2. Multiple plots can easily be
+combined using / (vertically) and | (horizontally) operator via patchwork.
 }
 
 \subsection{Returns}{
-An object of classes "patchwork"/"gg"/"ggplot".
+An object of classes "gg"/"ggplot".
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}

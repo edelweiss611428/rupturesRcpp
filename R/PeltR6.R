@@ -4,7 +4,7 @@
 #'
 #' @docType class
 #' @importFrom R6 R6Class
-#' @importFrom ggplot2 aes ggplot geom_rect geom_line scale_fill_identity theme_minimal theme geom_vline labs element_blank
+#' @importFrom ggplot2 aes ggplot geom_rect geom_line scale_fill_identity theme_minimal theme geom_vline labs element_blank element_text facet_wrap
 #' @import patchwork
 #'
 #' @export
@@ -21,7 +21,7 @@
 #'   \item{\code{$describe()}}{Describes the PELT object.}
 #'   \item{\code{$fit()}}{Takes a time series matrix as input.}
 #'   \item{\code{$predict()}}{Performs PELT given a linear penalty value.}
-#'   \item{\code{$plot()}}{Plots change point segmentation in ggplot/patchwork style.}
+#'   \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
 #'   \item{\code{$clone()}}{Clone the PELT object.}
 #' }
 #'
@@ -237,11 +237,12 @@ PELT = R6Class(
     #' endPts. By defaults, bgCol = c("#A3C4F3", "#FBB1BD").
     #' @param bgAlpha A numeric value specifying the degree of transparency of the background.
     #' By default, bgAlpha = 0.5.
+    #' @param ncol An integer specifying the number of columns to be used in the facet layout. By default, ncol  = 1L.
     #'
-    #' @details Plots change point segmentation results. Based on ggplot2 and patchwork. Multiple plots can easily be
-    #' combined using / (vertically) and | (horizontally) operator.
+    #' @details Plots change point segmentation results. Based on ggplot2. Multiple plots can easily be
+    #' combined using / (vertically) and | (horizontally) operator via patchwork.
     #'
-    #' @return An object of classes "patchwork"/"gg"/"ggplot".
+    #' @return An object of classes "gg"/"ggplot".
     #'
     #' @examples
     #' peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
@@ -256,7 +257,8 @@ PELT = R6Class(
     plot = function(d = 1L, endPts, dimNames, main, xlab, tsWidth = 0.25,
                     tsCol = "#5B9BD5",
                     bgCol = c("#A3C4F3", "#FBB1BD"),
-                    bgAlpha = 0.5){
+                    bgAlpha = 0.5,
+                    ncol = 1L){
 
 
       if(missing(main)){
@@ -325,87 +327,45 @@ PELT = R6Class(
       }
 
       endPts = private$.tmpEndPts
-      segInt = data.frame(
+
+      # Build long-format dataframe for all selected dimensions
+      tsList <- lapply(seq_along(d), function(i) {
+        data.frame(
+          time = 1:private$.n,
+          value = private$.tsMat[, d[i]],
+          dimension = dimNames[i]
+        )
+      })
+
+      allTsDf <- do.call(rbind, tsList)
+
+      # Create segment info
+      segInt <- data.frame(
         xmin = c(1, endPts[-length(endPts)]),
         xmax = endPts,
         fill = rep(bgCol, length.out = length(endPts))
       )
 
-      nPlots = length(d)
-
-      if(nPlots == 1L){
-
-        df = data.frame(time = 1:private$.n, value = private$.tsMat[,d])
-
-        ggplot() +
-          scale_fill_identity()+
-          geom_rect(data = segInt, aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill),
-                    alpha = bgAlpha, inherit.aes = FALSE) +  # translucent background
-          geom_line(data = df, aes(x = time, y = value), color = tsCol, linewidth = tsWidth)+
-          theme_minimal()+
-          theme(panel.grid = element_blank())+
-          geom_vline(xintercept = endPts[-length(endPts)], linetype = "dashed", color = "black", linewidth = tsWidth) +
-          labs(x = xlab, y = dimNames, title = main) -> plotObj
-
-        return(plotObj)
-      }
-
-
-      for(i in 1:nPlots){
-
-        df = data.frame(time = 1:private$.n, value = private$.tsMat[,d[i]])
-
-        if(i == 1L){
-
-          ggplot() +
-            scale_fill_identity()+
-            geom_rect(data = segInt, aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill),
-                      alpha = bgAlpha, inherit.aes = FALSE) +  # translucent background
-            geom_line(data = df, aes(x = time, y = value), color = tsCol, linewidth = tsWidth)+
-            theme_minimal()+
-            theme(panel.grid = element_blank())+
-            geom_vline(xintercept = endPts[-length(endPts)], linetype = "dashed", color = "black", linewidth = tsWidth) +
-            theme(
-              axis.title.x = element_blank(),   # Remove x-axis title
-              axis.text.x  = element_blank(),   # Remove x-axis tick labels
-            ) +
-            labs(y = dimNames[i], title = main) -> plotObj
-
-        } else if (i == nPlots){
-
-          plotObj = plotObj / ggplot() +
-            scale_fill_identity()+
-            geom_rect(data = segInt, aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill),
-                      alpha = bgAlpha, inherit.aes = FALSE) +  # translucent background
-            geom_line(data = df, aes(x = time, y = value), color = tsCol, linewidth = tsWidth)+
-            theme_minimal()+
-            theme(panel.grid = element_blank())+
-            geom_vline(xintercept = endPts[-length(endPts)], linetype = "dashed", color = "black", linewidth = tsWidth) +
-            labs(x = xlab, y = dimNames[i])
-
-        } else {
-
-          plotObj = plotObj/ggplot() +
-            scale_fill_identity()+
-            geom_rect(data = segInt, aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill),
-                      alpha = bgAlpha, inherit.aes = FALSE) +  # translucent background
-            geom_line(data = df, aes(x = time, y = value), color = tsCol, linewidth = tsWidth)+
-            theme_minimal()+
-            theme(panel.grid = element_blank())+
-            geom_vline(xintercept = endPts[-length(endPts)], linetype = "dashed", color = "black", linewidth = tsWidth) +
-            theme(
-              axis.title.x = element_blank(),   # Remove x-axis title
-              axis.text.x  = element_blank(),   # Remove x-axis tick labels
-            ) +
-            labs(y = dimNames[i])
-
-        }
-
-      }
-
-      return(plotObj)
-
+      # Build plot with facet_wrap
+      ggplot(allTsDf, aes(x = time, y = value)) +
+        scale_fill_identity() +
+        geom_rect(
+          data = segInt,
+          aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill),
+          inherit.aes = FALSE,
+          alpha = bgAlpha
+        ) +
+        geom_line(color = tsCol, linewidth = tsWidth) +
+        geom_vline(xintercept = endPts[-length(endPts)], linetype = "dashed", color = "black", linewidth = tsWidth) +
+        facet_wrap(~ dimension, scales = "free_y", ncol = ncol) +
+        theme_minimal() +
+        theme(
+          panel.grid = element_blank(),
+          strip.text = element_text(face = "bold")
+        ) +
+        labs(x = xlab, y = NULL, title = main)
     }
+
   )
 
 )
