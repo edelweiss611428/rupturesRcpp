@@ -15,9 +15,10 @@
 #' @section Methods:
 #' \describe{
 #'   \item{\code{$new()}}{Initialises a PELT object.}
-#'   \item{\code{$describe()}}{Describes a PELT object.}
+#'   \item{\code{$describe()}}{Describes the PELT object.}
 #'   \item{\code{$fit()}}{Takes a time series matrix as input.}
 #'   \item{\code{$predict()}}{Performs PELT given a linear penalty value.}
+#'   \item{\code{$clone()}}{Clone the PELT object.}
 #' }
 #'
 #' @references

@@ -17,10 +17,11 @@ This implementation currently only supports L2 cost function.
 
 \describe{
 \item{\code{$new()}}{Initialises a binSeg object.}
-\item{\code{$describe()}}{Describes a binSeg object.}
+\item{\code{$describe()}}{Describes the binSeg object.}
 \item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
 maximum number of change points.}
 \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
+\item{\code{$predict()}}{Clone the binSeg object.}
 }
 }
 
