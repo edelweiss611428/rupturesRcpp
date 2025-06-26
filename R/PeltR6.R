@@ -389,6 +389,7 @@ PELT = R6Class(
             scale_fill_identity()+
             geom_rect(data = segInt, aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill),
                       alpha = bgAlpha, inherit.aes = FALSE) +  # translucent background
+            geom_line(data = df, aes(x = time, y = value), color = tsCol, linewidth = tsWidth)+
             theme_minimal()+
             theme(panel.grid = element_blank())+
             geom_vline(xintercept = endPts[-length(endPts)], linetype = "dashed", color = "black", linewidth = tsWidth) +
