@@ -65,7 +65,7 @@ To input a time series matrix and perform binSeg with the maximum number of regi
 ```r
 binSegObj$fit(tsMat) 
 ```
-To print the configurations of the binSeg object, we can use $describe(). This will invisibly return a list containing several fields of the binSeg object.
+To print the configurations of the binSeg object, we can use $describe(). This method invisibly returns a list containing several fields of the binSeg object. Since all attributes are stored in private fields to prevent direct modification, this feature may be useful for extracting relevant information.
 
 ```r
 binSegObj$describe() 
@@ -84,13 +84,10 @@ To obtain an estimated segmentation, we can run $predict() and specify a non-neg
 
 After running $predict(), a temporary segmentation result is saved to the object, which allows us to plot the segmentation results by dimension without explicitly specifying the segmentation results, although that option is viable. The $plot() method is based on facet_wrap from ggplot2, allowing users to specify the number of columns in the layout. Users can also use the layout operators | and / from patchwork to stack plots.
 
-#### pen = 1 
+#### pen = 1
 
 ```r
 binSegObj$predict(pen = 1)
-```
-
-```r
 pen1 = binSegObj$plot(d = 1:2, main = "binSeg: pen = 1", ncol = 2L)
 pen1
 ```
