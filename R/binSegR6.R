@@ -1,6 +1,6 @@
 #' Binary Segmentation (binSeg)
 #'
-#' @description An R6 class implementing binary segmentation for offline changepoint detection.
+#' @description An R6 class implementing binary segmentation for offline change point detection.
 #'
 #'
 #' @docType class
@@ -8,7 +8,7 @@
 #' @export
 #'
 #' @details
-#' Binary segmentation is a classic algorithm for changepoint detection that recursively
+#' Binary segmentation is a classic algorithm for change point detection that recursively
 #' splits the data at locations that minimise the cost function.
 #'
 #' This implementation currently only supports L2 cost function.
@@ -18,7 +18,7 @@
 #'   \item{\code{$new()}}{Initialises a binSeg object.}
 #'   \item{\code{$describe()}}{Describes a binSeg object.}
 #'   \item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
-#' maximum number of changepoints.}
+#' maximum number of change points.}
 #'   \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
 #' }
 #'
@@ -98,7 +98,7 @@ binSeg = R6Class(
     #' @description Initialises a binSeg object.
     #'
     #' @param minSize An integer specifying the minimum segment size. By default, minSize = 1L.
-    #' @param jump An integer k defining the search grid - only candidate changepoints in \{1,k+1,2k+1,...\}
+    #' @param jump An integer k defining the search grid - only candidate change points in \{1,k+1,2k+1,...\}
     #' will be considered. By default, jump = 1L.
     #' @param costFunc A string specifying a cost function. Currently, only "L2" is supported.
     #'
@@ -162,7 +162,7 @@ binSeg = R6Class(
     },
 
     #' @description Takes a time series matrix as input and perform binSeg for the
-    #' maximum number of changepoints.
+    #' maximum number of change points.
     #'
     #' @param tsMat tsMat A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
     #'
@@ -188,7 +188,7 @@ binSeg = R6Class(
 
     #' @description Performs binSeg given a linear penalty value.
     #'
-    #' @param pen A single non-negative numeric value specifying a penalty for each additional changepoint. By default,
+    #' @param pen A single non-negative numeric value specifying a penalty for each additional change point. By default,
     #' pen = NULL, which forces pen = 2*log(n).
     #'
     #' @return A vector of indexes corresponding to the end point of each regime. By design, the last element
