@@ -70,7 +70,7 @@ binSegObj$predict(pen = 1)
 pen1 = binSegObj$plot(main = "binSeg: pen = 1")
 binSegObj$predict(pen = 25)
 pen25 = binSegObj$plot(main = "binSeg: pen = 25")
-pen 1 | pen 25
+pen1 | pen25
 }
 \references{
 Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
@@ -302,7 +302,7 @@ binSegObj$predict(pen = 1)
 pen1 = binSegObj$plot(main = "binSeg: pen = 1")
 binSegObj$predict(pen = 25)
 pen25 = binSegObj$plot(main = "binSeg: pen = 25")
-pen 1 | pen 25
+pen1 | pen25
 }
 \if{html}{\out{</div>}}
 

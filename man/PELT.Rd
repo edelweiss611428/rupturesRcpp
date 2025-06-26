@@ -68,7 +68,7 @@ peltObj$predict(pen = 1)
 pen1 = peltObj$plot(main = "PELT: pen = 1")
 peltObj$predict(pen = 25)
 pen25 = peltObj$plot(main = "PELT: pen = 25")
-pen 1 | pen 25
+pen1 | pen25
 }
 \references{
 Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
@@ -296,7 +296,7 @@ peltObj$predict(pen = 1)
 pen1 = peltObj$plot(main = "PELT: pen = 1")
 peltObj$predict(pen = 25)
 pen25 = peltObj$plot(main = "PELT: pen = 25")
-pen 1 | pen 25
+pen1 | pen25
 }
 \if{html}{\out{</div>}}
 
