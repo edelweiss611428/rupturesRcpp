@@ -5,10 +5,10 @@
 \alias{binSeg}
 \title{Binary Segmentation (binSeg)}
 \description{
-An R6 class implementing binary segmentation for offline changepoint detection.
+An R6 class implementing binary segmentation for offline change point detection.
 }
 \details{
-Binary segmentation is a classic algorithm for changepoint detection that recursively
+Binary segmentation is a classic algorithm for change point detection that recursively
 splits the data at locations that minimise the cost function.
 
 This implementation currently only supports L2 cost function.
@@ -19,7 +19,7 @@ This implementation currently only supports L2 cost function.
 \item{\code{$new()}}{Initialises a binSeg object.}
 \item{\code{$describe()}}{Describes a binSeg object.}
 \item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
-maximum number of changepoints.}
+maximum number of change points.}
 \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
 }
 }
@@ -92,7 +92,7 @@ Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation.
 \subsection{Method \code{new()}}{
 Initialises a binSeg object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$new(minSize, jump, costFunc)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -100,7 +100,7 @@ Initialises a binSeg object.
 \describe{
 \item{\code{minSize}}{An integer specifying the minimum segment size. By default, minSize = 1L.}
 
-\item{\code{jump}}{An integer k defining the search grid - only candidate changepoints in \{1,k+1,2k+1,...\}
+\item{\code{jump}}{An integer k defining the search grid - only candidate change points in \{1,k+1,2k+1,...\}
 will be considered. By default, jump = 1L.}
 
 \item{\code{costFunc}}{A string specifying a cost function. Currently, only "L2" is supported.}
@@ -159,7 +159,7 @@ binSegObj$describe()
 \if{latex}{\out{\hypertarget{method-binSeg-fit}{}}}
 \subsection{Method \code{fit()}}{
 Takes a time series matrix as input and perform binSeg for the
-maximum number of changepoints.
+maximum number of change points.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{binSeg$fit(tsMat)}\if{html}{\out{</div>}}
 }
@@ -198,8 +198,8 @@ Performs binSeg given a linear penalty value.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{pen}}{A single non-negative numeric value specifying a penalty for each additional changepoint. By default,
-pen = NULL, which forces pen = 2*log(n).}
+\item{\code{pen}}{A single non-negative numeric value specifying a penalty for each additional change point. By default,
+pen = NULL, which forces pen = log(n).}
 }
 \if{html}{\out{</div>}}
 }

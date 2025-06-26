@@ -104,7 +104,7 @@ PELT = R6Class(
     #' @examples
     #' peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
 
-    initialize = function(minSize = 1L, jump = 1L, costFunc = "L2") {
+    initialize = function(minSize, jump, costFunc) {
       self$minSize = minSize
       self$jump = jump
       self$costFunc = costFunc
