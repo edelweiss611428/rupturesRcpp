@@ -115,6 +115,7 @@ pen1/pen25
 
 #### User-provided endPts
 
+Here, endPts must include the number of observations. This is the typical output of $predict().
 
 ```r
 pred25 = binSegObj$predict(pen = 25) 
