@@ -5,10 +5,10 @@
 \alias{PELT}
 \title{Pruned Exact Linear Time (PELT)}
 \description{
-An R6 class implementing the PELT algorithm for offline changepoint detection.
+An R6 class implementing the PELT algorithm for offline change point detection.
 }
 \details{
-PELT (Pruned Exact Linear Time) is an efficient algorithm for changepoint detection
+PELT (Pruned Exact Linear Time) is an efficient algorithm for change point detection
 that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
 
 This implementation currently only supports the L2 cost function.
@@ -17,9 +17,10 @@ This implementation currently only supports the L2 cost function.
 
 \describe{
 \item{\code{$new()}}{Initialises a PELT object.}
-\item{\code{$describe()}}{Describes a PELT object.}
+\item{\code{$describe()}}{Describes the PELT object.}
 \item{\code{$fit()}}{Takes a time series matrix as input.}
 \item{\code{$predict()}}{Performs PELT given a linear penalty value.}
+\item{\code{$clone()}}{Clone the PELT object.}
 }
 }
 
@@ -59,7 +60,7 @@ peltObj$predict(pen = NULL)
 Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
 Signal Processing, 167, 107299.
 
-Killick, R., Fearnhead, P., & Eckley, I. A. (2012). Optimal detection of changepoints with a linear computational cost.
+Killick, R., Fearnhead, P., & Eckley, I. A. (2012). Optimal detection of change points with a linear computational cost.
 Journal of the American Statistical Association, 107(500), 1590-1598.
 }
 \section{Active bindings}{
@@ -99,7 +100,7 @@ Initialises a PELT object.
 \describe{
 \item{\code{minSize}}{An integer specifying the minimum segment size. By default, minSize = 1L.}
 
-\item{\code{jump}}{An integer k defining the search grid - only candidate changepoints in \{1,k+1,2k+1,...\}
+\item{\code{jump}}{An integer k defining the search grid - only candidate change points in \{1,k+1,2k+1,...\}
 will be considered. By default, jump = 1L.}
 
 \item{\code{costFunc}}{A string specifying a cost function. Currently, only "L2" is supported.}
@@ -192,8 +193,8 @@ Performs PELT given a linear penalty value.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{pen}}{A single non-negative numeric value specifying a penalty for each additional changepoint. By default,
-pen = NULL, which forces pen = 2*log(n).}
+\item{\code{pen}}{A single non-negative numeric value specifying a penalty for each additional change point. By default,
+pen = NULL, which forces pen = log(n).}
 }
 \if{html}{\out{</div>}}
 }
