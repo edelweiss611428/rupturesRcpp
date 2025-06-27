@@ -79,28 +79,31 @@ After running $predict(), a temporary segmentation result is saved to the object
 
 ```r
 binSegObj$predict(pen = 1)
-pen1 = binSegObj$plot(d = 1:2, main = "binSeg: pen = 1", ncol = 2L)
+pen1 = binSegObj$plot(d = 1:2, main = "binSeg: pen = 1", ncol = 1L)
 pen1
 ```
 
-![image](https://github.com/user-attachments/assets/603095ed-71a0-4c22-8dc5-af38c5269e1a)
+![image](https://github.com/user-attachments/assets/0471bfd7-6353-47b2-8ca8-e301027b0868)
+
 
 
 #### pen = 25
 ```r
 binSegObj$predict(pen = 25) 
-pen25 = binSegObj$plot(d = 1:2, main = "binSeg: pen = 25", ncol = 2L)
+pen25 = binSegObj$plot(d = 1:2, main = "binSeg: pen = 25", ncol = 1L)
 pen25
 ```
-![image](https://github.com/user-attachments/assets/dea22543-e057-44ae-a174-197d9c704aa5)
+![image](https://github.com/user-attachments/assets/e9216f24-7034-45d2-8b0b-236da6de2a3c)
 
 
-#### Vertically stacked
+
+#### Horizontally stacked
 ```r
 
-pen1/pen25
+pen1|pen25
 ```
-![image](https://github.com/user-attachments/assets/28d6bc36-3b6c-45a0-9dee-bdd36b44e5bd)
+![image](https://github.com/user-attachments/assets/9db482e7-a6b5-4666-ab64-cffce93d9155)
+
 
 #### User-provided endPts
 
@@ -108,11 +111,12 @@ Here, endPts must include the number of observations. This is the typical output
 
 ```r
 pred25 = binSegObj$predict(pen = 25) 
-pen25 = binSegObj$plot(d = 1:2, endPts = pred25, main = "binSeg: pen = 25", ncol = 2L)
+pen25 = binSegObj$plot(d = 1:2, endPts = pred25, main = "binSeg: pen = 25", ncol = 1L)
 pen25
 ```
 
-![image](https://github.com/user-attachments/assets/1ef897b6-9756-40c7-97fc-8819c6632101)
+![image](https://github.com/user-attachments/assets/63a74b23-9352-4644-9fa3-a852421f4b01)
+
 
 ## Future development
 
