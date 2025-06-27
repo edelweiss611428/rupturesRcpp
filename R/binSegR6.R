@@ -5,6 +5,8 @@
 #'
 #' @docType class
 #' @importFrom R6 R6Class
+#' @importFrom ggplot2 aes ggplot geom_rect geom_line scale_fill_identity theme_minimal theme geom_vline labs element_blank element_text facet_wrap
+#' @import patchwork
 #' @export
 #'
 #' @details
@@ -16,10 +18,12 @@
 #' @section Methods:
 #' \describe{
 #'   \item{\code{$new()}}{Initialises a binSeg object.}
-#'   \item{\code{$describe()}}{Describes a binSeg object.}
+#'   \item{\code{$describe()}}{Describes the binSeg object.}
 #'   \item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
 #' maximum number of change points.}
 #'   \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
+#'   \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
+#'   \item{\code{$clone()}}{Clone the binSeg object.}
 #' }
 #'
 #' @references
@@ -46,7 +50,9 @@ binSeg = R6Class(
     .n = NULL,
     .p = NULL,
     .bkps = NULL,
-    .cost = NULL
+    .cost = NULL,
+    .tmpEndPts = NULL, #Temporary end points - obtained after running $predict()
+    .tmpPen = NULL #Temporary penalty value - obtained after running $predict()
 
   ),
 
@@ -107,7 +113,7 @@ binSeg = R6Class(
     #' @examples
     #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
 
-    initialize = function(minSize = 1L, jump = 1L, costFunc = "L2") {
+    initialize = function(minSize, jump, costFunc) {
       self$minSize = minSize
       self$jump = jump
       self$costFunc = costFunc
@@ -189,21 +195,22 @@ binSeg = R6Class(
     #' @description Performs binSeg given a linear penalty value.
     #'
     #' @param pen A single non-negative numeric value specifying a penalty for each additional change point. By default,
-    #' pen = NULL, which forces pen = log(n).
+    #' pen is missing, which forces pen = log(n).
     #'
     #' @return A vector of indexes corresponding to the end point of each regime. By design, the last element
-    #' of the vector is the number of observations.
+    #' of the vector is the number of observations. Temporary end points are saved to private$.tmpEndPoints,
+    #' which allows users to usethe $plot() method without specifying end points.
     #'
     #' @examples
     #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
     #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
     #' binSegObj$fit(tsMat)
-    #' binSegObj$predict(pen = NULL)
+    #' binSegObj$predict()
 
-    predict = function(pen = NULL){
+    predict = function(pen){
 
-      if(is.null(pen)){
-        pen = 2*log(private$.n)
+      if(missing(pen)){
+        pen = log(private$.n)
       }
 
       if(!private$.fitted){
@@ -216,8 +223,160 @@ binSeg = R6Class(
 
       endPts = c(sort(binSegPredCpp(private$.bkps, private$.cost, pen)), private$.n)
 
+      private$.tmpEndPts = endPts
+      private$.tmpPen = pen
+
       return(endPts)
+    },
+
+
+    #' @description Plots change point segmentation
+    #'
+    #' @param d An integer vector specifying dimensions to plot. By default, d = 1L.
+    #' @param endPts An integer vector specifying end points! Could be obtained via $predict().").
+    #' By default, endPts is missing, in which, the method will proceed to use the (latest) temporary
+    #' changepoints obtained by running $predict().
+    #' @param dimNames A character vector specifying feature names!", whose length must match that of d if not missing.
+    #' By default, dimNames is missing, which forces dimNames = ("X1", "X2",...).
+    #' @param main A character specifying the main title of the plot. By default, main is missing, in which the method
+    #' will use the default title "binSeg: d = ...".
+    #' @param xlab A character specifying the x-axis label. By default, xlab is missing, which force xlab = "Time".
+    #' @param tsWidth A numeric value specifying the linewidth of the time series and also that of the segments' dashed lines.
+    #' By default, tsWidth = 0.25.
+    #' @param tsCol A character color of the plotted time series. By default, tsCol = "#5B9BD5".
+    #' @param bgCol A character vector specifying segment colors. This will be repeated up to the length of
+    #' endPts. By defaults, bgCol = c("#A3C4F3", "#FBB1BD").
+    #' @param bgAlpha A numeric value specifying the degree of transparency of the background.
+    #' By default, bgAlpha = 0.5.
+    #' @param ncol An integer specifying the number of columns to be used in the facet layout. By default, ncol  = 1L.
+    #'
+    #' @details Plots change point segmentation results. Based on ggplot2. Multiple plots can easily be
+    #' combined using / (vertically) and | (horizontally) operator via patchwork.
+    #'
+    #' @return An object of classes "gg"/"ggplot".
+    #'
+    #' @examples
+    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
+    #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+    #' binSegObj$fit(tsMat)
+    #' binSegObj$predict(pen = 1)
+    #' pen1 = binSegObj$plot(main = "binSeg: pen = 1")
+    #' binSegObj$predict(pen = 25)
+    #' pen25 = binSegObj$plot(main = "binSeg: pen = 25")
+    #' pen1 | pen25
+
+    plot = function(d = 1L, endPts, dimNames, main, xlab, tsWidth = 0.25,
+                    tsCol = "#5B9BD5",
+                    bgCol = c("#A3C4F3", "#FBB1BD"),
+                    bgAlpha = 0.5,
+                    ncol = 1L){
+
+
+      if(missing(main)){
+        main = paste0("binSeg: ", title_text = paste0("d = (", toString(d), ")"))
+
+      } else {
+        if(is.null(main) || !is.character(main) || length(main )!= 1L){
+          stop("main must be a single character!")
+        }
+      }
+
+      if(missing(xlab)){
+        xlab = "Time"
+
+      } else {
+        if(is.null(xlab) || !is.character(xlab) || length(xlab)!= 1L){
+          stop("xlab must be a single character!")
+        }
+      }
+
+      if(missing(endPts)){
+        warning("endPts is missing. Proceed to use the temporary endPts!")
+
+        if(is.null(private$.tmpEndPts)){
+          stop("Temporary endPts is NULL. Must run $predict() to obtain this!")
+        }
+      } else{
+        if(is.null(endPts) | !is.numeric(endPts)){
+          stop("endPts must be a numeric/integer vector specifying endpoints! Could be obtained via $predict().")
+        } else{
+          endPts = as.integer(sort(endPts))
+
+          if(min(endPts) < 1){
+            stop("min(endPts) >= 1!")
+          }
+
+          if(max(endPts) != private$.n){
+            stop("By construction, max(endPts) must be n! Can use $predict() to obtain endPts.")
+          }
+
+          if(length(unique(endPts)) != length(endPts)){
+            stop("as.integer(endPts) contains duplicated elements!")
+          }
+        }
+      }
+
+      if (is.null(d) || !is.numeric(d)) {
+        stop("d must be a numeric/integer vector specifying dimensions! e.g., 1, or c(1,2).")
+      }
+
+      if(missing(dimNames)){
+        warning("dimNames is missing. Proceed to use the default dimNames! e.g., paste0('X', d)).")
+        dimNames = paste0("X", d)
+      } else {
+        if (is.null(dimNames) || !is.character(dimNames)) {
+          stop("dimNames must be a character vector specifying feature names!")
+          if(length(dimNames) != length(d)){
+            stop("length(dimNames) != length(d)!")
+          }
+        }
+      }
+
+      d = as.integer(d)
+      if(any(d < 1) | any(d > private$.p)){
+        stop("Dimensions must be between [1,p]!")
+      }
+
+      endPts = private$.tmpEndPts
+
+      # Build long-format dataframe for all selected dimensions
+      tsList <- lapply(seq_along(d), function(i) {
+        data.frame(
+          time = 1:private$.n,
+          value = private$.tsMat[, d[i]],
+          dimension = dimNames[i]
+        )
+      })
+
+      allTsDf <- do.call(rbind, tsList)
+
+      # Create segment info
+      segInt <- data.frame(
+        xmin = c(1, endPts[-length(endPts)]),
+        xmax = endPts,
+        fill = rep(bgCol, length.out = length(endPts))
+      )
+
+      # Build plot with facet_wrap
+      ggplot(allTsDf, aes(x = time, y = value)) +
+        scale_fill_identity() +
+        geom_rect(
+          data = segInt,
+          aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill),
+          inherit.aes = FALSE,
+          alpha = bgAlpha
+        ) +
+        geom_line(color = tsCol, linewidth = tsWidth) +
+        geom_vline(xintercept = endPts[-length(endPts)], linetype = "dashed", color = "black", linewidth = tsWidth) +
+        facet_wrap(~ dimension, scales = "free_y", ncol = ncol) +
+        theme_minimal() +
+        theme(
+          panel.grid = element_blank(),
+          strip.text = element_text(face = "bold")
+        ) +
+        labs(x = xlab, y = NULL, title = main)
     }
+
   )
 
 )

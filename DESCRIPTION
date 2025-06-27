@@ -14,4 +14,6 @@ LinkingTo:
     RcppArmadillo
 Imports: 
     Rcpp,
-    R6
+    R6,
+    ggplot2,
+    patchwork
