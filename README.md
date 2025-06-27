@@ -20,7 +20,7 @@
 
 ## Installation
 
-To download the newest version of the package, use the following R code: 
+To install the newest version of the package, use the following R code: 
 
 ```
 library(devtools)
