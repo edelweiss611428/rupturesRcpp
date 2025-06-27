@@ -100,7 +100,7 @@ pen25
 
 pen1/pen25
 ```
-![image](https://github.com/user-attachments/assets/66c21f4a-bc9d-4096-8be8-464b16340952)
+![image](https://github.com/user-attachments/assets/28d6bc36-3b6c-45a0-9dee-bdd36b44e5bd)
 
 #### User-provided endPts
 
