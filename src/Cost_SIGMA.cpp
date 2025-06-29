@@ -48,7 +48,7 @@ double Cost_SIGMA::effEvalCpp(int start, int end,
   arma::mat covMat = preComp.covarianceComputer(start, end);
   double sign = 0.0, logDet = 0.0;
 
-  if (start == end - 1) {
+  if (start >= end - 1) { //in case failure occurs, return 0
     return 0.0;
   }
 
@@ -62,5 +62,5 @@ double Cost_SIGMA::effEvalCpp(int start, int end,
     return logDet * (end - start);
   }
 
-  return 0;
+  return 0; // if not invertible -> return 0! (other options exist)
 }
