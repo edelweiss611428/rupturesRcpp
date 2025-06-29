@@ -193,7 +193,7 @@ IntegerVector binSegPredCpp(const IntegerVector& bkps,
   int minIdx = which_min(penCost);
 
   if(minIdx == 0){
-    stop("Wow, that's pretty bad that optimising for the minimum cost suggests that there should be no changepoint");
+    return IntegerVector();
   }
 
   return bkps[Range(0, minIdx-1)];
