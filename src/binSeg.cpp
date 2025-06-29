@@ -1,8 +1,11 @@
 #include <RcppArmadillo.h>
 #include <queue>
+#include <limits>
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
-#include "Cost.h"
+#include "Cost_L2.h"
+#include "Cost_SIGMA.h"
+#include "CostBase.h"
 
 // New structure for a segment
 struct Segment {
@@ -24,14 +27,16 @@ struct Segment {
 // Fast implementation based on heap, which involves an O(1) search instead
 // of O(k) (see ../deprecated); also supports minSize, and jump.
 
-inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end,
+inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int& end,
                                const int& minSize = 1,  const int& jump = 1,
-                               double totalErr = -1) {
+                               double totalErr = -1,
+                               bool addSmallDiag = true,
+                               double epsilon = 1e-6) {
 
   int len = end - start;
 
   if(totalErr < 0){
-    totalErr = Xnew.effEvalCpp(start, end);
+    totalErr = Xnew.effEvalCpp(start, end, addSmallDiag, epsilon);
   }
 
   if(len < 2*minSize){
@@ -89,9 +94,23 @@ inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end
 }
 
 // [[Rcpp::export]]
-List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump = 1) {
+List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump = 1,
+               std::string costFunc = "L2",
+               bool addSmallDiag = true,
+               double epsilon = 1e-6) {
 
-  Cost Xnew(tsMat);
+  CostBase* Xnewptr = nullptr;  // pointer
+
+  if (costFunc == "SIGMA") {
+    Xnewptr = new Cost_SIGMA(tsMat);
+  } else if (costFunc == "L2") {
+    Xnewptr = new Cost_L2(tsMat);
+  } else {
+    Rcpp::stop("Cost function not supported!");
+  }
+
+  CostBase& Xnew = *Xnewptr;
+
   int nr = Xnew.nr;
 
   if(nr < 2*minSize){

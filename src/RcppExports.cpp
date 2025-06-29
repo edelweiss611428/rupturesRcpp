@@ -11,9 +11,9 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// peltL2
-std::vector<int> peltL2(const arma::mat& tsMat, const double penalty, const int minSize, const int jump);
-RcppExport SEXP _rupturesRcpp_peltL2(SEXP tsMatSEXP, SEXP penaltySEXP, SEXP minSizeSEXP, SEXP jumpSEXP) {
+// PELTCpp
+std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int minSize, const int jump, std::string costFunc, bool addSmallDiag, double epsilon);
+RcppExport SEXP _rupturesRcpp_PELTCpp(SEXP tsMatSEXP, SEXP penaltySEXP, SEXP minSizeSEXP, SEXP jumpSEXP, SEXP costFuncSEXP, SEXP addSmallDiagSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,20 +21,26 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type penalty(penaltySEXP);
     Rcpp::traits::input_parameter< const int >::type minSize(minSizeSEXP);
     Rcpp::traits::input_parameter< const int >::type jump(jumpSEXP);
-    rcpp_result_gen = Rcpp::wrap(peltL2(tsMat, penalty, minSize, jump));
+    Rcpp::traits::input_parameter< std::string >::type costFunc(costFuncSEXP);
+    Rcpp::traits::input_parameter< bool >::type addSmallDiag(addSmallDiagSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(PELTCpp(tsMat, penalty, minSize, jump, costFunc, addSmallDiag, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
 // binSegCpp
-List binSegCpp(const arma::mat& tsMat, const int& minSize, const int& jump);
-RcppExport SEXP _rupturesRcpp_binSegCpp(SEXP tsMatSEXP, SEXP minSizeSEXP, SEXP jumpSEXP) {
+List binSegCpp(const arma::mat& tsMat, const int& minSize, const int& jump, std::string costFunc, bool addSmallDiag, double epsilon);
+RcppExport SEXP _rupturesRcpp_binSegCpp(SEXP tsMatSEXP, SEXP minSizeSEXP, SEXP jumpSEXP, SEXP costFuncSEXP, SEXP addSmallDiagSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type tsMat(tsMatSEXP);
     Rcpp::traits::input_parameter< const int& >::type minSize(minSizeSEXP);
     Rcpp::traits::input_parameter< const int& >::type jump(jumpSEXP);
-    rcpp_result_gen = Rcpp::wrap(binSegCpp(tsMat, minSize, jump));
+    Rcpp::traits::input_parameter< std::string >::type costFunc(costFuncSEXP);
+    Rcpp::traits::input_parameter< bool >::type addSmallDiag(addSmallDiagSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(binSegCpp(tsMat, minSize, jump, costFunc, addSmallDiag, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -53,8 +59,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rupturesRcpp_peltL2", (DL_FUNC) &_rupturesRcpp_peltL2, 4},
-    {"_rupturesRcpp_binSegCpp", (DL_FUNC) &_rupturesRcpp_binSegCpp, 3},
+    {"_rupturesRcpp_PELTCpp", (DL_FUNC) &_rupturesRcpp_PELTCpp, 7},
+    {"_rupturesRcpp_binSegCpp", (DL_FUNC) &_rupturesRcpp_binSegCpp, 6},
     {"_rupturesRcpp_binSegPredCpp", (DL_FUNC) &_rupturesRcpp_binSegPredCpp, 3},
     {NULL, NULL, 0}
 };
