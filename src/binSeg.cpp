@@ -101,6 +101,7 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
                double epsilon = 1e-6,
                int pVAR = 1) {
 
+  //Prevent memory leak
   std::unique_ptr<CostBase> Xnewptr;
 
   if (costFunc == "SIGMA") {

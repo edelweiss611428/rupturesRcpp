@@ -39,7 +39,7 @@ std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int
                         double epsilon = 1e-6,
                         int pVAR = 1)
 {
-
+  //Prevent memory leak
   std::unique_ptr<CostBase> Xnewptr;
 
   if (costFunc == "SIGMA") {
