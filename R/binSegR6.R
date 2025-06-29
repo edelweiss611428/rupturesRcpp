@@ -377,7 +377,7 @@ binSeg = R6Class(
       }
 
       if(missing(endPts)){
-        warning("endPts is missing. Proceed to use the temporary endPts!")
+        message("endPts is missing. Proceed to use the temporary endPts!")
 
         if(is.null(private$.tmpEndPts)){
           stop("Temporary endPts is NULL. Must run $predict() to obtain this!")
@@ -407,7 +407,7 @@ binSeg = R6Class(
       }
 
       if(missing(dimNames)){
-        warning("dimNames is missing. Proceed to use the default dimNames! e.g., paste0('X', d)).")
+        message("dimNames is missing. Proceed to use the default dimNames! e.g., paste0('X', d)).")
         dimNames = paste0("X", d)
       } else {
         if (is.null(dimNames) || !is.character(dimNames)) {
