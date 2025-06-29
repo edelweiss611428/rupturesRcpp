@@ -42,7 +42,7 @@ inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int&
 
   if(len < 2*minSize){
 
-    return Segment{start, end, true, start,
+    return Segment{start, end, true, start,  //This is to make sure that segment length < 2*minSize +also a way to tell the program to stop considering this segment
                    -9999,
                    std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity(),
