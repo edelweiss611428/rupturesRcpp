@@ -5,6 +5,7 @@ using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
 #include "Cost_L2.h"
 #include "Cost_SIGMA.h"
+#include "Cost_VAR.h"
 #include "CostBase.h"
 
 // New structure for a segment
@@ -70,7 +71,7 @@ inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int&
 
   auto allBkps = arma::regspace<arma::ivec>(start, jump, end); //all breakpoinbts
   allBkps = allBkps(arma::find((allBkps - start >= minSize) % (end - allBkps >= minSize)));
-
+  //(start, End]
   for(int i = 0; i < allBkps.n_elem; i++){
 
     tempCp = allBkps(i);
@@ -97,7 +98,8 @@ inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int&
 List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump = 1,
                std::string costFunc = "L2",
                bool addSmallDiag = true,
-               double epsilon = 1e-6) {
+               double epsilon = 1e-6,
+               int pVAR = 1) {
 
   CostBase* Xnewptr = nullptr;  // pointer
 
@@ -105,6 +107,8 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
     Xnewptr = new Cost_SIGMA(tsMat);
   } else if (costFunc == "L2") {
     Xnewptr = new Cost_L2(tsMat);
+  } else if (costFunc == "VAR"){
+    Xnewptr = new Cost_VAR(tsMat, pVAR);
   } else {
     Rcpp::stop("Cost function not supported!");
   }
@@ -119,7 +123,7 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
 
   const int& maxNRegimes = std::floor(nr / minSize);
   NumericVector cost(maxNRegimes);
-  double initCost = Xnew.effEvalCpp(0,nr);
+  double initCost = Xnew.effEvalCpp(0,nr,addSmallDiag,epsilon);  //(0, nr] IMPORTANT TO NOTE THAT IMPLICITLY SPEAKING, THIS COUNTS FROM 1 NOT 0
   Segment seg0 = miniOptHeapCpp(Xnew, 0, nr, minSize, jump, initCost);
   IntegerVector changePoints(maxNRegimes-1);
 

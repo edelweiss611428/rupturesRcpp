@@ -1,6 +1,7 @@
 #include <RcppArmadillo.h>
 #include "Cost_L2.h"
 #include "Cost_SIGMA.h"
+#include "Cost_VAR.h"
 #include "CostBase.h"
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -35,7 +36,8 @@ std::vector<int> readPath(const arma::ivec& pathVec)
 std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int minSize, const int jump,
                         std::string costFunc = "L2",
                         bool addSmallDiag = true,
-                        double epsilon = 1e-6)
+                        double epsilon = 1e-6,
+                        int pVAR = 1)
 {
 
   CostBase* Xnewptr = nullptr;  // pointer
@@ -44,6 +46,8 @@ std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int
     Xnewptr = new Cost_SIGMA(tsMat);
   } else if (costFunc == "L2") {
     Xnewptr = new Cost_L2(tsMat);
+  } else if (costFunc == "VAR"){
+    Xnewptr = new Cost_VAR(tsMat, pVAR);
   } else {
     Rcpp::stop("Cost function not supported!");
   }
@@ -76,9 +80,11 @@ std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int
     for (arma::uword kLastBkp = 0; kLastBkp < nAdmissibleBkps; ++kLastBkp)
     {
       const int lastBkp = admissibleBkps[kLastBkp];
+
       const double currentCost = Xnew.effEvalCpp(lastBkp, end,
                                                  addSmallDiag,
                                                  epsilon);
+
       const double currentSoc = socVec[lastBkp] + currentCost + penalty;
       tmpCostVec[kLastBkp] = currentCost;
 
