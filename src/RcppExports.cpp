@@ -60,13 +60,17 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP _rcpp_module_boot_CostVAR_module();
+RcppExport SEXP _rcpp_module_boot_Cost_L2_module();
+RcppExport SEXP _rcpp_module_boot_Cost_SIGMA_module();
+RcppExport SEXP _rcpp_module_boot_Cost_VAR_module();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rupturesRcpp_PELTCpp", (DL_FUNC) &_rupturesRcpp_PELTCpp, 8},
     {"_rupturesRcpp_binSegCpp", (DL_FUNC) &_rupturesRcpp_binSegCpp, 7},
     {"_rupturesRcpp_binSegPredCpp", (DL_FUNC) &_rupturesRcpp_binSegPredCpp, 3},
-    {"_rcpp_module_boot_CostVAR_module", (DL_FUNC) &_rcpp_module_boot_CostVAR_module, 0},
+    {"_rcpp_module_boot_Cost_L2_module", (DL_FUNC) &_rcpp_module_boot_Cost_L2_module, 0},
+    {"_rcpp_module_boot_Cost_SIGMA_module", (DL_FUNC) &_rcpp_module_boot_Cost_SIGMA_module, 0},
+    {"_rcpp_module_boot_Cost_VAR_module", (DL_FUNC) &_rcpp_module_boot_Cost_VAR_module, 0},
     {NULL, NULL, 0}
 };
 
