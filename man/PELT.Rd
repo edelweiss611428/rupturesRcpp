@@ -11,7 +11,11 @@ An R6 class implementing the PELT algorithm for offline change point detection.
 PELT (Pruned Exact Linear Time) is an efficient algorithm for change point detection
 that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
 
-This implementation currently only supports the L2 cost function.
+Currently supported cost functions:
+\itemize{
+\item \code{"L2"}: for piecewise Gaussian with \strong{constant variance}
+\item \code{"SIGMA"}: for piecewise Gaussian with \strong{varying variance}
+}
 }
 \section{Methods}{
 

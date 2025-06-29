@@ -13,7 +13,11 @@
 #' PELT (Pruned Exact Linear Time) is an efficient algorithm for change point detection
 #' that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
 #'
-#' This implementation currently only supports the L2 cost function.
+#' Currently supported cost functions:
+#'
+#' - `"L2"`: for piecewise Gaussian with **constant variance**
+#' - `"SIGMA"`: for piecewise Gaussian with **varying variance**
+
 #'
 #' @section Methods:
 #' \describe{

@@ -11,7 +11,11 @@ An R6 class implementing binary segmentation for offline change point detection.
 Binary segmentation is a classic algorithm for change point detection that recursively
 splits the data at locations that minimise the cost function.
 
-This implementation currently only supports L2 cost function.
+Currently supported cost functions:
+\itemize{
+\item \code{"L2"}: for piecewise Gaussian with \strong{constant variance}
+\item \code{"SIGMA"}: for piecewise Gaussian with \strong{varying variance}
+}
 }
 \section{Methods}{
 
