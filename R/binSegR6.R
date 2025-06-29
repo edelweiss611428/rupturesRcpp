@@ -15,8 +15,9 @@
 #'
 #' Currently supported cost functions:
 #'
-#' - `"L2"`: for piecewise Gaussian with **constant variance**
-#' - `"SIGMA"`: for piecewise Gaussian with **varying variance**
+#' - `"L2"`: for (independent) piecewise Gaussian process with **constant covariance**
+#' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying covariance**
+#' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant covariance**
 #'
 #' See **Methods** and section for more details.
 #'
@@ -69,6 +70,7 @@ binSeg = R6Class(
     .p = NULL,
     .addSmallDiag = TRUE,
     .epsilon = 10^-6,
+    .pVAR = 1L,
     .bkps = NULL,
     .cost = NULL,
     .tmpEndPts = NULL, #Temporary end points - obtained after running $predict()
@@ -99,7 +101,7 @@ binSeg = R6Class(
       if (is.null(charVal) || !is.character(charVal) || length(charVal) != 1) {
         stop("costFunc must be a single character!")
       } else{
-        if(!charVal %in% c("L2", "SIGMA")){
+        if(!charVal %in% c("L2", "SIGMA", "VAR")){
           stop("costFunc is not support!")
         }
       }
@@ -121,13 +123,23 @@ binSeg = R6Class(
       }
       private$.addSmallDiag = boolVal
     },
+
     #' @field epsilon An active binding. Sets the internal variable \code{.epsilon} but should not be called directly.
     epsilon = function(doubleVal) {
       if (is.null(doubleVal) || !is.numeric(doubleVal) || as.integer(doubleVal) < 0 || length(doubleVal) != 1) {
         stop("epsilon must be a single positive double!")
       }
       private$.epsilon = doubleVal
+    },
+
+    #' @field pVAR An active binding. Sets the internal variable \code{.pVAR} but should not be called directly.
+    pVAR = function(intVal) {
+      if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
+        stop("pVAR must be a single positive integer!")
+      }
+      private$.pVAR = as.integer(intVal)
     }
+
   ),
 
   public = list(
@@ -137,20 +149,21 @@ binSeg = R6Class(
     #' @param minSize An integer specifying the minimum segment size. By default, minSize = 1L.
     #' @param jump An integer k defining the search grid - only candidate change points in \{1,k+1,2k+1,...\}
     #' will be considered. By default, jump = 1L.
-    #' @param costFunc A character specifying a cost function. Currently, only "L2" and "SIGMA" are supported. By default,
+    #' @param costFunc A character specifying a cost function. Currently, only "L2", "SIGMA", and "VAR" are supported. By default,
     #' costFunc = "L2".
-    #' @param addSmallDiag An boolean value indicating whether or not to add a small bias to the diagonal entries
+    #' @param addSmallDiag (SIGMA) An boolean value indicating whether or not to add a small bias to the diagonal entries
     #' of estimated covariance matrices (for costFunc "SIGMA"). This improves numerical stability in near-singularity
     #' scenarios. By default, addSmallDiag = TRUE.
-    #' @param epsilon A double value specifying a bias value to be added to the diagonal entries
+    #' @param epsilon (SIGMA) A double value specifying a bias value to be added to the diagonal entries
     #' of estimated covariance matrices. By default, epsilon = 10^-6.
+    #' @param pVAR (VAR) A non-negative integer specify vector-autoregressive order. By default, pVAR = 1.
     #'
     #' @return Invisibly returns NULL. Creates a PELT object with params minSize, jump, and costFunc.
     #'
     #' @examples
     #' peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
 
-    initialize = function(minSize, jump, costFunc, addSmallDiag, epsilon) {
+    initialize = function(minSize, jump, costFunc, addSmallDiag, epsilon, pVAR) {
 
       if(!missing(minSize)){
         self$minSize = minSize
@@ -170,6 +183,10 @@ binSeg = R6Class(
 
       if (!missing(addSmallDiag)){
         self$addSmallDiag = addSmallDiag
+      }
+
+      if (!missing(pVAR)){
+        self$pVAR = pVAR
       }
 
       print("You have created a binSeg object!")
@@ -201,28 +218,36 @@ binSeg = R6Class(
     #'
     describe = function() {
 
-      cat(sprintf("Binary Segmentation (binSeg) \n"))
-      cat(sprintf("minSize      : %sL\n", private$.minSize))
-      cat(sprintf("jump         : %sL\n", private$.jump))
-      cat(sprintf("costFunc.    : \"%s\"\n", private$.costFunc))
-      cat(sprintf("addSmallDiag : %s\n", private$.addSmallDiag))
-      cat(sprintf("epsilon      : %s\n", private$.epsilon))
-      cat(sprintf("fitted       : %s\n", private$.fitted))
-      cat(sprintf("n            : %sL\n", private$.n))
-      cat(sprintf("p            : %sL\n", private$.p))
-
-
       params = list(minSize = private$.minSize,
                     jump = private$.minSize,
                     costFunc = private$.costFunc,
-                    addSmallDiag = private$.addSmallDiag,
-                    epsilon = private$.epsilon,
                     fitted = private$.fitted,
                     tsMat = private$.tsMat,
                     n = private$.n,
                     p = private$.p,
                     bkps = private$.bkps,
                     cost = private$.cost)
+
+      cat(sprintf("Binary Segmentation (binSeg) \n"))
+      cat(sprintf("minSize      : %sL\n", private$.minSize))
+      cat(sprintf("jump         : %sL\n", private$.jump))
+      cat(sprintf("costFunc.    : \"%s\"\n", private$.costFunc))
+
+      if(private$.costFunc == "SIGMA"){
+        cat(sprintf("addSmallDiag : %s\n", private$.addSmallDiag))
+        cat(sprintf("epsilon      : %s\n", private$.epsilon))
+        params[["addSmallDiag"]] = private$.addSmallDiag
+        params[["epsilon"]] = private$.epsilon
+      }
+
+      if(private$.costFunc == "VAR"){
+        cat(sprintf("pVAR.        : %s\n", private$.epsilon))
+        params[["pVAR"]] = private$.pVAR
+      }
+
+      cat(sprintf("fitted       : %s\n", private$.fitted))
+      cat(sprintf("n            : %sL\n", private$.n))
+      cat(sprintf("p            : %sL\n", private$.p))
 
       invisible(params)
 
@@ -250,7 +275,8 @@ binSeg = R6Class(
       detection = binSegCpp(private$.tsMat, private$.minSize, private$.jump,
                             costFunc = private$.costFunc,
                             addSmallDiag = private$.addSmallDiag,
-                            epsilon = private$.epsilon)
+                            epsilon = private$.epsilon,
+                            pVAR = private$.pVAR)
       private$.cost = detection$cost
       private$.bkps = detection$bkps
       invisible(NULL)

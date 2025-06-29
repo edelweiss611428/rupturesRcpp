@@ -13,8 +13,9 @@ that prunes the search space to achieve optimal segmentation in linear time unde
 
 Currently supported cost functions:
 \itemize{
-\item \code{"L2"}: for piecewise Gaussian with \strong{constant variance}
-\item \code{"SIGMA"}: for piecewise Gaussian with \strong{varying variance}
+\item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant covariance}
+\item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying covariance}
+\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant covariance}
 }
 
 See \strong{Methods} section for more details.
@@ -110,6 +111,8 @@ Journal of the American Statistical Association, 107(500), 1590-1598.
 \item{\code{addSmallDiag}}{An active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.}
 
 \item{\code{epsilon}}{An active binding. Sets the internal variable \code{.epsilon} but should not be called directly.}
+
+\item{\code{pVAR}}{An active binding. Sets the internal variable \code{.pVAR} but should not be called directly.}
 }
 \if{html}{\out{</div>}}
 }
@@ -130,7 +133,7 @@ Journal of the American Statistical Association, 107(500), 1590-1598.
 \subsection{Method \code{new()}}{
 Initialises a PELT object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PELT$new(minSize, jump, costFunc, addSmallDiag, epsilon)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PELT$new(minSize, jump, costFunc, addSmallDiag, epsilon, pVAR)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -141,15 +144,17 @@ Initialises a PELT object.
 \item{\code{jump}}{An integer k defining the search grid - only candidate change points in \{1,k+1,2k+1,...\}
 will be considered. By default, jump = 1L.}
 
-\item{\code{costFunc}}{A character specifying a cost function. Currently, only "L2" and "SIGMA" are supported. By default,
+\item{\code{costFunc}}{A character specifying a cost function. Currently, only "L2", "SIGMA", and "VAR" are supported. By default,
 costFunc = "L2".}
 
-\item{\code{addSmallDiag}}{An boolean value indicating whether or not to add a small bias to the diagonal entries
+\item{\code{addSmallDiag}}{(SIGMA) An boolean value indicating whether or not to add a small bias to the diagonal entries
 of estimated covariance matrices (for costFunc "SIGMA"). This improves numerical stability in near-singularity
 scenarios. By default, addSmallDiag = TRUE.}
 
-\item{\code{epsilon}}{A double value specifying a bias value to be added to the diagonal entries
+\item{\code{epsilon}}{(SIGMA) A double value specifying a bias value to be added to the diagonal entries
 of estimated covariance matrices. By default, epsilon = 10^-6.}
+
+\item{\code{pVAR}}{(VAR) A non-negative integer specify vector-autoregressive order. By default, pVAR = 1.}
 }
 \if{html}{\out{</div>}}
 }
@@ -175,14 +180,15 @@ Describes a PELT object.
 }
 
 \subsection{Returns}{
-Invisibly returns a list containing the following fields of the PELT object:
+Invisibly returns a list containing some of the following fields of the PELT object:
 \describe{
 \item{\code{minSize}}{The minimum segment size.}
 \item{\code{jump}}{The integer k defining the search grid \{1,k+1,2k+1,...\}.}
 \item{\code{costFunc}}{The cost function.}
 \item{\code{addSmallDiag}}{A boolean value indicating whether to add a bias value to diagonal entries of estimated covariance matrices.}
-\item{\code{epsilon}}{The bias value to be added to diagonal entries of estimated covariance matrices.}
-\item{\code{fitted}}{A boolean indicating whether or not $fit() has been run.}
+\item{\code{epsilon}}{(SIGMA) The bias value to be added to diagonal entries of estimated covariance matrices.}
+\item{\code{fitted}}{(SIGMA) A boolean indicating whether or not $fit() has been run.}
+\item{\code{pVAR}}{(VAR) Vector-Autoregressive Order.}
 \item{\code{tsMat}}{The input time series matrix.}
 \item{\code{n}}{The number of observations in tsMat.}
 \item{\code{p}}{The number of features in tsMat.}
