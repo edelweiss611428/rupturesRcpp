@@ -101,14 +101,14 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
                double epsilon = 1e-6,
                int pVAR = 1) {
 
-  CostBase* Xnewptr = nullptr;  // pointer
+  std::unique_ptr<CostBase> Xnewptr;
 
   if (costFunc == "SIGMA") {
-    Xnewptr = new Cost_SIGMA(tsMat);
+    Xnewptr = std::make_unique<Cost_SIGMA>(tsMat);
   } else if (costFunc == "L2") {
-    Xnewptr = new Cost_L2(tsMat);
+    Xnewptr = std::make_unique<Cost_L2>(tsMat);
   } else if (costFunc == "VAR"){
-    Xnewptr = new Cost_VAR(tsMat, pVAR);
+    Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
   } else {
     Rcpp::stop("Cost function not supported!");
   }
