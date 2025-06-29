@@ -37,8 +37,9 @@ peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
 ## Method `PELT$describe`
 ## ------------------------------------------------
 
-peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
-peltObj$describe()
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+PELTObj$describe()
+
 
 ## ------------------------------------------------
 ## Method `PELT$fit`
@@ -87,6 +88,10 @@ Journal of the American Statistical Association, 107(500), 1590-1598.
 \item{\code{costFunc}}{An active binding. Sets the internal variable \code{.costFunc} but should not be called directly.}
 
 \item{\code{tsMat}}{An active binding. Sets the internal variable \code{.tsMat} but should not be called directly.}
+
+\item{\code{addSmallDiag}}{An active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.}
+
+\item{\code{epsilon}}{An active binding. Sets the internal variable \code{.epsilon} but should not be called directly.}
 }
 \if{html}{\out{</div>}}
 }
@@ -107,7 +112,7 @@ Journal of the American Statistical Association, 107(500), 1590-1598.
 \subsection{Method \code{new()}}{
 Initialises a PELT object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PELT$new(minSize, jump, costFunc)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PELT$new(minSize, jump, costFunc, addSmallDiag, epsilon)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -118,7 +123,15 @@ Initialises a PELT object.
 \item{\code{jump}}{An integer k defining the search grid - only candidate change points in \{1,k+1,2k+1,...\}
 will be considered. By default, jump = 1L.}
 
-\item{\code{costFunc}}{A character specifying a cost function. Currently, only "L2" is supported.}
+\item{\code{costFunc}}{A character specifying a cost function. Currently, only "L2" and "SIGMA" are supported. By default,
+costFunc = "L2".}
+
+\item{\code{addSmallDiag}}{An boolean value indicating whether or not to add a small bias to the diagonal entries
+of estimated covariance matrices (for costFunc "SIGMA"). This improves numerical stability in near-singularity
+scenarios. By default, addSmallDiag = TRUE.}
+
+\item{\code{epsilon}}{A double value specifying a bias value to be added to the diagonal entries
+of estimated covariance matrices. By default, epsilon = 10^-6.}
 }
 \if{html}{\out{</div>}}
 }
@@ -149,6 +162,8 @@ Invisibly returns a list containing the following fields of the PELT object:
 \item{\code{minSize}}{The minimum segment size.}
 \item{\code{jump}}{The integer k defining the search grid \{1,k+1,2k+1,...\}.}
 \item{\code{costFunc}}{The cost function.}
+\item{\code{addSmallDiag}}{A boolean value indicating whether to add a bias value to diagonal entries of estimated covariance matrices.}
+\item{\code{epsilon}}{The bias value to be added to diagonal entries of estimated covariance matrices.}
 \item{\code{fitted}}{A boolean indicating whether or not $fit() has been run.}
 \item{\code{tsMat}}{The input time series matrix.}
 \item{\code{n}}{The number of observations in tsMat.}
@@ -157,8 +172,9 @@ Invisibly returns a list containing the following fields of the PELT object:
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
-peltObj$describe()
+\preformatted{PELTObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+PELTObj$describe()
+
 }
 \if{html}{\out{</div>}}
 
@@ -202,14 +218,14 @@ peltObj$fit(tsMat)
 \subsection{Method \code{predict()}}{
 Performs PELT given a linear penalty value.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PELT$predict(pen)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PELT$predict(pen = 0)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{pen}}{A single non-negative numeric value specifying a penalty for each additional change point. By default,
-pen is missing, which forces pen = log(n).}
+pen = 0.}
 }
 \if{html}{\out{</div>}}
 }
