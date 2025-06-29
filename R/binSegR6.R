@@ -18,6 +18,21 @@
 #' - `"L2"`: for piecewise Gaussian with **constant variance**
 #' - `"SIGMA"`: for piecewise Gaussian with **varying variance**
 #'
+#' See **Methods** and section for more details.
+#'
+#' @examples
+#' # Toy example
+#' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
+#' # Initialise a binSeg object and fit the method to tsMat
+#' binSegObj = binSeg$new(costFunc = "SIGMA")
+#' binSegObj$fit(tsMat) #Need to run this before running $predict()
+#' # Perform binSeg for a specific linear penalty threshold
+#' binSegObj$predict(pen = 50)
+#' # Plot the latest segmentation solution
+#' binSegObj$plot(main = "binSeg:SIGMA:pen=50", ncol = 1)
+#' # Describe the binSeg object (and invisibly return the object's fields)
+#' binSegObj$describe()
+#'
 #' @section Methods:
 #' \describe{
 #'   \item{\code{$new()}}{Initialises a binSeg object.}

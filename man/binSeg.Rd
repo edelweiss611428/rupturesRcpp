@@ -16,6 +16,8 @@ Currently supported cost functions:
 \item \code{"L2"}: for piecewise Gaussian with \strong{constant variance}
 \item \code{"SIGMA"}: for piecewise Gaussian with \strong{varying variance}
 }
+
+See \strong{Methods} and section for more details.
 }
 \section{Methods}{
 
@@ -31,6 +33,18 @@ maximum number of change points.}
 }
 
 \examples{
+# Toy example
+tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
+# Initialise a binSeg object and fit the method to tsMat
+binSegObj = binSeg$new(costFunc = "SIGMA")
+binSegObj$fit(tsMat) #Need to run this before running $predict()
+# Perform binSeg for a specific linear penalty threshold
+binSegObj$predict(pen = 50)
+# Plot the latest segmentation solution
+binSegObj$plot(main = "binSeg:SIGMA:pen=50", ncol = 1)
+# Describe the binSeg object (and invisibly return the object's fields)
+binSegObj$describe()
+
 
 ## ------------------------------------------------
 ## Method `binSeg$new`

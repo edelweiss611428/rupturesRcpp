@@ -16,6 +16,8 @@ Currently supported cost functions:
 \item \code{"L2"}: for piecewise Gaussian with \strong{constant variance}
 \item \code{"SIGMA"}: for piecewise Gaussian with \strong{varying variance}
 }
+
+See \strong{Methods} section for more details.
 }
 \section{Methods}{
 
@@ -30,6 +32,18 @@ Currently supported cost functions:
 }
 
 \examples{
+# Toy example
+tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
+# Initialise a PELT object and fit the method to tsMat
+PELTObj = PELT$new(costFunc = "SIGMA")
+PELTObj$fit(tsMat) #Need to run this before running $predict()
+# Perform PELT for a specific linear penalty threshold
+PELTObj$predict(pen = 50)
+# Plot the latest segmentation solution
+PELTObj$plot(main = "PELT:SIGMA:pen=50", ncol = 1)
+# Describe the PELT object (and invisibly return the object's fields)
+PELTObj$describe()
+
 
 ## ------------------------------------------------
 ## Method `PELT$new`
