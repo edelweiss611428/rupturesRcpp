@@ -14,7 +14,7 @@ Cost_VAR::Cost_VAR(const arma::mat& tsMat, const int& pVAR)  : p(pVAR), X(tsMat)
   Z_full.col(0).ones();
 
   for (int L = 0; L < p; L++) { //L for lag
-    Z_full.cols(1 + L * nc, 1 + (L + 1) * nc - 1) = X.rows(p - L - 1, nr - L - 2);
+    Z_full.cols(1 + L * nc, (L + 1) * nc) = X.rows(p - L - 1, nr - L - 1);
   }
 };
 
