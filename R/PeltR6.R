@@ -13,7 +13,26 @@
 #' PELT (Pruned Exact Linear Time) is an efficient algorithm for change point detection
 #' that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
 #'
-#' This implementation currently only supports the L2 cost function.
+#' Currently supported cost functions:
+#'
+#' - `"L2"`: for (independent) piecewise Gaussian process with **constant covariance**
+#' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying covariance**
+#' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant covariance**
+#'
+#' See **Methods** section for more details.
+#'
+#' @examples
+#' # Toy example
+#' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
+#' # Initialise a PELT object and fit the method to tsMat
+#' PELTObj = PELT$new(costFunc = "SIGMA")
+#' PELTObj$fit(tsMat) #Need to run this before running $predict()
+#' # Perform PELT for a specific linear penalty threshold
+#' PELTObj$predict(pen = 50)
+#' # Plot the latest segmentation solution
+#' PELTObj$plot(main = "PELT:SIGMA:pen=50", ncol = 1)
+#' # Describe the PELT object (and invisibly return the object's fields)
+#' PELTObj$describe()
 #'
 #' @section Methods:
 #' \describe{
@@ -49,6 +68,9 @@ PELT = R6Class(
     .fitted = FALSE,
     .n = NULL,
     .p = NULL,
+    .addSmallDiag = TRUE,
+    .epsilon = 10^-6,
+    .pVAR = 1L,
     .tmpEndPts = NULL, #Temporary end points - obtained after running $predict()
     .tmpPen = NULL #Temporary penalty value - obtained after running $predict()
   ),
@@ -57,7 +79,6 @@ PELT = R6Class(
 
     #' @field minSize An active binding. Sets the internal variable \code{.minSize} but should not be called directly.
     minSize = function(intVal) {
-      if (missing(intVal)) return(private$.minSize)
       if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
         stop("minSize must be a single positive integer!")
       }
@@ -66,7 +87,6 @@ PELT = R6Class(
 
     #' @field jump An active binding. Sets the internal variable \code{.jump} but should not be called directly.
     jump = function(intVal) {
-      if (missing(intVal)) return(private$.jump)
       if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
         stop("jump must be a single positive integer!")
       }
@@ -75,11 +95,10 @@ PELT = R6Class(
 
     #' @field costFunc An active binding. Sets the internal variable \code{.costFunc} but should not be called directly.
     costFunc = function(charVal) {
-      if (missing(charVal)) return(private$.costFunc)
       if (is.null(charVal) || !is.character(charVal) || length(charVal) != 1) {
         stop("costFunc must be a single character!")
       } else{
-        if(!charVal %in% c("L2")){
+        if(!charVal %in% c("L2", "SIGMA", "VAR")){
           stop("costFunc is not support!")
         }
       }
@@ -88,12 +107,35 @@ PELT = R6Class(
 
     #' @field tsMat An active binding. Sets the internal variable \code{.tsMat} but should not be called directly.
     tsMat = function(numMat) {
-      if (is.null(tsMat) || !is.numeric(numMat) || !is.matrix(numMat)) {
+      if (is.null(numMat) || !is.numeric(numMat) || !is.matrix(numMat)) {
         stop("tsMat must be a numeric time series matrix!")
       }
       private$.tsMat = numMat
-    }
+    },
 
+    #' @field addSmallDiag An active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.
+    addSmallDiag = function(boolVal) {
+      if (is.null(boolVal) || !is.logical(boolVal) || length(boolVal) != 1) {
+        stop("addSmallDiag must be a single boolean value!")
+      }
+      private$.addSmallDiag = boolVal
+    },
+
+    #' @field epsilon An active binding. Sets the internal variable \code{.epsilon} but should not be called directly.
+    epsilon = function(doubleVal) {
+      if (is.null(doubleVal) || !is.numeric(doubleVal) || as.integer(doubleVal) < 0 || length(doubleVal) != 1) {
+        stop("epsilon must be a single positive double!")
+      }
+      private$.epsilon = doubleVal
+    },
+
+    #' @field pVAR An active binding. Sets the internal variable \code{.pVAR} but should not be called directly.
+    pVAR = function(intVal) {
+      if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
+        stop("pVAR must be a single positive integer!")
+      }
+      private$.pVAR = as.integer(intVal)
+    }
   ),
 
   public = list(
@@ -103,17 +145,46 @@ PELT = R6Class(
     #' @param minSize An integer specifying the minimum segment size. By default, minSize = 1L.
     #' @param jump An integer k defining the search grid - only candidate change points in \{1,k+1,2k+1,...\}
     #' will be considered. By default, jump = 1L.
-    #' @param costFunc A character specifying a cost function. Currently, only "L2" is supported.
+    #' @param costFunc A character specifying a cost function. Currently, only "L2", "SIGMA", and "VAR" are supported. By default,
+    #' costFunc = "L2".
+    #' @param addSmallDiag (SIGMA) An boolean value indicating whether or not to add a small bias to the diagonal entries
+    #' of estimated covariance matrices (for costFunc "SIGMA"). This improves numerical stability in near-singularity
+    #' scenarios. By default, addSmallDiag = TRUE.
+    #' @param epsilon (SIGMA) A double value specifying a bias value to be added to the diagonal entries
+    #' of estimated covariance matrices. By default, epsilon = 10^-6.
+    #' @param pVAR (VAR) A non-negative integer specify vector-autoregressive order. By default, pVAR = 1.
     #'
     #' @return Invisibly returns NULL. Creates a PELT object with params minSize, jump, and costFunc.
     #'
     #' @examples
     #' peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
 
-    initialize = function(minSize, jump, costFunc) {
-      self$minSize = minSize
-      self$jump = jump
-      self$costFunc = costFunc
+    initialize = function(minSize, jump, costFunc, addSmallDiag, epsilon, pVAR) {
+
+      if(!missing(minSize)){
+        self$minSize = minSize
+      }
+
+      if(!missing(jump)){
+        self$jump = jump
+      }
+
+      if(!missing(costFunc)){
+        self$costFunc = costFunc
+      }
+
+      if(!missing(epsilon)){
+        self$epsilon = epsilon
+      }
+
+      if (!missing(addSmallDiag)){
+        self$addSmallDiag = addSmallDiag
+      }
+
+      if (!missing(pVAR)){
+        self$pVAR = pVAR
+      }
+
       print("You have created a PELT object!")
 
       invisible(NULL)
@@ -121,31 +192,26 @@ PELT = R6Class(
 
     #' @description Describes a PELT object.
     #'
-    #' @return Invisibly returns a list containing the following fields of the PELT object:
+    #' @return Invisibly returns a list containing some of the following fields of the PELT object:
     #' \describe{
     #'   \item{\code{minSize}}{The minimum segment size.}
     #'   \item{\code{jump}}{The integer k defining the search grid \{1,k+1,2k+1,...\}.}
     #'   \item{\code{costFunc}}{The cost function.}
-    #'   \item{\code{fitted}}{A boolean indicating whether or not $fit() has been run.}
+    #'   \item{\code{addSmallDiag}}{A boolean value indicating whether to add a bias value to diagonal entries of estimated covariance matrices.}
+    #'   \item{\code{epsilon}}{(SIGMA) The bias value to be added to diagonal entries of estimated covariance matrices.}
+    #'   \item{\code{fitted}}{(SIGMA) A boolean indicating whether or not $fit() has been run.}
+    #'   \item{\code{pVAR}}{(VAR) Vector-Autoregressive Order.}
     #'   \item{\code{tsMat}}{The input time series matrix.}
     #'   \item{\code{n}}{The number of observations in tsMat.}
     #'   \item{\code{p}}{The number of features in tsMat.}
     #' }
     #'
     #' @examples
-    #' peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
-    #' peltObj$describe()
+    #' PELTObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+    #' PELTObj$describe()
+    #'
 
     describe = function() {
-
-      cat(sprintf("Pruned Exact Linear Time (PELT) \n"))
-      cat(sprintf("minSize  : %sL\n", private$.minSize))
-      cat(sprintf("jump     : %sL\n", private$.jump))
-      cat(sprintf("costFunc : \"%s\"\n", private$.costFunc))
-      cat(sprintf("fitted   : %s\n", private$.fitted))
-      cat(sprintf("n        : %sL\n", private$.n))
-      cat(sprintf("p        : %sL\n", private$.p))
-
 
       params = list(minSize = private$.minSize,
                     jump = private$.minSize,
@@ -153,11 +219,35 @@ PELT = R6Class(
                     fitted = private$.fitted,
                     tsMat = private$.tsMat,
                     n = private$.n,
-                    p = private$.p)
+                    p = private$.p,
+                    bkps = private$.bkps,
+                    cost = private$.cost)
+
+      cat(sprintf("Pruned Exact Linear Time (PELT) \n"))
+      cat(sprintf("minSize      : %sL\n", private$.minSize))
+      cat(sprintf("jump         : %sL\n", private$.jump))
+      cat(sprintf("costFunc.    : \"%s\"\n", private$.costFunc))
+
+      if(private$.costFunc == "SIGMA"){
+        cat(sprintf("addSmallDiag : %s\n", private$.addSmallDiag))
+        cat(sprintf("epsilon      : %s\n", private$.epsilon))
+        params[["addSmallDiag"]] = private$.addSmallDiag
+        params[["epsilon"]] = private$.epsilon
+      }
+
+      if(private$.costFunc == "VAR"){
+        cat(sprintf("pVAR.        : %s\n", private$.epsilon))
+        params[["pVAR"]] = private$.pVAR
+      }
+
+      cat(sprintf("fitted       : %s\n", private$.fitted))
+      cat(sprintf("n            : %sL\n", private$.n))
+      cat(sprintf("p            : %sL\n", private$.p))
 
       invisible(params)
 
     },
+
 
     #' @description Takes a time series matrix as input.
     #'
@@ -182,7 +272,7 @@ PELT = R6Class(
     #' @description Performs PELT given a linear penalty value.
     #'
     #' @param pen A single non-negative numeric value specifying a penalty for each additional change point. By default,
-    #' pen is missing, which forces pen = log(n).
+    #' pen = 0.
     #'
     #' @return A vector of indexes corresponding to the end point of each regime. By design, the last element
     #' of the vector is the number of observations. Temporary end points are saved to private$.tmpEndPoints,
@@ -194,11 +284,7 @@ PELT = R6Class(
     #' peltObj$fit(tsMat)
     #' peltObj$predict()
 
-    predict = function(pen){
-
-      if(missing(pen)){
-        pen = log(private$.n)
-      }
+    predict = function(pen = 0){
 
       if(!private$.fitted){
         stop("$fit() must be run before $predict()!")
@@ -208,10 +294,14 @@ PELT = R6Class(
         stop("pen must be a single non-negative numeric value!")
       }
 
-      endPts = sort(peltL2(private$.tsMat,
-                           pen,
-                           minSize = private$.minSize,
-                           jump = private$.jump))
+      endPts = PELTCpp(private$.tsMat,
+                       pen,
+                       minSize = private$.minSize,
+                       jump = private$.jump,
+                       costFunc = private$.costFunc,
+                       addSmallDiag = private$.addSmallDiag,
+                       epsilon = private$.epsilon,
+                       pVAR = private$.pVAR)
 
       private$.tmpEndPts = endPts
       private$.tmpPen = pen
@@ -280,7 +370,7 @@ PELT = R6Class(
       }
 
       if(missing(endPts)){
-        warning("endPts is missing. Proceed to use the temporary endPts!")
+        message("endPts is missing. Proceed to use the temporary endPts!")
 
         if(is.null(private$.tmpEndPts)){
           stop("Temporary endPts is NULL. Must run $predict() to obtain this!")
@@ -310,7 +400,7 @@ PELT = R6Class(
       }
 
       if(missing(dimNames)){
-        warning("dimNames is missing. Proceed to use the default dimNames! e.g., paste0('X', d)).")
+        message("dimNames is missing. Proceed to use the default dimNames! e.g., paste0('X', d)).")
         dimNames = paste0("X", d)
       } else {
         if (is.null(dimNames) || !is.character(dimNames)) {

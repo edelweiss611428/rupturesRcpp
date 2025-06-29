@@ -11,7 +11,14 @@ An R6 class implementing binary segmentation for offline change point detection.
 Binary segmentation is a classic algorithm for change point detection that recursively
 splits the data at locations that minimise the cost function.
 
-This implementation currently only supports L2 cost function.
+Currently supported cost functions:
+\itemize{
+\item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant covariance}
+\item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying covariance}
+\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant covariance}
+}
+
+See \strong{Methods} and section for more details.
 }
 \section{Methods}{
 
@@ -27,12 +34,24 @@ maximum number of change points.}
 }
 
 \examples{
+# Toy example
+tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
+# Initialise a binSeg object and fit the method to tsMat
+binSegObj = binSeg$new(costFunc = "SIGMA")
+binSegObj$fit(tsMat) #Need to run this before running $predict()
+# Perform binSeg for a specific linear penalty threshold
+binSegObj$predict(pen = 50)
+# Plot the latest segmentation solution
+binSegObj$plot(main = "binSeg:SIGMA:pen=50", ncol = 1)
+# Describe the binSeg object (and invisibly return the object's fields)
+binSegObj$describe()
+
 
 ## ------------------------------------------------
 ## Method `binSeg$new`
 ## ------------------------------------------------
 
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
+peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
 
 ## ------------------------------------------------
 ## Method `binSeg$describe`
@@ -88,6 +107,12 @@ Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation.
 \item{\code{costFunc}}{An active binding. Sets the internal variable \code{.costFunc} but should not be called directly.}
 
 \item{\code{tsMat}}{An active binding. Sets the internal variable \code{.tsMat} but should not be called directly.}
+
+\item{\code{addSmallDiag}}{An active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.}
+
+\item{\code{epsilon}}{An active binding. Sets the internal variable \code{.epsilon} but should not be called directly.}
+
+\item{\code{pVAR}}{An active binding. Sets the internal variable \code{.pVAR} but should not be called directly.}
 }
 \if{html}{\out{</div>}}
 }
@@ -108,7 +133,7 @@ Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation.
 \subsection{Method \code{new()}}{
 Initialises a binSeg object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{binSeg$new(minSize, jump, costFunc)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$new(minSize, jump, costFunc, addSmallDiag, epsilon, pVAR)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -119,16 +144,26 @@ Initialises a binSeg object.
 \item{\code{jump}}{An integer k defining the search grid - only candidate change points in \{1,k+1,2k+1,...\}
 will be considered. By default, jump = 1L.}
 
-\item{\code{costFunc}}{A string specifying a cost function. Currently, only "L2" is supported.}
+\item{\code{costFunc}}{A character specifying a cost function. Currently, only "L2", "SIGMA", and "VAR" are supported. By default,
+costFunc = "L2".}
+
+\item{\code{addSmallDiag}}{(SIGMA) An boolean value indicating whether or not to add a small bias to the diagonal entries
+of estimated covariance matrices (for costFunc "SIGMA"). This improves numerical stability in near-singularity
+scenarios. By default, addSmallDiag = TRUE.}
+
+\item{\code{epsilon}}{(SIGMA) A double value specifying a bias value to be added to the diagonal entries
+of estimated covariance matrices. By default, epsilon = 10^-6.}
+
+\item{\code{pVAR}}{(VAR) A non-negative integer specify vector-autoregressive order. By default, pVAR = 1.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Invisibly returns NULL. Creates a binSeg object with params minSize, jump, and costFunc.
+Invisibly returns NULL. Creates a PELT object with params minSize, jump, and costFunc.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
+\preformatted{peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
 }
 \if{html}{\out{</div>}}
 
@@ -150,6 +185,8 @@ Invisibly returns a list containing the following fields of the binSeg object:
 \item{\code{minSize}}{The minimum segment size.}
 \item{\code{jump}}{The integer k defining the search grid \{1,k+1,2k+1,...\}.}
 \item{\code{costFunc}}{The cost function.}
+\item{\code{addSmallDiag}}{A boolean value indicating whether to add a bias value to diagonal entries of estimated covariance matrices.}
+\item{\code{epsilon}}{The bias value to be added to diagonal entries of estimated covariance matrices.}
 \item{\code{fitted}}{A boolean indicating whether or not $fit() has been run.}
 \item{\code{tsMat}}{The input time series matrix.}
 \item{\code{n}}{The number of observations in tsMat.}
@@ -208,14 +245,14 @@ binSegObj$fit(tsMat)
 \subsection{Method \code{predict()}}{
 Performs binSeg given a linear penalty value.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{binSeg$predict(pen)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$predict(pen = 0)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{pen}}{A single non-negative numeric value specifying a penalty for each additional change point. By default,
-pen is missing, which forces pen = log(n).}
+pen = 0.}
 }
 \if{html}{\out{</div>}}
 }

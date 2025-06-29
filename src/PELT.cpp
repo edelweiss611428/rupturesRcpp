@@ -1,7 +1,10 @@
 #include <RcppArmadillo.h>
+#include "Cost_L2.h"
+#include "Cost_SIGMA.h"
+#include "Cost_VAR.h"
+#include "CostBase.h"
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
-#include "Cost.h"
 
 
 // Function to return the maximum of two integers
@@ -11,7 +14,7 @@ inline int maxInt(const int a, const int b)
 }
 
 // Function to read the path from the path vector
-std::vector<int> readPathL2(const arma::ivec& pathVec)
+std::vector<int> readPath(const arma::ivec& pathVec)
 {
   const int nSamples = static_cast<int>(pathVec.n_elem) - 1;
   std::vector<int> bkps;
@@ -30,10 +33,26 @@ std::vector<int> readPathL2(const arma::ivec& pathVec)
 
 // Function to implement the PELT algorithm
 // [[Rcpp::export]]
-std::vector<int> peltL2(const arma::mat& tsMat, const double penalty, const int minSize, const int jump)
+std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int minSize, const int jump,
+                        std::string costFunc = "L2",
+                        bool addSmallDiag = true,
+                        double epsilon = 1e-6,
+                        int pVAR = 1)
 {
+  //Prevent memory leak
+  std::unique_ptr<CostBase> Xnewptr;
 
-  Cost Xnew(tsMat);
+  if (costFunc == "SIGMA") {
+    Xnewptr = std::make_unique<Cost_SIGMA>(tsMat);
+  } else if (costFunc == "L2") {
+    Xnewptr = std::make_unique<Cost_L2>(tsMat);
+  } else if (costFunc == "VAR"){
+    Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
+  } else {
+    Rcpp::stop("Cost function not supported!");
+  }
+
+  CostBase& Xnew = *Xnewptr;
   const arma::uword nSamples = Xnew.nr;
 
   // Initialization
@@ -61,7 +80,11 @@ std::vector<int> peltL2(const arma::mat& tsMat, const double penalty, const int 
     for (arma::uword kLastBkp = 0; kLastBkp < nAdmissibleBkps; ++kLastBkp)
     {
       const int lastBkp = admissibleBkps[kLastBkp];
-      const double currentCost = Xnew.effEvalCpp(lastBkp, end);
+
+      const double currentCost = Xnew.effEvalCpp(lastBkp, end,
+                                                 addSmallDiag,
+                                                 epsilon);
+
       const double currentSoc = socVec[lastBkp] + currentCost + penalty;
       tmpCostVec[kLastBkp] = currentCost;
 
@@ -88,9 +111,8 @@ std::vector<int> peltL2(const arma::mat& tsMat, const double penalty, const int 
 
     // Add "end" to the set of admissible change-points
     admissibleBkps[nAdmissibleBkpsNew++] = static_cast<int>(std::floor(
-      static_cast<double>(end - minSize + 1) / jump)
-                                                              * jump);
+      static_cast<double>(end - minSize + 1) / jump) * jump);
     nAdmissibleBkps = nAdmissibleBkpsNew;
   }
-  return readPathL2(pathVec);
+  return readPath(pathVec);
 }

@@ -45,7 +45,7 @@ tsMat = cbind(c(rnorm(100,0), rnorm(100,5)),
 
 To demonstrate the usage of our package, we will use the binSeg class as an example. The PELT class and future classes will follow the same interface. 
 
-First, we initialise a binSeg object with minSize = 1L, jump = 1L, and costFunc = "L2". Currently, "L2" is the only supported cost function.
+First, we initialise a binSeg object with minSize = 1L, jump = 1L, and costFunc = "L2". Currently, "L2", "SIGMA", and "VAR" are the only supported cost functions.
 
 ```r
 library("rupturesRcpp")
