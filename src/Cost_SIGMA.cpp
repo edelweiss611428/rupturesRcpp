@@ -64,3 +64,15 @@ double Cost_SIGMA::effEvalCpp(int start, int end,
 
   return 0; // if not invertible -> return 0! (other options exist)
 }
+
+
+//Return for testing purposes
+RCPP_MODULE(Cost_SIGMA_module) {
+  class_<Cost_SIGMA>("Cost_SIGMA")
+
+  .constructor<arma::mat>()
+
+  .method("effEvalCpp", &Cost_SIGMA::effEvalCpp,
+  "Evaluate SIGMA cost on interval (start, end]");
+}
+

@@ -51,9 +51,9 @@ double Cost_VAR::effEvalCpp(int start, int end,
 
 }
 
-
-RCPP_MODULE(CostVAR_module) {
-  class_<Cost_VAR>("CostVAR")
+//Return for testing purposes
+RCPP_MODULE(Cost_VAR_module) {
+  class_<Cost_VAR>("Cost_VAR")
 
   .constructor<arma::mat, int>()
 
