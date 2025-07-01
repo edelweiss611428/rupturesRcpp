@@ -1,8 +1,12 @@
 #include <RcppArmadillo.h>
 #include <queue>
+#include <limits>
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
-#include "Cost.h"
+#include "Cost_L2.h"
+#include "Cost_SIGMA.h"
+#include "Cost_VAR.h"
+#include "CostBase.h"
 
 // New structure for a segment
 struct Segment {
@@ -24,19 +28,21 @@ struct Segment {
 // Fast implementation based on heap, which involves an O(1) search instead
 // of O(k) (see ../deprecated); also supports minSize, and jump.
 
-inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end,
+inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int& end,
                                const int& minSize = 1,  const int& jump = 1,
-                               double totalErr = -1) {
+                               double totalErr = -1,
+                               bool addSmallDiag = true,
+                               double epsilon = 1e-6) {
 
   int len = end - start;
 
   if(totalErr < 0){
-    totalErr = Xnew.effEvalCpp(start, end);
+    totalErr = Xnew.effEvalCpp(start, end, addSmallDiag, epsilon);
   }
 
   if(len < 2*minSize){
 
-    return Segment{start, end, true, start,
+    return Segment{start, end, true, start,  //This is to make sure that segment length < 2*minSize +also a way to tell the program to stop considering this segment
                    -9999,
                    std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity(),
@@ -65,7 +71,7 @@ inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end
 
   auto allBkps = arma::regspace<arma::ivec>(start, jump, end); //all breakpoinbts
   allBkps = allBkps(arma::find((allBkps - start >= minSize) % (end - allBkps >= minSize)));
-
+  //(start, End]
   for(int i = 0; i < allBkps.n_elem; i++){
 
     tempCp = allBkps(i);
@@ -89,9 +95,27 @@ inline Segment miniOptHeapCpp(const Cost& Xnew, const int& start, const int& end
 }
 
 // [[Rcpp::export]]
-List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump = 1) {
+List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump = 1,
+               std::string costFunc = "L2",
+               bool addSmallDiag = true,
+               double epsilon = 1e-6,
+               int pVAR = 1) {
 
-  Cost Xnew(tsMat);
+  //Prevent memory leak
+  std::unique_ptr<CostBase> Xnewptr;
+
+  if (costFunc == "SIGMA") {
+    Xnewptr = std::make_unique<Cost_SIGMA>(tsMat);
+  } else if (costFunc == "L2") {
+    Xnewptr = std::make_unique<Cost_L2>(tsMat);
+  } else if (costFunc == "VAR"){
+    Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
+  } else {
+    Rcpp::stop("Cost function not supported!");
+  }
+
+  CostBase& Xnew = *Xnewptr;
+
   int nr = Xnew.nr;
 
   if(nr < 2*minSize){
@@ -100,7 +124,7 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
 
   const int& maxNRegimes = std::floor(nr / minSize);
   NumericVector cost(maxNRegimes);
-  double initCost = Xnew.effEvalCpp(0,nr);
+  double initCost = Xnew.effEvalCpp(0,nr,addSmallDiag,epsilon);  //(0, nr] IMPORTANT TO NOTE THAT IMPLICITLY SPEAKING, THIS COUNTS FROM 1 NOT 0
   Segment seg0 = miniOptHeapCpp(Xnew, 0, nr, minSize, jump, initCost);
   IntegerVector changePoints(maxNRegimes-1);
 
@@ -169,7 +193,7 @@ IntegerVector binSegPredCpp(const IntegerVector& bkps,
   int minIdx = which_min(penCost);
 
   if(minIdx == 0){
-    stop("Wow, that's pretty bad that optimising for the minimum cost suggests that there should be no changepoint");
+    return IntegerVector();
   }
 
   return bkps[Range(0, minIdx-1)];

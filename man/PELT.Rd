@@ -11,7 +11,14 @@ An R6 class implementing the PELT algorithm for offline change point detection.
 PELT (Pruned Exact Linear Time) is an efficient algorithm for change point detection
 that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
 
-This implementation currently only supports the L2 cost function.
+Currently supported cost functions:
+\itemize{
+\item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant covariance}
+\item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying covariance}
+\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant covariance}
+}
+
+See \strong{Methods} section for more details.
 }
 \section{Methods}{
 
@@ -26,6 +33,18 @@ This implementation currently only supports the L2 cost function.
 }
 
 \examples{
+# Toy example
+tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
+# Initialise a PELT object and fit the method to tsMat
+PELTObj = PELT$new(costFunc = "SIGMA")
+PELTObj$fit(tsMat) #Need to run this before running $predict()
+# Perform PELT for a specific linear penalty threshold
+PELTObj$predict(pen = 50)
+# Plot the latest segmentation solution
+PELTObj$plot(main = "PELT:SIGMA:pen=50", ncol = 1)
+# Describe the PELT object (and invisibly return the object's fields)
+PELTObj$describe()
+
 
 ## ------------------------------------------------
 ## Method `PELT$new`
@@ -37,8 +56,9 @@ peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
 ## Method `PELT$describe`
 ## ------------------------------------------------
 
-peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
-peltObj$describe()
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+PELTObj$describe()
+
 
 ## ------------------------------------------------
 ## Method `PELT$fit`
@@ -87,6 +107,12 @@ Journal of the American Statistical Association, 107(500), 1590-1598.
 \item{\code{costFunc}}{An active binding. Sets the internal variable \code{.costFunc} but should not be called directly.}
 
 \item{\code{tsMat}}{An active binding. Sets the internal variable \code{.tsMat} but should not be called directly.}
+
+\item{\code{addSmallDiag}}{An active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.}
+
+\item{\code{epsilon}}{An active binding. Sets the internal variable \code{.epsilon} but should not be called directly.}
+
+\item{\code{pVAR}}{An active binding. Sets the internal variable \code{.pVAR} but should not be called directly.}
 }
 \if{html}{\out{</div>}}
 }
@@ -107,7 +133,7 @@ Journal of the American Statistical Association, 107(500), 1590-1598.
 \subsection{Method \code{new()}}{
 Initialises a PELT object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PELT$new(minSize, jump, costFunc)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PELT$new(minSize, jump, costFunc, addSmallDiag, epsilon, pVAR)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -118,7 +144,17 @@ Initialises a PELT object.
 \item{\code{jump}}{An integer k defining the search grid - only candidate change points in \{1,k+1,2k+1,...\}
 will be considered. By default, jump = 1L.}
 
-\item{\code{costFunc}}{A character specifying a cost function. Currently, only "L2" is supported.}
+\item{\code{costFunc}}{A character specifying a cost function. Currently, only "L2", "SIGMA", and "VAR" are supported. By default,
+costFunc = "L2".}
+
+\item{\code{addSmallDiag}}{(SIGMA) An boolean value indicating whether or not to add a small bias to the diagonal entries
+of estimated covariance matrices (for costFunc "SIGMA"). This improves numerical stability in near-singularity
+scenarios. By default, addSmallDiag = TRUE.}
+
+\item{\code{epsilon}}{(SIGMA) A double value specifying a bias value to be added to the diagonal entries
+of estimated covariance matrices. By default, epsilon = 10^-6.}
+
+\item{\code{pVAR}}{(VAR) A non-negative integer specify vector-autoregressive order. By default, pVAR = 1.}
 }
 \if{html}{\out{</div>}}
 }
@@ -144,12 +180,15 @@ Describes a PELT object.
 }
 
 \subsection{Returns}{
-Invisibly returns a list containing the following fields of the PELT object:
+Invisibly returns a list containing some of the following fields of the PELT object:
 \describe{
 \item{\code{minSize}}{The minimum segment size.}
 \item{\code{jump}}{The integer k defining the search grid \{1,k+1,2k+1,...\}.}
 \item{\code{costFunc}}{The cost function.}
-\item{\code{fitted}}{A boolean indicating whether or not $fit() has been run.}
+\item{\code{addSmallDiag}}{A boolean value indicating whether to add a bias value to diagonal entries of estimated covariance matrices.}
+\item{\code{epsilon}}{(SIGMA) The bias value to be added to diagonal entries of estimated covariance matrices.}
+\item{\code{fitted}}{(SIGMA) A boolean indicating whether or not $fit() has been run.}
+\item{\code{pVAR}}{(VAR) Vector-Autoregressive Order.}
 \item{\code{tsMat}}{The input time series matrix.}
 \item{\code{n}}{The number of observations in tsMat.}
 \item{\code{p}}{The number of features in tsMat.}
@@ -157,8 +196,9 @@ Invisibly returns a list containing the following fields of the PELT object:
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
-peltObj$describe()
+\preformatted{PELTObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+PELTObj$describe()
+
 }
 \if{html}{\out{</div>}}
 
@@ -202,14 +242,14 @@ peltObj$fit(tsMat)
 \subsection{Method \code{predict()}}{
 Performs PELT given a linear penalty value.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PELT$predict(pen)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PELT$predict(pen = 0)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{pen}}{A single non-negative numeric value specifying a penalty for each additional change point. By default,
-pen is missing, which forces pen = log(n).}
+pen = 0.}
 }
 \if{html}{\out{</div>}}
 }
