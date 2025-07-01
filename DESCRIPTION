@@ -16,5 +16,4 @@ Imports:
     Rcpp,
     R6,
     ggplot2,
-    patchwork,
-    methods
+    patchwork
