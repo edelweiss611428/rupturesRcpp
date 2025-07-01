@@ -21,9 +21,8 @@ Cost_VAR::Cost_VAR(const arma::mat& tsMat, const int& pVAR)  : p(pVAR), X(tsMat)
 };
 
 double Cost_VAR::effEvalCpp(int start, int end,  //Evaluate the cost of the segment (start,end] but counts from 1
-                            bool addSmallDiag,      // ignored
+                            bool addSmallDiag,      // unused
                             double epsilon) const {
-
 
   //p-step-behind
   // if(start < p){ //not used (1)
