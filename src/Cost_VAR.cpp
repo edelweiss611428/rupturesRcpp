@@ -22,7 +22,7 @@ Cost_VAR::Cost_VAR(const arma::mat& tsMat, const int& pVAR)  : p(pVAR), X(tsMat)
 
 double Cost_VAR::effEvalCpp(int start, int end,  //Evaluate the cost of the segment (start,end] but counts from 1
                             bool addSmallDiag,      // unused
-                            double epsilon) const {
+                            double epsilon) const {  // unused
 
   //p-step-behind
   // if(start < p){ //not used (1)
@@ -50,19 +50,12 @@ double Cost_VAR::effEvalCpp(int start, int end,  //Evaluate the cost of the segm
   // arma::mat Y_sub = X.rows(start, end); //not used (1)
 
   arma::mat regCoefs;
+
   try {
-    // Attempt standard least squares solve
+    // Standard solve()
     regCoefs = arma::solve(Z_sub, Y_sub);
-  } catch (...) {
-    // If standard solve fails, try ridge-regularised solve
-    try {
-      arma::mat ZtZ = Z_sub.t() * Z_sub;
-      arma::mat ridgeMat = ZtZ + epsilon * arma::eye(ZtZ.n_rows, ZtZ.n_cols);
-      arma::mat ZtY = Z_sub.t() * Y_sub;
-      regCoefs = arma::solve(ridgeMat, ZtY);  // Ridge regression
-    } catch (...) {
-      return 0;  // If even ridge regression fails, return 0
-    }
+  } catch (std::exception) {
+    Rcpp::Rcout << "Standard solve failed! Return 0" << std::endl;
   }
 
   arma::mat errMat = Y_sub - Z_sub * regCoefs;
