@@ -7,7 +7,6 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
-
 class Cost_VAR : public CostBase {
 
 private:

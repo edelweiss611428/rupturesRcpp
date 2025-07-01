@@ -65,13 +65,14 @@ double Cost_SIGMA::effEvalCpp(int start, int end,
   return 0; // If(singular) return 0
 }
 
-RCPP_EXPOSED_CLASS(Cost_SIGMA);
-RCPP_MODULE(Cost_SIGMA_module) {
-  class_<Cost_SIGMA>("Cost_SIGMA")
-  .constructor<arma::mat>()
-  .method("effEvalCpp", &Cost_SIGMA::effEvalCpp,
-  "Evaluate SIGMA cost on interval (start, end]");
-}
 
+RCPP_EXPOSED_CLASS(Cost_SIGMA)
+  RCPP_MODULE(Cost_SIGMA_module) {
+    class_<Cost_SIGMA>("Cost_SIGMA")
+      .constructor<arma::mat>()
+      .method("effEvalCpp", &Cost_SIGMA::effEvalCpp,
+    "Evaluate SIGMA cost on interval (start, end]")
+    ;
+  }
 
 

@@ -72,11 +72,13 @@ double Cost_VAR::effEvalCpp(int start, int end,  //Evaluate the cost of the segm
 
 }
 
-//Return for testing purposes
-RCPP_EXPOSED_CLASS(Cost_VAR);
-RCPP_MODULE(Cost_VAR_module) {
-  class_<Cost_VAR>("Cost_VAR")
-  .constructor<arma::mat, int>()
-  .method("effEvalCpp", &Cost_VAR::effEvalCpp,
-  "Evaluate VAR cost on interval (start, end]");
-}
+
+RCPP_EXPOSED_CLASS(Cost_VAR)
+  RCPP_MODULE(Cost_VAR_module) {
+    class_<Cost_VAR>("Cost_VAR")
+      .constructor<arma::mat, int>()
+      .method("effEvalCpp", &Cost_VAR::effEvalCpp,
+    "Evaluate VAR cost on interval (start, end]")
+    ;
+  }
+

@@ -31,10 +31,11 @@ double Cost_L2::effEvalCpp(int start, int end,
   return sumErrXsq - sqErrsumX / len;
 }
 
-RCPP_EXPOSED_CLASS(Cost_L2);
-RCPP_MODULE(Cost_L2_module) {
-  class_<Cost_L2>("Cost_L2")
-  .constructor<arma::mat>()
-  .method("effEvalCpp", &Cost_L2::effEvalCpp,
-  "Evaluate L2 cost on interval (start, end]");
-}
+RCPP_EXPOSED_CLASS(Cost_L2)
+  RCPP_MODULE(Cost_L2_module) {
+    Rcpp::class_<Cost_L2>("Cost_L2")
+    .constructor<arma::mat>()
+    .method("effEvalCpp", &Cost_L2::effEvalCpp,
+    "Evaluate L2 cost on interval (start, end]")
+    ;
+  }
