@@ -80,7 +80,7 @@ binSeg = R6Class(
 
   active = list(
 
-    #' @field minSize An active binding. Sets the internal variable \code{.minSize} but should not be called directly.
+    #' @field minSize Active binding. Sets the internal variable \code{.minSize} but should not be called directly.
     minSize = function(intVal) {
       if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
         stop("minSize must be a single positive integer!")
@@ -88,7 +88,7 @@ binSeg = R6Class(
       private$.minSize = as.integer(intVal)
     },
 
-    #' @field jump An active binding. Sets the internal variable \code{.jump} but should not be called directly.
+    #' @field jump Active binding. Sets the internal variable \code{.jump} but should not be called directly.
     jump = function(intVal) {
       if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
         stop("jump must be a single positive integer!")
@@ -96,7 +96,7 @@ binSeg = R6Class(
       private$.jump = as.integer(intVal)
     },
 
-    #' @field costFunc An active binding. Sets the internal variable \code{.costFunc} but should not be called directly.
+    #' @field costFunc Active binding. Sets the internal variable \code{.costFunc} but should not be called directly.
     costFunc = function(charVal) {
       if (is.null(charVal) || !is.character(charVal) || length(charVal) != 1) {
         stop("costFunc must be a single character!")
@@ -108,7 +108,7 @@ binSeg = R6Class(
       private$.costFunc = charVal
     },
 
-    #' @field tsMat An active binding. Sets the internal variable \code{.tsMat} but should not be called directly.
+    #' @field tsMat Active binding. Sets the internal variable \code{.tsMat} but should not be called directly.
     tsMat = function(numMat) {
       if (is.null(numMat) || !is.numeric(numMat) || !is.matrix(numMat)) {
         stop("tsMat must be a numeric time series matrix!")
@@ -116,7 +116,7 @@ binSeg = R6Class(
       private$.tsMat = numMat
     },
 
-    #' @field addSmallDiag An active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.
+    #' @field addSmallDiag Active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.
     addSmallDiag = function(boolVal) {
       if (is.null(boolVal) || !is.logical(boolVal) || length(boolVal) != 1) {
         stop("addSmallDiag must be a single boolean value!")
@@ -124,7 +124,7 @@ binSeg = R6Class(
       private$.addSmallDiag = boolVal
     },
 
-    #' @field epsilon An active binding. Sets the internal variable \code{.epsilon} but should not be called directly.
+    #' @field epsilon Active binding. Sets the internal variable \code{.epsilon} but should not be called directly.
     epsilon = function(doubleVal) {
       if (is.null(doubleVal) || !is.numeric(doubleVal) || as.integer(doubleVal) < 0 || length(doubleVal) != 1) {
         stop("epsilon must be a single positive double!")
@@ -132,7 +132,7 @@ binSeg = R6Class(
       private$.epsilon = doubleVal
     },
 
-    #' @field pVAR An active binding. Sets the internal variable \code{.pVAR} but should not be called directly.
+    #' @field pVAR Active binding. Sets the internal variable \code{.pVAR} but should not be called directly.
     pVAR = function(intVal) {
       if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
         stop("pVAR must be a single positive integer!")
@@ -146,19 +146,19 @@ binSeg = R6Class(
 
     #' @description Initialises a binSeg object.
     #'
-    #' @param minSize An integer specifying the minimum segment size. By default, minSize = 1L.
-    #' @param jump An integer k defining the search grid - only candidate change points in \{1,k+1,2k+1,...\}
-    #' will be considered. By default, jump = 1L.
-    #' @param costFunc A character specifying a cost function. Currently, only "L2", "SIGMA", and "VAR" are supported. By default,
-    #' costFunc = "L2".
-    #' @param addSmallDiag (SIGMA) An boolean value indicating whether or not to add a small bias to the diagonal entries
-    #' of estimated covariance matrices (for costFunc "SIGMA"). This improves numerical stability in near-singularity
-    #' scenarios. By default, addSmallDiag = TRUE.
-    #' @param epsilon (SIGMA) A double value specifying a bias value to be added to the diagonal entries
-    #' of estimated covariance matrices. By default, epsilon = 10^-6.
-    #' @param pVAR (VAR) A non-negative integer specify vector-autoregressive order. By default, pVAR = 1.
+    #' @param minSize Integer. Minimum allowed segment length. Default: 1L.
+    #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: 1L.
+    #' @param costFunc Character. Cost function to use: one of `"L2"`, `"SIGMA"`, or `"VAR"`. Default: `"L2"`.
+    #' @param addSmallDiag Logical (SIGMA only). If `TRUE`, adds a small value to the diagonal of estimated covariance matrices
+    #' to improve numerical stability. Default: `TRUE`.
+    #' @param epsilon Double. A small positive value used to stabilise matrix operations. Default: `1e-6`.
     #'
-    #' @return Invisibly returns NULL. Creates a PELT object with params minSize, jump, and costFunc.
+    #' - For `"SIGMA"`, `epsilon` is added to diagonal entries if `addSmallDiag = TRUE`.
+    #' - For `"VAR"`, if OLS fails, attempt ridge regression with `lambda` = `epsilon`.
+    #'
+    #' @param pVAR Integer (VAR only). Order of the vector autoregressive (VAR) model. Must be non-negative. Default: `1L`.
+    #'
+    #' @return Invisibly returns NULL.
     #'
     #' @examples
     #' peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
@@ -196,20 +196,19 @@ binSeg = R6Class(
 
     #' @description Describes a binSeg object.
     #'
-    #' @return Invisibly returns a list containing the following fields of the binSeg object:
+    #' @return Invisibly returns a list containing some of the following fields:
     #' \describe{
-    #'   \item{\code{minSize}}{The minimum segment size.}
-    #'   \item{\code{jump}}{The integer k defining the search grid \{1,k+1,2k+1,...\}.}
+    #'   \item{\code{minSize}}{Minimum allowed segment length.}
+    #'   \item{\code{jump}}{Search grid step size.}
     #'   \item{\code{costFunc}}{The cost function.}
-    #'   \item{\code{addSmallDiag}}{A boolean value indicating whether to add a bias value to diagonal entries of estimated covariance matrices.}
-    #'   \item{\code{epsilon}}{The bias value to be added to diagonal entries of estimated covariance matrices.}
-    #'   \item{\code{fitted}}{A boolean indicating whether or not $fit() has been run.}
-    #'   \item{\code{tsMat}}{The input time series matrix.}
-    #'   \item{\code{n}}{The number of observations in tsMat.}
-    #'   \item{\code{p}}{The number of features in tsMat.}
-    #'   \item{\code{bkps}}{A vector containing unordered breakpoint positions, given the maximum number of allowable breakpoints.}
-    #'   \item{\code{cost}}{From the second elemement, the corresponding costs of splits in bkps. By default, the
-    #'   first element is the total cost without any split}
+    #'   \item{\code{addSmallDiag}}{(SIGMA only) Whether to add bias for numerical stability.}
+    #'   \item{\code{epsilon}}{(SIGMA, VAR) Bias added to diagonal entries.}
+    #'   \item{\code{fitted}}{Whether or not `$fit()` has been run.}
+    #'   \item{\code{tsMat}}{Input time series matrix.}
+    #'   \item{\code{n}}{Number of observations.}
+    #'   \item{\code{p}}{Number of features.}
+    #'   \item{\code{bkps}}{Vector of unordered breakpoint positions.}
+    #'   \item{\code{cost}}{From the second element, split costs corresponding to \code{bkps}; first element is total cost without splits.}
     #' }
     #'
     #' @examples
@@ -241,8 +240,10 @@ binSeg = R6Class(
       }
 
       if(private$.costFunc == "VAR"){
+        cat(sprintf("epsilon      : %s\n", private$.epsilon))
         cat(sprintf("pVAR.        : %s\n", private$.epsilon))
         params[["pVAR"]] = private$.pVAR
+        params[["epsilon"]] = private$.epsilon
       }
 
       cat(sprintf("fitted       : %s\n", private$.fitted))
@@ -256,10 +257,12 @@ binSeg = R6Class(
     #' @description Takes a time series matrix as input and perform binSeg for the
     #' maximum number of change points.
     #'
-    #' @param tsMat tsMat A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
+    #' @param tsMat Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
     #'
-    #' @return Invisibly returns NULL. Initialises .tsMat, .n, and .p, and sets private$.fitted to TRUE,
-    #' enabling the use of $predict().
+    #' @return Invisibly returns NULL.
+    #'
+    #' @details Initialises `private$.tsMat`, `private$.n`, `private$.p`, `private$.bkps`, and `private$.cost`. Sets private$.fitted to TRUE,
+    #' enabling the use of `$predict()`. Run `$describe()` for detailed configurations.
     #'
     #' @examples
     #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
@@ -271,7 +274,7 @@ binSeg = R6Class(
       self$tsMat = tsMat
       private$.n = nrow(tsMat)
       private$.p = ncol(tsMat)
-      private$.fitted = TRUE #Needed for the $predict() method.
+      private$.fitted = TRUE
       detection = binSegCpp(private$.tsMat, private$.minSize, private$.jump,
                             costFunc = private$.costFunc,
                             addSmallDiag = private$.addSmallDiag,
@@ -284,12 +287,14 @@ binSeg = R6Class(
 
     #' @description Performs binSeg given a linear penalty value.
     #'
-    #' @param pen A single non-negative numeric value specifying a penalty for each additional change point. By default,
-    #' pen = 0.
+    #' @param pen Numeric. Penalty per change point. Default: `0`.
     #'
-    #' @return A vector of indexes corresponding to the end point of each regime. By design, the last element
-    #' of the vector is the number of observations. Temporary end points are saved to private$.tmpEndPoints,
-    #' which allows users to usethe $plot() method without specifying end points.
+    #' @return An integer vector of regime end points. By design, the last element is the
+    #' number of observations.
+    #'
+    #' @details Performs binSeg given a linear penalty value. Temporary end points are saved
+    #' to `private$.tmpEndPoints`, allowing users to use `$plot()` without specifying
+    #' end points.
     #'
     #' @examples
     #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
@@ -318,28 +323,21 @@ binSeg = R6Class(
 
     #' @description Plots change point segmentation
     #'
-    #' @param d An integer vector specifying dimensions to plot. By default, d = 1L.
-    #' @param endPts An integer vector specifying end points! Could be obtained via $predict().").
-    #' By default, endPts is missing, in which, the method will proceed to use the (latest) temporary
-    #' changepoints obtained by running $predict().
-    #' @param dimNames A character vector specifying feature names!", whose length must match that of d if not missing.
-    #' By default, dimNames is missing, which forces dimNames = ("X1", "X2",...).
-    #' @param main A character specifying the main title of the plot. By default, main is missing, in which the method
-    #' will use the default title "binSeg: d = ...".
-    #' @param xlab A character specifying the x-axis label. By default, xlab is missing, which force xlab = "Time".
-    #' @param tsWidth A numeric value specifying the linewidth of the time series and also that of the segments' dashed lines.
-    #' By default, tsWidth = 0.25.
-    #' @param tsCol A character color of the plotted time series. By default, tsCol = "#5B9BD5".
-    #' @param bgCol A character vector specifying segment colors. This will be repeated up to the length of
-    #' endPts. By defaults, bgCol = c("#A3C4F3", "#FBB1BD").
-    #' @param bgAlpha A numeric value specifying the degree of transparency of the background.
-    #' By default, bgAlpha = 0.5.
-    #' @param ncol An integer specifying the number of columns to be used in the facet layout. By default, ncol  = 1L.
+    #' @param d Integer vector. Dimensions to plot. Default: `1L`.
+    #' @param endPts Integer vector. End points; defaults to latest temporary changepoints from `$predict()`.
+    #' @param dimNames Character vector. Feature names matching length of `d`. Defaults to `"X1", "X2", ...`.
+    #' @param main Character. Plot main title. Defaults to `"binSeg: d = ..."`.
+    #' @param xlab Character. X-axis label. Default: `"Time"`.
+    #' @param tsWidth Numeric. Line width for time series and segments. Default: `0.25`.
+    #' @param tsCol Character. Time series color. Default: `"#5B9BD5"`.
+    #' @param bgCol Character vector. Segment colors, recycled to length of `endPts`. Default: `c("#A3C4F3", "#FBB1BD")`.
+    #' @param bgAlpha Numeric. Background transparency. Default: `0.5`.
+    #' @param ncol Integer. Number of columns in facet layout. Default: `1L`.
     #'
     #' @details Plots change point segmentation results. Based on ggplot2. Multiple plots can easily be
-    #' combined using / (vertically) and | (horizontally) operator via patchwork.
+    #' horizontally and vertically stacked using patchwork's operators `/` and `|`, respectively.
     #'
-    #' @return An object of classes "gg"/"ggplot".
+    #' @return An object of classes "gg" and "ggplot".
     #'
     #' @examples
     #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
