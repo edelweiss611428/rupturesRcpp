@@ -48,7 +48,7 @@ double Cost_SIGMA::effEvalCpp(int start, int end,
   arma::mat covMat = preComp.covarianceComputer(start, end);
   double sign = 0.0, logDet = 0.0;
 
-  if (start >= end - 1) { //in case failure occurs, return 0
+  if (start >= end - 1) { // If(failed), return 0
     return 0.0;
   }
 
@@ -62,17 +62,16 @@ double Cost_SIGMA::effEvalCpp(int start, int end,
     return logDet * (end - start);
   }
 
-  return 0; // if not invertible -> return 0! (other options exist)
+  return 0; // If(singular) return 0
 }
 
-
-//Return for testing purposes
+RCPP_EXPOSED_CLASS(Cost_SIGMA);
 RCPP_MODULE(Cost_SIGMA_module) {
   class_<Cost_SIGMA>("Cost_SIGMA")
-
   .constructor<arma::mat>()
-
   .method("effEvalCpp", &Cost_SIGMA::effEvalCpp,
   "Evaluate SIGMA cost on interval (start, end]");
 }
+
+
 
