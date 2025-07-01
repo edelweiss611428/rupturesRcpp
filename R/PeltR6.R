@@ -145,14 +145,11 @@ PELT = R6Class(
     #' @param minSize Integer. Minimum allowed segment length. Default: 1L.
     #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: 1L.
     #' @param costFunc Character. Cost function to use: one of `"L2"`, `"SIGMA"`, or `"VAR"`. Default: `"L2"`.
-    #' @param addSmallDiag Logical (SIGMA only). If `TRUE`, adds a small value to the diagonal of estimated covariance matrices
+    #' @param addSmallDiag Logical. (SIGMA) If `TRUE`, adds a small value to the diagonal of estimated covariance matrices
     #' to improve numerical stability. Default: `TRUE`.
-    #' @param epsilon Double. A small positive value used to stabilise matrix operations. Default: `1e-6`.
-    #'
-    #' - For `"SIGMA"`, `epsilon` is added to diagonal entries if `addSmallDiag = TRUE`.
-    #' - For `"VAR"`, if OLS fails, attempt ridge regression with `lambda` = `epsilon`.
-    #'
-    #' @param pVAR Integer (VAR only). Order of the vector autoregressive (VAR) model. Must be non-negative. Default: `1L`.
+    #' @param epsilon Double. (SIGMA) A small positive value used to the diagonal of estimated covariance matrices to stabilise
+    #' matrix operations. Default: `1e-6`.
+    #' @param pVAR Integer (VAR). Order of the vector autoregressive (VAR) model. Must be non-negative. Default: `1L`.
     #'
     #' @return Invisibly returns NULL.
     #'
@@ -197,8 +194,9 @@ PELT = R6Class(
     #'   \item{\code{minSize}}{Minimum allowed segment length.}
     #'   \item{\code{jump}}{Search grid step size.}
     #'   \item{\code{costFunc}}{The cost function.}
-    #'   \item{\code{addSmallDiag}}{(SIGMA only) Whether to add a bias for numerical stability.}
-    #'   \item{\code{epsilon}}{(SIGMA, VAR) Bias added to diagonal entries.}
+    #'   \item{\code{addSmallDiag}}{(SIGMA) Whether to add a bias to the diagonal of estimated covariance matrices for numerical stability.}
+    #'   \item{\code{epsilon}}{(SIGMA) Bias added to diagonal entries.}
+    #'   \item{\code{pVAR}}{(VAR) VAR order.}
     #'   \item{\code{fitted}}{Whether or not `$fit()` has been run.}
     #'   \item{\code{tsMat}}{Input time series matrix.}
     #'   \item{\code{n}}{Number of observations.}
@@ -234,9 +232,7 @@ PELT = R6Class(
 
       if(private$.costFunc == "VAR"){
         cat(sprintf("pVAR.        : %s\n", private$.epsilon))
-        cat(sprintf("epsilon      : %s\n", private$.epsilon))
         params[["pVAR"]] = private$.pVAR
-        params[["epsilon"]] = private$.epsilon
       }
 
       cat(sprintf("fitted       : %s\n", private$.fitted))

@@ -145,16 +145,13 @@ Initialises a PELT object.
 
 \item{\code{costFunc}}{Character. Cost function to use: one of \code{"L2"}, \code{"SIGMA"}, or \code{"VAR"}. Default: \code{"L2"}.}
 
-\item{\code{addSmallDiag}}{Logical (SIGMA only). If \code{TRUE}, adds a small value to the diagonal of estimated covariance matrices
+\item{\code{addSmallDiag}}{Logical. (SIGMA) If \code{TRUE}, adds a small value to the diagonal of estimated covariance matrices
 to improve numerical stability. Default: \code{TRUE}.}
 
-\item{\code{epsilon}}{Double. A small positive value used to stabilise matrix operations. Default: \code{1e-6}.
-\itemize{
-\item For \code{"SIGMA"}, \code{epsilon} is added to diagonal entries if \code{addSmallDiag = TRUE}.
-\item For \code{"VAR"}, if OLS fails, attempt ridge regression with \code{lambda} = \code{epsilon}.
-}}
+\item{\code{epsilon}}{Double. (SIGMA) A small positive value used to the diagonal of estimated covariance matrices to stabilise
+matrix operations. Default: \code{1e-6}.}
 
-\item{\code{pVAR}}{Integer (VAR only). Order of the vector autoregressive (VAR) model. Must be non-negative. Default: \code{1L}.}
+\item{\code{pVAR}}{Integer (VAR). Order of the vector autoregressive (VAR) model. Must be non-negative. Default: \code{1L}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -185,8 +182,9 @@ Invisibly returns a list containing some of the following fields:
 \item{\code{minSize}}{Minimum allowed segment length.}
 \item{\code{jump}}{Search grid step size.}
 \item{\code{costFunc}}{The cost function.}
-\item{\code{addSmallDiag}}{(SIGMA only) Whether to add a bias for numerical stability.}
-\item{\code{epsilon}}{(SIGMA, VAR) Bias added to diagonal entries.}
+\item{\code{addSmallDiag}}{(SIGMA) Whether to add a bias to the diagonal of estimated covariance matrices for numerical stability.}
+\item{\code{epsilon}}{(SIGMA) Bias added to diagonal entries.}
+\item{\code{pVAR}}{(VAR) VAR order.}
 \item{\code{fitted}}{Whether or not \verb{$fit()} has been run.}
 \item{\code{tsMat}}{Input time series matrix.}
 \item{\code{n}}{Number of observations.}
