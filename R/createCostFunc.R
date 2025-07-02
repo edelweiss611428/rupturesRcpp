@@ -9,15 +9,15 @@
 #'
 #' For \code{"SIGMA"}, supported parameters are:
 #' \describe{
-#'   \item{addSmallDiag}{Logical. If \code{TRUE}, add a small value to the diagonal of estimated covariance matrices
+#'   \item{`addSmallDiag`}{Logical. If \code{TRUE}, add a small value to the diagonal of estimated covariance matrices
 #'   to improve numerical stability. Default: \code{TRUE}.}
-#'   \item{epsilon}{Double. A small positive value added to the diagonal of estimated covariance matrices to stabilise
+#'   \item{`epsilon`}{Double. A small positive value added to the diagonal of estimated covariance matrices to stabilise
 #'   matrix operations. Default: \code{1e-6}.}
 #' }
 #'
 #' For \code{"VAR"}, the VAR order \code{pVAR} is required:
 #' \describe{
-#'   \item{pVAR}{Integer. Vector autoregressive order. Must be non-negative. Default: \code{1L}.}
+#'   \item{`pVAR`}{Integer. Vector autoregressive order. Must be non-negative. Default: \code{1L}.}
 #' }
 #'
 #' @return An object of class \code{costFunc} - a list containing costFunc and any additional parameters.

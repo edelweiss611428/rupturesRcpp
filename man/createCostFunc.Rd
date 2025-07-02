@@ -14,15 +14,15 @@ and \code{"SIGMA"}. Default \code{L2}.}
 
 For \code{"SIGMA"}, supported parameters are:
 \describe{
-\item{addSmallDiag}{Logical. If \code{TRUE}, add a small value to the diagonal of estimated covariance matrices
+\item{\code{addSmallDiag}}{Logical. If \code{TRUE}, add a small value to the diagonal of estimated covariance matrices
 to improve numerical stability. Default: \code{TRUE}.}
-\item{epsilon}{Double. A small positive value added to the diagonal of estimated covariance matrices to stabilise
+\item{\code{epsilon}}{Double. A small positive value added to the diagonal of estimated covariance matrices to stabilise
 matrix operations. Default: \code{1e-6}.}
 }
 
 For \code{"VAR"}, the VAR order \code{pVAR} is required:
 \describe{
-\item{pVAR}{Integer. Vector autoregressive order. Must be non-negative. Default: \code{1L}.}
+\item{\code{pVAR}}{Integer. Vector autoregressive order. Must be non-negative. Default: \code{1L}.}
 }}
 }
 \value{
