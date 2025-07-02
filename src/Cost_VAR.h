@@ -7,7 +7,6 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
-
 class Cost_VAR : public CostBase {
 
 private:
@@ -21,8 +20,8 @@ public:
   Cost_VAR(const arma::mat& inputMat, const int& pVar);
 
   double effEvalCpp(int start, int end,
-                    bool addSmallDiag = true, //ignored
-                    double epsilon = 1e-6) const;//ignored
+                    bool addSmallDiag = true, //unused
+                    double epsilon = 1e-6) const;
 };
 
 

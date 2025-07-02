@@ -20,8 +20,9 @@ public:
   Cost_L2(const arma::mat& inputMat);
 
   double effEvalCpp(int start, int end,
-                    bool addSmallDiag = true,//ignored
-                    double epsilon = 1e-6) const;//ignored
+                    bool addSmallDiag = true, //unused
+                    double epsilon = 1e-6 //unused
+                    ) const;
 };
 
 

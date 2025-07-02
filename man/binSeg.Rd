@@ -100,19 +100,19 @@ Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation.
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{minSize}}{An active binding. Sets the internal variable \code{.minSize} but should not be called directly.}
+\item{\code{minSize}}{Active binding. Sets the internal variable \code{.minSize} but should not be called directly.}
 
-\item{\code{jump}}{An active binding. Sets the internal variable \code{.jump} but should not be called directly.}
+\item{\code{jump}}{Active binding. Sets the internal variable \code{.jump} but should not be called directly.}
 
-\item{\code{costFunc}}{An active binding. Sets the internal variable \code{.costFunc} but should not be called directly.}
+\item{\code{costFunc}}{Active binding. Sets the internal variable \code{.costFunc} but should not be called directly.}
 
-\item{\code{tsMat}}{An active binding. Sets the internal variable \code{.tsMat} but should not be called directly.}
+\item{\code{tsMat}}{Active binding. Sets the internal variable \code{.tsMat} but should not be called directly.}
 
-\item{\code{addSmallDiag}}{An active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.}
+\item{\code{addSmallDiag}}{Active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.}
 
-\item{\code{epsilon}}{An active binding. Sets the internal variable \code{.epsilon} but should not be called directly.}
+\item{\code{epsilon}}{Active binding. Sets the internal variable \code{.epsilon} but should not be called directly.}
 
-\item{\code{pVAR}}{An active binding. Sets the internal variable \code{.pVAR} but should not be called directly.}
+\item{\code{pVAR}}{Active binding. Sets the internal variable \code{.pVAR} but should not be called directly.}
 }
 \if{html}{\out{</div>}}
 }
@@ -139,27 +139,24 @@ Initialises a binSeg object.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{minSize}}{An integer specifying the minimum segment size. By default, minSize = 1L.}
+\item{\code{minSize}}{Integer. Minimum allowed segment length. Default: 1L.}
 
-\item{\code{jump}}{An integer k defining the search grid - only candidate change points in \{1,k+1,2k+1,...\}
-will be considered. By default, jump = 1L.}
+\item{\code{jump}}{Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: 1L.}
 
-\item{\code{costFunc}}{A character specifying a cost function. Currently, only "L2", "SIGMA", and "VAR" are supported. By default,
-costFunc = "L2".}
+\item{\code{costFunc}}{Character. Cost function to use: one of \code{"L2"}, \code{"SIGMA"}, or \code{"VAR"}. Default: \code{"L2"}.}
 
-\item{\code{addSmallDiag}}{(SIGMA) An boolean value indicating whether or not to add a small bias to the diagonal entries
-of estimated covariance matrices (for costFunc "SIGMA"). This improves numerical stability in near-singularity
-scenarios. By default, addSmallDiag = TRUE.}
+\item{\code{addSmallDiag}}{Logical. (SIGMA) If \code{TRUE}, adds a small value to the diagonal of estimated covariance matrices
+to improve numerical stability. Default: \code{TRUE}.}
 
-\item{\code{epsilon}}{(SIGMA) A double value specifying a bias value to be added to the diagonal entries
-of estimated covariance matrices. By default, epsilon = 10^-6.}
+\item{\code{epsilon}}{Double. (SIGMA) A small positive value used to the diagonal of estimated covariance matrices to stabilise
+matrix operations. Default: \code{1e-6}.}
 
-\item{\code{pVAR}}{(VAR) A non-negative integer specify vector-autoregressive order. By default, pVAR = 1.}
+\item{\code{pVAR}}{Integer (VAR). Order of the vector autoregressive (VAR) model. Must be non-negative. Default: \code{1L}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Invisibly returns NULL. Creates a PELT object with params minSize, jump, and costFunc.
+Invisibly returns NULL.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
@@ -180,20 +177,20 @@ Describes a binSeg object.
 }
 
 \subsection{Returns}{
-Invisibly returns a list containing the following fields of the binSeg object:
+Invisibly returns a list containing some of the following fields:
 \describe{
-\item{\code{minSize}}{The minimum segment size.}
-\item{\code{jump}}{The integer k defining the search grid \{1,k+1,2k+1,...\}.}
+\item{\code{minSize}}{Minimum allowed segment length.}
+\item{\code{jump}}{Search grid step size.}
 \item{\code{costFunc}}{The cost function.}
-\item{\code{addSmallDiag}}{A boolean value indicating whether to add a bias value to diagonal entries of estimated covariance matrices.}
-\item{\code{epsilon}}{The bias value to be added to diagonal entries of estimated covariance matrices.}
-\item{\code{fitted}}{A boolean indicating whether or not $fit() has been run.}
-\item{\code{tsMat}}{The input time series matrix.}
-\item{\code{n}}{The number of observations in tsMat.}
-\item{\code{p}}{The number of features in tsMat.}
-\item{\code{bkps}}{A vector containing unordered breakpoint positions, given the maximum number of allowable breakpoints.}
-\item{\code{cost}}{From the second elemement, the corresponding costs of splits in bkps. By default, the
-first element is the total cost without any split}
+\item{\code{addSmallDiag}}{(SIGMA only) Whether to add bias for numerical stability.}
+\item{\code{epsilon}}{(SIGMA, VAR) Bias added to diagonal entries.}
+\item{\code{pVAR}}{(VAR) VAR order.}
+\item{\code{fitted}}{Whether or not \verb{$fit()} has been run.}
+\item{\code{tsMat}}{Input time series matrix.}
+\item{\code{n}}{Number of observations.}
+\item{\code{p}}{Number of features.}
+\item{\code{bkps}}{Vector of unordered breakpoint positions.}
+\item{\code{cost}}{From the second element, split costs corresponding to \code{bkps}; first element is total cost without splits.}
 }
 }
 \subsection{Examples}{
@@ -220,13 +217,17 @@ maximum number of change points.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{tsMat}}{tsMat A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.}
+\item{\code{tsMat}}{Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+Initialises \code{private$.tsMat}, \code{private$.n}, \code{private$.p}, \code{private$.bkps}, and \code{private$.cost}. Sets private$.fitted to TRUE,
+enabling the use of \verb{$predict()}. Run \verb{$describe()} for detailed configurations.
+}
+
 \subsection{Returns}{
-Invisibly returns NULL. Initialises .tsMat, .n, and .p, and sets private$.fitted to TRUE,
-enabling the use of $predict().
+Invisibly returns NULL.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
@@ -251,15 +252,19 @@ Performs binSeg given a linear penalty value.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{pen}}{A single non-negative numeric value specifying a penalty for each additional change point. By default,
-pen = 0.}
+\item{\code{pen}}{Numeric. Penalty per change point. Default: \code{0}.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+Performs binSeg given a linear penalty value. Temporary end points are saved
+to \code{private$.tmpEndPoints}, allowing users to use \verb{$plot()} without specifying
+end points.
+}
+
 \subsection{Returns}{
-A vector of indexes corresponding to the end point of each regime. By design, the last element
-of the vector is the number of observations. Temporary end points are saved to private$.tmpEndPoints,
-which allows users to usethe $plot() method without specifying end points.
+An integer vector of regime end points. By design, the last element is the
+number of observations.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
@@ -296,42 +301,35 @@ Plots change point segmentation
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{d}}{An integer vector specifying dimensions to plot. By default, d = 1L.}
+\item{\code{d}}{Integer vector. Dimensions to plot. Default: \code{1L}.}
 
-\item{\code{endPts}}{An integer vector specifying end points! Could be obtained via $predict().").
-By default, endPts is missing, in which, the method will proceed to use the (latest) temporary
-changepoints obtained by running $predict().}
+\item{\code{endPts}}{Integer vector. End points; defaults to latest temporary changepoints from \verb{$predict()}.}
 
-\item{\code{dimNames}}{A character vector specifying feature names!", whose length must match that of d if not missing.
-By default, dimNames is missing, which forces dimNames = ("X1", "X2",...).}
+\item{\code{dimNames}}{Character vector. Feature names matching length of \code{d}. Defaults to \verb{"X1", "X2", ...}.}
 
-\item{\code{main}}{A character specifying the main title of the plot. By default, main is missing, in which the method
-will use the default title "binSeg: d = ...".}
+\item{\code{main}}{Character. Plot main title. Defaults to \code{"binSeg: d = ..."}.}
 
-\item{\code{xlab}}{A character specifying the x-axis label. By default, xlab is missing, which force xlab = "Time".}
+\item{\code{xlab}}{Character. X-axis label. Default: \code{"Time"}.}
 
-\item{\code{tsWidth}}{A numeric value specifying the linewidth of the time series and also that of the segments' dashed lines.
-By default, tsWidth = 0.25.}
+\item{\code{tsWidth}}{Numeric. Line width for time series and segments. Default: \code{0.25}.}
 
-\item{\code{tsCol}}{A character color of the plotted time series. By default, tsCol = "#5B9BD5".}
+\item{\code{tsCol}}{Character. Time series color. Default: \code{"#5B9BD5"}.}
 
-\item{\code{bgCol}}{A character vector specifying segment colors. This will be repeated up to the length of
-endPts. By defaults, bgCol = c("#A3C4F3", "#FBB1BD").}
+\item{\code{bgCol}}{Character vector. Segment colors, recycled to length of \code{endPts}. Default: \code{c("#A3C4F3", "#FBB1BD")}.}
 
-\item{\code{bgAlpha}}{A numeric value specifying the degree of transparency of the background.
-By default, bgAlpha = 0.5.}
+\item{\code{bgAlpha}}{Numeric. Background transparency. Default: \code{0.5}.}
 
-\item{\code{ncol}}{An integer specifying the number of columns to be used in the facet layout. By default, ncol  = 1L.}
+\item{\code{ncol}}{Integer. Number of columns in facet layout. Default: \code{1L}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
 Plots change point segmentation results. Based on ggplot2. Multiple plots can easily be
-combined using / (vertically) and | (horizontally) operator via patchwork.
+horizontally and vertically stacked using patchwork's operators \code{/} and \code{|}, respectively.
 }
 
 \subsection{Returns}{
-An object of classes "gg"/"ggplot".
+An object of classes "gg" and "ggplot".
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}

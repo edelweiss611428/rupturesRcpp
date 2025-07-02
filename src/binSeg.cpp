@@ -119,7 +119,11 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
   int nr = Xnew.nr;
 
   if(nr < 2*minSize){
-    stop("Number of observations < 2*minSize");
+    stop("Number of observations < 2*minSize!");
+  }
+
+  if(nr <= jump){
+    stop("Number of observations <= jump!");
   }
 
   const int& maxNRegimes = std::floor(nr / minSize);
@@ -150,8 +154,7 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
     heap.push(leftSeg);
     heap.push(rightSeg);
 
-    if(heap.top().gain < 0){ //negative gain is equiv to no valid interval to split
-      //check if nRegimes is correctly computed? should be nRegimes -=1;
+    if(heap.top().gain < 0){ //Negative best gain = no valid interval to split (by design)
       failed = true;
       break;
     }
@@ -159,9 +162,8 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
     nRegimes++;
 
   } while(nRegimes <= maxNRegimes);
-  //Need to check if the last cost has been computed? NO! => future feature
 
-  if(not failed){
+  if(not failed){ //If negative best gain not detected, add the last detected change points & corresponding cost
     changePoints[idx] = heap.top().cp;
     cost[idx] = cost[idx-1] - heap.top().gain;
   }

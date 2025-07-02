@@ -20,43 +20,57 @@ Cost_VAR::Cost_VAR(const arma::mat& tsMat, const int& pVAR)  : p(pVAR), X(tsMat)
 
 };
 
-double Cost_VAR::effEvalCpp(int start, int end,
-                            bool addSmallDiag,      // ignored
-                            double epsilon) const {  // ignored
+double Cost_VAR::effEvalCpp(int start, int end,  //Evaluate the cost of the segment (start,end] but counts from 1
+                            bool addSmallDiag,      // unused
+                            double epsilon) const {  // unused
 
+  //p-step-behind
+  // if(start < p){ //not used (1)
+  //   start = p;
+  // }
 
-  if(start < p){ //to account for the fact that the longest valid section is y[p:(nr-1)] - here idx from 0
-    start = p;
+  //p-step-ahead
+  if(start > nr-p-1){
+    return 0;
   }
 
   end = end - 1;
 
   int len = end - start;
-  if(len < J){
-    return 0; //in case numerical failure will occur, return 0
+  if(len < J){ // (start, end] must have at least J points (for OLS)
+    return 0; //Return 0
   }
 
+  //p-step-ahead
+  arma::mat Z_sub = Z_full.rows(start, end-p);
+  arma::mat Y_sub = X.rows(start+p, end); //The longest valid section is y[p:(nr-1)]
 
-  arma::mat Z_sub = Z_full.rows(start - p, end-p);
-  arma::mat Y_sub = X.rows(start, end);
+  //p-step-behind
+  // arma::mat Z_sub = Z_full.rows(start - p, end-p); //not used (1)
+  // arma::mat Y_sub = X.rows(start, end); //not used (1)
+
   arma::mat regCoefs;
+
   try {
+    // Standard solve()
     regCoefs = arma::solve(Z_sub, Y_sub);
-  } catch (...) {
-    return 0;  //in case failure will occur, return 0
+  } catch (const std::exception&) {
+    Rcpp::Rcout << "Standard solve failed! Return 0" << std::endl;
   }
+
   arma::mat errMat = Y_sub - Z_sub * regCoefs;
 
   return arma::accu(arma::square(errMat));
 
 }
 
-//Return for testing purposes
-RCPP_MODULE(Cost_VAR_module) {
-  class_<Cost_VAR>("Cost_VAR")
 
-  .constructor<arma::mat, int>()
+RCPP_EXPOSED_CLASS(Cost_VAR)
+  RCPP_MODULE(Cost_VAR_module) {
+    class_<Cost_VAR>("Cost_VAR")
+      .constructor<arma::mat, int>()
+      .method("effEvalCpp", &Cost_VAR::effEvalCpp,
+    "Evaluate VAR cost on interval (start, end]")
+    ;
+  }
 
-  .method("effEvalCpp", &Cost_VAR::effEvalCpp,
-  "Evaluate VAR cost on interval (start, end]");
-}

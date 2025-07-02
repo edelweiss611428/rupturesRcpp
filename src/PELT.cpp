@@ -7,12 +7,6 @@ using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
 
 
-// Function to return the maximum of two integers
-inline int maxInt(const int a, const int b)
-{
-  return (a > b) ? a : b;
-}
-
 // Function to read the path from the path vector
 std::vector<int> readPath(const arma::ivec& pathVec)
 {
@@ -80,6 +74,11 @@ std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int
     for (arma::uword kLastBkp = 0; kLastBkp < nAdmissibleBkps; ++kLastBkp)
     {
       const int lastBkp = admissibleBkps[kLastBkp];
+
+      if(end - lastBkp < minSize){ //Error message! However, by design, this should not happen.
+        Rcpp::Rcout << "end - lastBkp < minSize!"<< std::endl;
+        continue;
+      }
 
       const double currentCost = Xnew.effEvalCpp(lastBkp, end,
                                                  addSmallDiag,
