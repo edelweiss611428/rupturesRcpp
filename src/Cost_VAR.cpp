@@ -54,7 +54,7 @@ double Cost_VAR::effEvalCpp(int start, int end,  //Evaluate the cost of the segm
   try {
     // Standard solve()
     regCoefs = arma::solve(Z_sub, Y_sub);
-  } catch (std::exception) {
+  } catch (const std::exception&) {
     Rcpp::Rcout << "Standard solve failed! Return 0" << std::endl;
   }
 
