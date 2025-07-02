@@ -51,6 +51,7 @@
 #' Killick, R., Fearnhead, P., & Eckley, I. A. (2012). Optimal detection of change points with a linear computational cost.
 #' Journal of the American Statistical Association, 107(500), 1590-1598.
 #'
+#' @author Minh Long Nguyen \email{edelweiss611428@gmail.com}
 #' @docType class
 #'
 #' @importFrom R6 R6Class

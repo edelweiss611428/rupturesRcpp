@@ -97,6 +97,9 @@ Signal Processing, 167, 107299.
 Killick, R., Fearnhead, P., & Eckley, I. A. (2012). Optimal detection of change points with a linear computational cost.
 Journal of the American Statistical Association, 107(500), 1590-1598.
 }
+\author{
+Minh Long Nguyen \email{edelweiss611428@gmail.com}
+}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{

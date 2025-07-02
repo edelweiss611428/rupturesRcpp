@@ -33,7 +33,7 @@
 #' @examples
 #' createCostFunc("L2")
 #' createCostFunc("SIGMA", addSmallDiag = TRUE, epsilon = 1e-6)
-#'
+#' @author Minh Long Nguyen \email{edelweiss611428@gmail.com}
 #' @export
 
 createCostFunc = function(costFunc = "L2", ...){

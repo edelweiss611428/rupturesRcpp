@@ -97,6 +97,9 @@ Signal Processing, 167, 107299.
 
 Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation. arXiv preprint arXiv:2410.08654.
 }
+\author{
+Minh Long Nguyen \email{edelweiss611428@gmail.com}
+}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{

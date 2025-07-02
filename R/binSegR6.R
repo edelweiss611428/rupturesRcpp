@@ -51,6 +51,8 @@
 #'
 #' Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation. arXiv preprint arXiv:2410.08654.
 #'
+#' @author Minh Long Nguyen \email{edelweiss611428@gmail.com}
+#'
 #' @docType class
 #'
 #' @importFrom R6 R6Class
