@@ -149,7 +149,7 @@ binSeg = R6Class(
     #' @param minSize Integer. Minimum allowed segment length. Default: 1L.
     #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: 1L.
     #' @param costFunc Character. Cost function to use: one of `"L2"`, `"SIGMA"`, or `"VAR"`. Default: `"L2"`.
-    #' @param addSmallDiag Logical. (SIGMA) If `TRUE`, adds a small value to the diagonal of estimated covariance matrices
+    #' @param addSmallDiag Logical. (SIGMA) If `TRUE`, add a small value to the diagonal of estimated covariance matrices
     #' to improve numerical stability. Default: `TRUE`.
     #' @param epsilon Double. (SIGMA) A small positive value used to the diagonal of estimated covariance matrices to stabilise
     #' matrix operations. Default: `1e-6`.
@@ -322,7 +322,7 @@ binSeg = R6Class(
     #' @param d Integer vector. Dimensions to plot. Default: `1L`.
     #' @param endPts Integer vector. End points; defaults to latest temporary changepoints from `$predict()`.
     #' @param dimNames Character vector. Feature names matching length of `d`. Defaults to `"X1", "X2", ...`.
-    #' @param main Character. Plot main title. Defaults to `"binSeg: d = ..."`.
+    #' @param main Character. Main title. Defaults to `"binSeg: d = ..."`.
     #' @param xlab Character. X-axis label. Default: `"Time"`.
     #' @param tsWidth Numeric. Line width for time series and segments. Default: `0.25`.
     #' @param tsCol Character. Time series color. Default: `"#5B9BD5"`.

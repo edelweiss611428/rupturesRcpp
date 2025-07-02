@@ -145,7 +145,7 @@ Initialises a binSeg object.
 
 \item{\code{costFunc}}{Character. Cost function to use: one of \code{"L2"}, \code{"SIGMA"}, or \code{"VAR"}. Default: \code{"L2"}.}
 
-\item{\code{addSmallDiag}}{Logical. (SIGMA) If \code{TRUE}, adds a small value to the diagonal of estimated covariance matrices
+\item{\code{addSmallDiag}}{Logical. (SIGMA) If \code{TRUE}, add a small value to the diagonal of estimated covariance matrices
 to improve numerical stability. Default: \code{TRUE}.}
 
 \item{\code{epsilon}}{Double. (SIGMA) A small positive value used to the diagonal of estimated covariance matrices to stabilise
@@ -307,7 +307,7 @@ Plots change point segmentation
 
 \item{\code{dimNames}}{Character vector. Feature names matching length of \code{d}. Defaults to \verb{"X1", "X2", ...}.}
 
-\item{\code{main}}{Character. Plot main title. Defaults to \code{"binSeg: d = ..."}.}
+\item{\code{main}}{Character. Main title. Defaults to \code{"binSeg: d = ..."}.}
 
 \item{\code{xlab}}{Character. X-axis label. Default: \code{"Time"}.}
 
