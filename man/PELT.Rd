@@ -35,66 +35,24 @@ See \strong{Methods} section for more details.
 }
 
 \examples{
-# Toy example
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
-# Initialise a `PELT` object and fit `PELT` to `tsMat`
-PELTObj = PELT$new(costFuncObj = createCostFunc("SIGMA"))
+
+# 2-regime simulated data example
+set.seed(1)
+tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
+              c(rnorm(100,0), rnorm(100,5,5)))
+# Create a `"SIGMA` cost object.
+SIGMAObj = createCostFunc(costFunc = "SIGMA")
+# Initialise a `PELT` object
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = SIGMAObj)
+# Input the time series matrix
 PELTObj$fit(tsMat)
-# Perform PELT for a specific linear penalty threshold
-PELTObj$predict(pen = 50)
-# Plot the latest segmentation solution
-PELTObj$plot(main = "PELT:SIGMA:pen=50", ncol = 1)
-# Describe the `PELT` object (and invisibly return the object's fields)
+# Describe the `PELT` object
 PELTObj$describe()
+# Perform PELT with `pen = 100`
+PELTObj$predict(pen = 100)
+# Plot the segmentation results
+PELTObj$plot(d = 1:2, main = "method: PELT; costFunc: SIGMA; pen: 100")
 
-
-## ------------------------------------------------
-## Method `PELT$new`
-## ------------------------------------------------
-
-L2Obj = createCostFunc("L2")
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-
-## ------------------------------------------------
-## Method `PELT$describe`
-## ------------------------------------------------
-
-L2Obj = createCostFunc("L2")
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-PELTObj$describe()
-
-## ------------------------------------------------
-## Method `PELT$fit`
-## ------------------------------------------------
-
-L2Obj = createCostFunc("L2")
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-PELTObj$fit(tsMat)
-
-## ------------------------------------------------
-## Method `PELT$predict`
-## ------------------------------------------------
-
-L2Obj = createCostFunc("L2")
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-PELTObj$fit(tsMat)
-PELTObj$predict()
-
-## ------------------------------------------------
-## Method `PELT$plot`
-## ------------------------------------------------
-
-L2Obj = createCostFunc("L2")
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-PELTObj$fit(tsMat)
-PELTObj$predict(pen = 1)
-pen1 = PELTObj$plot(main = "PELT: pen = 1")
-PELTObj$predict(pen = 25)
-pen25 = PELTObj$plot(main = "PELT: pen = 25")
-pen1 | pen25
 }
 \references{
 Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
@@ -153,15 +111,6 @@ Initialises a \code{PELT} object.
 \subsection{Returns}{
 Invisibly returns \code{NULL}.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{L2Obj = createCostFunc("L2")
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PELT-describe"></a>}}
@@ -184,16 +133,6 @@ Invisibly returns a list containing some of the following fields:
 \item{\code{p}}{Number of features.}
 }
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{L2Obj = createCostFunc("L2")
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-PELTObj$describe()
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PELT-fit"></a>}}
@@ -219,17 +158,6 @@ enabling the use of \verb{$predict()}. Run \verb{$describe()} for detailed confi
 \subsection{Returns}{
 Invisibly returns \code{NULL}.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{L2Obj = createCostFunc("L2")
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-PELTObj$fit(tsMat)
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PELT-predict"></a>}}
@@ -257,18 +185,6 @@ end points.
 An integer vector of regime end points. By design, the last element is the
 number of observations.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{L2Obj = createCostFunc("L2")
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-PELTObj$fit(tsMat)
-PELTObj$predict()
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PELT-plot"></a>}}
@@ -323,22 +239,6 @@ horizontally and vertically stacked using \code{patchwork}'s operators \code{/} 
 \subsection{Returns}{
 An object of classes \code{gg} and \code{ggplot}.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{L2Obj = createCostFunc("L2")
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-PELTObj$fit(tsMat)
-PELTObj$predict(pen = 1)
-pen1 = PELTObj$plot(main = "PELT: pen = 1")
-PELTObj$predict(pen = 25)
-pen25 = PELTObj$plot(main = "PELT: pen = 25")
-pen1 | pen25
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PELT-clone"></a>}}

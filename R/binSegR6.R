@@ -24,17 +24,23 @@
 #' See **Methods** section for more details.
 #'
 #' @examples
-#' # Toy example
-#' tsMat = matrix(c(rnorm(100,0), rnorm(100,0, 10)))
-#' # Initialise a `binSeg` object and fit `binSeg` to `tsMat` for the maximum number of change points.
-#' binSegObj = binSeg$new(costFuncObj = createCostFunc("SIGMA"))
+#'
+#' # 2-regime simulated data example
+#' set.seed(1)
+#' tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
+#'               c(rnorm(100,0), rnorm(100,5,5)))
+#' # Create a `"SIGMA` cost object.
+#' SIGMAObj = createCostFunc(costFunc = "SIGMA")
+#' # Initialise a `binSeg` object
+#' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = SIGMAObj)
+#' # Input the time series matrix and perform binary segmentation for the maximum number of regimes
 #' binSegObj$fit(tsMat)
-#' # Perform binSeg for a specific linear penalty threshold
-#' binSegObj$predict(pen = 50)
-#' # Plot the latest segmentation solution
-#' binSegObj$plot(main = "binSeg:SIGMA:pen=50", ncol = 1)
-#' # Describe the `binSeg` object and invisibly return the object's fields
+#' # Describe the `binSeg` object
 #' binSegObj$describe()
+#' # Perform binSeg with `pen = 100`
+#' binSegObj$predict(pen = 100)
+#' # Plot the segmentation results
+#' binSegObj$plot(d = 1:2, main = "method: binSeg; costFunc: SIGMA; pen: 100")
 #'
 #' @section Methods:
 #' \describe{
@@ -122,10 +128,6 @@ binSeg = R6Class(
     #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: `1L`.
     #' @param costFuncObj List of class `costFunc`. Created via `costFuncObj()` function. Default, `costFuncObj("L2")`.
     #' @return Invisibly returns `NULL`.
-    #'
-    #' @examples
-    #' L2Obj = createCostFunc()
-    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 
     initialize = function(minSize, jump, costFuncObj) {
 
@@ -160,12 +162,7 @@ binSeg = R6Class(
     #'   \item{\code{bkps}}{Vector of unordered breakpoint positions.}
     #'   \item{\code{cost}}{From the second element, split costs corresponding to \code{bkps}; first element is total cost without splits.}
     #' }
-    #'
-    #' @examples
-    #' L2Obj = createCostFunc()
-    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' binSegObj$describe()
-    #'
+
     describe = function() {
 
       params = list(minSize = private$.minSize,
@@ -212,12 +209,6 @@ binSeg = R6Class(
     #'
     #' @details Initialises `private$.tsMat`, `private$.n`, `private$.p`, `private$.bkps`, and `private$.cost`. Sets private$.fitted to TRUE,
     #' enabling the use of `$predict()`. Run `$describe()` for detailed configurations.
-    #'
-    #' @examples
-    #' L2Obj = createCostFunc("L2")
-    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-    #' binSegObj$fit(tsMat)
 
     fit = function(tsMat) {
 
@@ -242,13 +233,6 @@ binSeg = R6Class(
     #' @details Performs binSeg given a linear penalty value. Temporary end points are saved
     #' to `private$.tmpEndPoints`, allowing users to use `$plot()` without specifying
     #' end points.
-    #'
-    #' @examples
-    #' L2Obj = createCostFunc("L2")
-    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-    #' binSegObj$fit(tsMat)
-    #' binSegObj$predict()
 
     predict = function(pen = 0){
 
@@ -286,17 +270,6 @@ binSeg = R6Class(
     #' horizontally and vertically stacked using `patchwork`'s operators `/` and `|`, respectively.
     #'
     #' @return An object of classes `gg` and `ggplot`.
-    #'
-    #' @examples
-    #' L2Obj= createCostFunc("L2")
-    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-    #' binSegObj$fit(tsMat)
-    #' binSegObj$predict(pen = 1)
-    #' pen1 = binSegObj$plot(main = "binSeg: pen = 1")
-    #' binSegObj$predict(pen = 25)
-    #' pen25 = binSegObj$plot(main = "binSeg: pen = 25")
-    #' pen1 | pen25
 
     plot = function(d = 1L, endPts, dimNames, main, xlab, tsWidth = 0.25,
                     tsCol = "#5B9BD5",

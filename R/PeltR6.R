@@ -25,17 +25,23 @@
 #' See **Methods** section for more details.
 #'
 #' @examples
-#' # Toy example
-#' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
-#' # Initialise a `PELT` object and fit `PELT` to `tsMat`
-#' PELTObj = PELT$new(costFuncObj = createCostFunc("SIGMA"))
+#'
+#' # 2-regime simulated data example
+#' set.seed(1)
+#' tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
+#'               c(rnorm(100,0), rnorm(100,5,5)))
+#' # Create a `"SIGMA` cost object.
+#' SIGMAObj = createCostFunc(costFunc = "SIGMA")
+#' # Initialise a `PELT` object
+#' PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = SIGMAObj)
+#' # Input the time series matrix
 #' PELTObj$fit(tsMat)
-#' # Perform PELT for a specific linear penalty threshold
-#' PELTObj$predict(pen = 50)
-#' # Plot the latest segmentation solution
-#' PELTObj$plot(main = "PELT:SIGMA:pen=50", ncol = 1)
-#' # Describe the `PELT` object (and invisibly return the object's fields)
+#' # Describe the `PELT` object
 #' PELTObj$describe()
+#' # Perform PELT with `pen = 100`
+#' PELTObj$predict(pen = 100)
+#' # Plot the segmentation results
+#' PELTObj$plot(d = 1:2, main = "method: PELT; costFunc: SIGMA; pen: 100")
 #'
 #' @section Methods:
 #' \describe{
@@ -119,10 +125,6 @@ PELT = R6Class(
     #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: `1L`.
     #' @param costFuncObj List of class `costFunc`. Created via `costFuncObj()` function. Default, `costFuncObj("L2")`.
     #' @return Invisibly returns `NULL`.
-    #'
-    #' @examples
-    #' L2Obj = createCostFunc("L2")
-    #' PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 
     initialize = function(minSize, jump, costFuncObj) {
 
@@ -155,10 +157,6 @@ PELT = R6Class(
     #'   \item{\code{n}}{Number of observations.}
     #'   \item{\code{p}}{Number of features.}
     #' }
-    #' @examples
-    #' L2Obj = createCostFunc("L2")
-    #' PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' PELTObj$describe()
 
     describe = function() {
 
@@ -205,12 +203,6 @@ PELT = R6Class(
     #'
     #' @details Initialises `private$.tsMat`, `private$.n`, and `private$.p`, and sets private$.fitted to TRUE,
     #' enabling the use of `$predict()`. Run `$describe()` for detailed configurations.
-    #'
-    #' @examples
-    #' L2Obj = createCostFunc("L2")
-    #' PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-    #' PELTObj$fit(tsMat)
 
     fit = function(tsMat) {
       self$tsMat = tsMat
@@ -229,13 +221,6 @@ PELT = R6Class(
     #' @details Performs PELT given a linear penalty value. Temporary end points are saved
     #' to `private$.tmpEndPoints`, allowing users to use `$plot()` without specifying
     #' end points.
-    #'
-    #' @examples
-    #' L2Obj = createCostFunc("L2")
-    #' PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-    #' PELTObj$fit(tsMat)
-    #' PELTObj$predict()
 
     predict = function(pen = 0){
 
@@ -273,17 +258,6 @@ PELT = R6Class(
     #' horizontally and vertically stacked using `patchwork`'s operators `/` and `|`, respectively.
     #'
     #' @return An object of classes `gg` and `ggplot`.
-    #'
-    #' @examples
-    #' L2Obj = createCostFunc("L2")
-    #' PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-    #' PELTObj$fit(tsMat)
-    #' PELTObj$predict(pen = 1)
-    #' pen1 = PELTObj$plot(main = "PELT: pen = 1")
-    #' PELTObj$predict(pen = 25)
-    #' pen25 = PELTObj$plot(main = "PELT: pen = 25")
-    #' pen1 | pen25
 
     plot = function(d = 1L, endPts, dimNames, main, xlab, tsWidth = 0.25,
                     tsCol = "#5B9BD5",

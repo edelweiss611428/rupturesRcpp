@@ -36,67 +36,24 @@ maximum number of change points.}
 }
 
 \examples{
-# Toy example
-tsMat = matrix(c(rnorm(100,0), rnorm(100,0, 10)))
-# Initialise a `binSeg` object and fit `binSeg` to `tsMat` for the maximum number of change points.
-binSegObj = binSeg$new(costFuncObj = createCostFunc("SIGMA"))
+
+# 2-regime simulated data example
+set.seed(1)
+tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
+              c(rnorm(100,0), rnorm(100,5,5)))
+# Create a `"SIGMA` cost object.
+SIGMAObj = createCostFunc(costFunc = "SIGMA")
+# Initialise a `binSeg` object
+binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = SIGMAObj)
+# Input the time series matrix and perform binary segmentation for the maximum number of regimes
 binSegObj$fit(tsMat)
-# Perform binSeg for a specific linear penalty threshold
-binSegObj$predict(pen = 50)
-# Plot the latest segmentation solution
-binSegObj$plot(main = "binSeg:SIGMA:pen=50", ncol = 1)
-# Describe the `binSeg` object and invisibly return the object's fields
+# Describe the `binSeg` object
 binSegObj$describe()
+# Perform binSeg with `pen = 100`
+binSegObj$predict(pen = 100)
+# Plot the segmentation results
+binSegObj$plot(d = 1:2, main = "method: binSeg; costFunc: SIGMA; pen: 100")
 
-
-## ------------------------------------------------
-## Method `binSeg$new`
-## ------------------------------------------------
-
-L2Obj = createCostFunc()
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-
-## ------------------------------------------------
-## Method `binSeg$describe`
-## ------------------------------------------------
-
-L2Obj = createCostFunc()
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-binSegObj$describe()
-
-
-## ------------------------------------------------
-## Method `binSeg$fit`
-## ------------------------------------------------
-
-L2Obj = createCostFunc("L2")
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
-
-## ------------------------------------------------
-## Method `binSeg$predict`
-## ------------------------------------------------
-
-L2Obj = createCostFunc("L2")
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
-binSegObj$predict()
-
-## ------------------------------------------------
-## Method `binSeg$plot`
-## ------------------------------------------------
-
-L2Obj= createCostFunc("L2")
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
-binSegObj$predict(pen = 1)
-pen1 = binSegObj$plot(main = "binSeg: pen = 1")
-binSegObj$predict(pen = 25)
-pen25 = binSegObj$plot(main = "binSeg: pen = 25")
-pen1 | pen25
 }
 \references{
 Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
@@ -154,15 +111,6 @@ Initialises a \code{binSeg} object.
 \subsection{Returns}{
 Invisibly returns \code{NULL}.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{L2Obj = createCostFunc()
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-describe"></a>}}
@@ -187,17 +135,6 @@ Invisibly returns a list containing some of the following fields:
 \item{\code{cost}}{From the second element, split costs corresponding to \code{bkps}; first element is total cost without splits.}
 }
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{L2Obj = createCostFunc()
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-binSegObj$describe()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-fit"></a>}}
@@ -224,17 +161,6 @@ enabling the use of \verb{$predict()}. Run \verb{$describe()} for detailed confi
 \subsection{Returns}{
 Invisibly returns \code{NULL}.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{L2Obj = createCostFunc("L2")
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-predict"></a>}}
@@ -262,18 +188,6 @@ end points.
 An integer vector of regime end points. By design, the last element is the
 number of observations.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{L2Obj = createCostFunc("L2")
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
-binSegObj$predict()
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-plot"></a>}}
@@ -328,22 +242,6 @@ horizontally and vertically stacked using \code{patchwork}'s operators \code{/} 
 \subsection{Returns}{
 An object of classes \code{gg} and \code{ggplot}.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{L2Obj= createCostFunc("L2")
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
-binSegObj$predict(pen = 1)
-pen1 = binSegObj$plot(main = "binSeg: pen = 1")
-binSegObj$predict(pen = 25)
-pen25 = binSegObj$plot(main = "binSeg: pen = 25")
-pen1 | pen25
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-clone"></a>}}
