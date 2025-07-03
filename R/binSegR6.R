@@ -99,8 +99,8 @@ binSeg = R6Class(
 
     #' @field costFuncObj Active binding. Sets the internal variable \code{.costFuncObj} but should not be called directly.
     costFuncObj = function(Obj) {
-      if (!inherits(Obj, "costFunc")) {
-        stop("costFuncObj must be a costFunc object!")
+      if (!inherits(Obj, "costFunc") | !is.list(Obj)) {
+        stop("costFuncObj must be a costFunc object! See createCostObj()")
       }
       private$.costFuncObj = Obj
     },
