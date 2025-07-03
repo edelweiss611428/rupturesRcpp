@@ -76,7 +76,7 @@ binSegObj$describe()
 Binary Segmentation (binSeg)
 minSize      : 1L
 jump         : 1L
-costFunc.    : "SIGMA"
+costFunc     : "SIGMA"
 addSmallDiag : TRUE
 epsilon      : 1e-06
 fitted       : TRUE
