@@ -102,11 +102,14 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
 
   if (Rf_isNull(costFuncObj)) {
     stop("costFuncObj list must be provided!");
+
   } else{
     if(costFuncObj.containsElementNamed("costFunc")){
       costFunc = as<std::string>(costFuncObj["costFunc"]);
+
     } else{
       stop("costFunc is missing!");
+
     }
   }
 
@@ -118,10 +121,18 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
     int pVAR;
 
     if(costFuncObj.containsElementNamed("pVAR")){
-      pVAR = as<int>(costFuncObj["pVAR"]);
-      Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
+
+      if(!Rf_isInteger(costFuncObj["pVAR"])){
+        stop("pVAR must be a single integer!");
+
+      } else{
+        pVAR = as<int>(costFuncObj["pVAR"]);
+        Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
+
+      }
     } else{
       stop("pVAR is missing!");
+
     }
 
   } else if(costFunc == "SIGMA"){
@@ -130,11 +141,24 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
     double epsilon;
 
     if(costFuncObj.containsElementNamed("addSmallDiag") and costFuncObj.containsElementNamed("epsilon")){
-      addSmallDiag = as<bool>(costFuncObj["addSmallDiag"]);
-      epsilon = as<double>(costFuncObj["epsilon"]);
+
+      if(!Rf_isLogical(costFuncObj["addSmallDiag"])){
+        stop("addSmallDiag must be a single boolean value!");
+        addSmallDiag = as<bool>(costFuncObj["addSmallDiag"]);
+
+      }
+
+      if(!Rf_isNumeric(costFuncObj["epsilon"])){
+        stop("epsilon must be a single numeric value!");
+        epsilon = as<double>(costFuncObj["epsilon"]);
+
+      }
+
       Xnewptr = std::make_unique<Cost_SIGMA>(tsMat, addSmallDiag, epsilon);
+
     } else{
       stop("Either addSmallDiag or epsilon (or both) is missing!");
+
     }
 
   } else if(costFunc== "L2"){
