@@ -1,12 +1,14 @@
 #include <RcppArmadillo.h>
 #include <queue>
 #include <limits>
+
+#include "L2.h"
+#include "SIGMA.h"
+#include "VAR.h"
+#include "baseClass.h"
+
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
-#include "Cost_L2.h"
-#include "Cost_SIGMA.h"
-#include "Cost_VAR.h"
-#include "CostBase.h"
 
 // New structure for a segment
 struct Segment {
@@ -30,14 +32,12 @@ struct Segment {
 
 inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int& end,
                                const int& minSize = 1,  const int& jump = 1,
-                               double totalErr = -1,
-                               bool addSmallDiag = true,
-                               double epsilon = 1e-6) {
+                               double totalErr = -1) {
 
   int len = end - start;
 
   if(totalErr < 0){
-    totalErr = Xnew.effEvalCpp(start, end, addSmallDiag, epsilon);
+    totalErr = Xnew.eval(start, end);
   }
 
   if(len < 2*minSize){
@@ -50,8 +50,8 @@ inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int&
   } else if(len == 2*minSize){
 
     int cp = start + jump;
-    double lErr = Xnew.effEvalCpp(start, cp);
-    double rErr = Xnew.effEvalCpp(cp, end);
+    double lErr = Xnew.eval(start, cp);
+    double rErr = Xnew.eval(cp, end);
     double err = lErr + rErr;
     return Segment{start, end, true, start+jump,
                    totalErr - err, //gain
@@ -75,8 +75,8 @@ inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int&
   for(int i = 0; i < allBkps.n_elem; i++){
 
     tempCp = allBkps(i);
-    lErr = Xnew.effEvalCpp(start,tempCp);
-    rErr = Xnew.effEvalCpp(tempCp,end);
+    lErr = Xnew.eval(start,tempCp);
+    rErr = Xnew.eval(tempCp,end);
     err = lErr + rErr;
 
     if(err < minErr){
@@ -96,20 +96,51 @@ inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int&
 
 // [[Rcpp::export]]
 List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump = 1,
-               std::string costFunc = "L2",
-               bool addSmallDiag = true,
-               double epsilon = 1e-6,
-               int pVAR = 1) {
+               const Rcpp::List& costFuncObj = R_NilValue) {
+
+  std::string costFunc;
+
+  if (Rf_isNull(costFuncObj)) {
+    stop("costFuncObj list must be provided!");
+  } else{
+    if(costFuncObj.containsElementNamed("costFunc")){
+      costFunc = as<std::string>(costFuncObj["costFunc"]);
+    } else{
+      stop("costFunc is missing!");
+    }
+  }
 
   //Prevent memory leak
   std::unique_ptr<CostBase> Xnewptr;
 
-  if (costFunc == "SIGMA") {
-    Xnewptr = std::make_unique<Cost_SIGMA>(tsMat);
-  } else if (costFunc == "L2") {
+  if(costFunc == "VAR"){
+
+    int pVAR;
+
+    if(costFuncObj.containsElementNamed("pVAR")){
+      pVAR = as<int>(costFuncObj["pVAR"]);
+      Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
+    } else{
+      stop("pVAR is missing!");
+    }
+
+  } else if(costFunc == "SIGMA"){
+
+    bool addSmallDiag;
+    double epsilon;
+
+    if(costFuncObj.containsElementNamed("addSmallDiag") and costFuncObj.containsElementNamed("epsilon")){
+      addSmallDiag = as<bool>(costFuncObj["addSmallDiag"]);
+      epsilon = as<double>(costFuncObj["epsilon"]);
+      Xnewptr = std::make_unique<Cost_SIGMA>(tsMat, addSmallDiag, epsilon);
+    } else{
+      stop("Either addSmallDiag or epsilon (or both) is missing!");
+    }
+
+  } else if(costFunc== "L2"){
+
     Xnewptr = std::make_unique<Cost_L2>(tsMat);
-  } else if (costFunc == "VAR"){
-    Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
+
   } else {
     Rcpp::stop("Cost function not supported!");
   }
@@ -128,7 +159,7 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
 
   const int& maxNRegimes = std::floor(nr / minSize);
   NumericVector cost(maxNRegimes);
-  double initCost = Xnew.effEvalCpp(0,nr,addSmallDiag,epsilon);  //(0, nr] IMPORTANT TO NOTE THAT IMPLICITLY SPEAKING, THIS COUNTS FROM 1 NOT 0
+  double initCost = Xnew.eval(0,nr);  //(0, nr]
   Segment seg0 = miniOptHeapCpp(Xnew, 0, nr, minSize, jump, initCost);
   IntegerVector changePoints(maxNRegimes-1);
 
