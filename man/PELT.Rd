@@ -25,26 +25,26 @@ See \strong{Methods} section for more details.
 \section{Methods}{
 
 \describe{
-\item{\code{$new()}}{Initialises a PELT object.}
-\item{\code{$describe()}}{Describes the PELT object.}
+\item{\code{$new()}}{Initialises a \code{PELT} object.}
+\item{\code{$describe()}}{Describes the \code{PELT} object.}
 \item{\code{$fit()}}{Takes a time series matrix as input.}
 \item{\code{$predict()}}{Performs PELT given a linear penalty value.}
 \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-\item{\code{$clone()}}{Clone the PELT object.}
+\item{\code{$clone()}}{Clone the \code{PELT} object.}
 }
 }
 
 \examples{
 # Toy example
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
-# Initialise a PELT object and fit the method to tsMat
+# Initialise a `PELT` object and fit `PELT` to `tsMat`
 PELTObj = PELT$new(costFuncObj = createCostFunc("SIGMA"))
-PELTObj$fit(tsMat) #Need to run this before running $predict()
+PELTObj$fit(tsMat)
 # Perform PELT for a specific linear penalty threshold
 PELTObj$predict(pen = 50)
 # Plot the latest segmentation solution
 PELTObj$plot(main = "PELT:SIGMA:pen=50", ncol = 1)
-# Describe the PELT object (and invisibly return the object's fields)
+# Describe the `PELT` object (and invisibly return the object's fields)
 PELTObj$describe()
 
 
@@ -134,7 +134,7 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \if{html}{\out{<a id="method-PELT-new"></a>}}
 \if{latex}{\out{\hypertarget{method-PELT-new}{}}}
 \subsection{Method \code{new()}}{
-Initialises a PELT object.
+Initialises a \code{PELT} object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PELT$new(minSize, jump, costFuncObj)}\if{html}{\out{</div>}}
 }
@@ -167,7 +167,7 @@ PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 \if{html}{\out{<a id="method-PELT-describe"></a>}}
 \if{latex}{\out{\hypertarget{method-PELT-describe}{}}}
 \subsection{Method \code{describe()}}{
-Describes a PELT object.
+Describes a \code{PELT} object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PELT$describe()}\if{html}{\out{</div>}}
 }
@@ -177,7 +177,7 @@ Invisibly returns a list containing some of the following fields:
 \describe{
 \item{\code{minSize}}{Minimum allowed segment length.}
 \item{\code{jump}}{Search grid step size.}
-\item{\code{costFuncObj}}{The costFunc object.}
+\item{\code{costFuncObj}}{The \code{costFunc} object.}
 \item{\code{fitted}}{Whether or not \verb{$fit()} has been run.}
 \item{\code{tsMat}}{Input time series matrix.}
 \item{\code{n}}{Number of observations.}
@@ -316,12 +316,12 @@ Plots change point segmentation
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Plots change point segmentation results. Based on ggplot2. Multiple plots can easily be
-horizontally and vertically stacked using patchwork's operators \code{/} and \code{|}, respectively.
+Plots change point segmentation results. Based on \code{ggplot2}. Multiple plots can easily be
+horizontally and vertically stacked using \code{patchwork}'s operators \code{/} and \code{|}, respectively.
 }
 
 \subsection{Returns}{
-An object of classes "gg" and "ggplot".
+An object of classes \code{gg} and \code{ggplot}.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}

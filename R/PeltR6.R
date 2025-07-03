@@ -27,24 +27,24 @@
 #' @examples
 #' # Toy example
 #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
-#' # Initialise a PELT object and fit the method to tsMat
+#' # Initialise a `PELT` object and fit `PELT` to `tsMat`
 #' PELTObj = PELT$new(costFuncObj = createCostFunc("SIGMA"))
-#' PELTObj$fit(tsMat) #Need to run this before running $predict()
+#' PELTObj$fit(tsMat)
 #' # Perform PELT for a specific linear penalty threshold
 #' PELTObj$predict(pen = 50)
 #' # Plot the latest segmentation solution
 #' PELTObj$plot(main = "PELT:SIGMA:pen=50", ncol = 1)
-#' # Describe the PELT object (and invisibly return the object's fields)
+#' # Describe the `PELT` object (and invisibly return the object's fields)
 #' PELTObj$describe()
 #'
 #' @section Methods:
 #' \describe{
-#'   \item{\code{$new()}}{Initialises a PELT object.}
-#'   \item{\code{$describe()}}{Describes the PELT object.}
+#'   \item{\code{$new()}}{Initialises a `PELT` object.}
+#'   \item{\code{$describe()}}{Describes the `PELT` object.}
 #'   \item{\code{$fit()}}{Takes a time series matrix as input.}
 #'   \item{\code{$predict()}}{Performs PELT given a linear penalty value.}
 #'   \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-#'   \item{\code{$clone()}}{Clone the PELT object.}
+#'   \item{\code{$clone()}}{Clone the `PELT` object.}
 #' }
 #'
 #' @references
@@ -113,7 +113,7 @@ PELT = R6Class(
 
   public = list(
 
-    #' @description Initialises a PELT object.
+    #' @description Initialises a `PELT` object.
     #'
     #' @param minSize Integer. Minimum allowed segment length. Default: `1L`.
     #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: `1L`.
@@ -143,13 +143,13 @@ PELT = R6Class(
       invisible(NULL)
     },
 
-    #' @description Describes a PELT object.
+    #' @description Describes a `PELT` object.
     #'
     #' @return Invisibly returns a list containing some of the following fields:
     #' \describe{
     #'   \item{\code{minSize}}{Minimum allowed segment length.}
     #'   \item{\code{jump}}{Search grid step size.}
-    #'   \item{\code{costFuncObj}}{The costFunc object.}
+    #'   \item{\code{costFuncObj}}{The `costFunc` object.}
     #'   \item{\code{fitted}}{Whether or not `$fit()` has been run.}
     #'   \item{\code{tsMat}}{Input time series matrix.}
     #'   \item{\code{n}}{Number of observations.}
@@ -185,7 +185,7 @@ PELT = R6Class(
       }
 
       if(private$.costFuncObj$costFunc == "VAR"){
-        cat(sprintf("pVAR.        : %s\n", private$.costFuncObj$epsilon))
+        cat(sprintf("pVAR.        : %s\n", private$.costFuncObj$pVAR))
         params[["pVAR"]] = private$.costFuncObj$pVAR
       }
 
@@ -269,10 +269,10 @@ PELT = R6Class(
     #' @param bgAlpha Numeric. Background transparency. Default: `0.5`.
     #' @param ncol Integer. Number of columns in facet layout. Default: `1L`.
     #'
-    #' @details Plots change point segmentation results. Based on ggplot2. Multiple plots can easily be
-    #' horizontally and vertically stacked using patchwork's operators `/` and `|`, respectively.
+    #' @details Plots change point segmentation results. Based on `ggplot2`. Multiple plots can easily be
+    #' horizontally and vertically stacked using `patchwork`'s operators `/` and `|`, respectively.
     #'
-    #' @return An object of classes "gg" and "ggplot".
+    #' @return An object of classes `gg` and `ggplot`.
     #'
     #' @examples
     #' L2Obj = createCostFunc("L2")

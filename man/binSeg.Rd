@@ -25,27 +25,27 @@ See \strong{Methods} and section for more details.
 \section{Methods}{
 
 \describe{
-\item{\code{$new()}}{Initialises a binSeg object.}
-\item{\code{$describe()}}{Describes the binSeg object.}
-\item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
+\item{\code{$new()}}{Initialises a \code{binSeg} object.}
+\item{\code{$describe()}}{Describes the \code{binSeg} object.}
+\item{\code{$fit()}}{Takes a time series matrix as input and perform \code{binSeg} for the
 maximum number of change points.}
 \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
 \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-\item{\code{$clone()}}{Clone the binSeg object.}
+\item{\code{$clone()}}{Clone the \code{binSeg} object.}
 }
 }
 
 \examples{
 # Toy example
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
-# Initialise a binSeg object and fit the method to tsMat
+# Initialise a `binSeg` object and fit `binSeg` to `tsMat` for the maximum number of change points.
 binSegObj = binSeg$new(costFuncObj = createCostFunc("SIGMA"))
-binSegObj$fit(tsMat) #Need to run this before running $predict()
+binSegObj$fit(tsMat)
 # Perform binSeg for a specific linear penalty threshold
 binSegObj$predict(pen = 50)
 # Plot the latest segmentation solution
 binSegObj$plot(main = "binSeg:SIGMA:pen=50", ncol = 1)
-# Describe the binSeg object (and invisibly return the object's fields)
+# Describe the `binSeg` object and invisibly return the object's fields
 binSegObj$describe()
 
 
@@ -135,7 +135,7 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \if{html}{\out{<a id="method-binSeg-new"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-new}{}}}
 \subsection{Method \code{new()}}{
-Initialises a binSeg object.
+Initialises a \code{binSeg} object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{binSeg$new(minSize, jump, costFuncObj)}\if{html}{\out{</div>}}
 }
@@ -168,7 +168,7 @@ binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 \if{html}{\out{<a id="method-binSeg-describe"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-describe}{}}}
 \subsection{Method \code{describe()}}{
-Describes a binSeg object.
+Describes a \code{binSeg} object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{binSeg$describe()}\if{html}{\out{</div>}}
 }
@@ -178,7 +178,7 @@ Invisibly returns a list containing some of the following fields:
 \describe{
 \item{\code{minSize}}{Minimum allowed segment length.}
 \item{\code{jump}}{Search grid step size.}
-\item{\code{costFuncObj}}{The costFun object.}
+\item{\code{costFuncObj}}{The \code{costFun} object.}
 \item{\code{fitted}}{Whether or not \verb{$fit()} has been run.}
 \item{\code{tsMat}}{Input time series matrix.}
 \item{\code{n}}{Number of observations.}
@@ -222,7 +222,7 @@ enabling the use of \verb{$predict()}. Run \verb{$describe()} for detailed confi
 }
 
 \subsection{Returns}{
-Invisibly returns NULL.
+Invisibly returns \code{NULL}.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
@@ -321,12 +321,12 @@ Plots change point segmentation
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Plots change point segmentation results. Based on ggplot2. Multiple plots can easily be
-horizontally and vertically stacked using patchwork's operators \code{/} and \code{|}, respectively.
+Plots change point segmentation results. Based on \code{ggplot2}. Multiple plots can easily be
+horizontally and vertically stacked using \code{patchwork}'s operators \code{/} and \code{|}, respectively.
 }
 
 \subsection{Returns}{
-An object of classes "gg" and "ggplot".
+An object of classes \code{gg} and \code{ggplot}.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}

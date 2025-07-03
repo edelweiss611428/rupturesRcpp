@@ -26,25 +26,25 @@
 #' @examples
 #' # Toy example
 #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
-#' # Initialise a binSeg object and fit the method to tsMat
+#' # Initialise a `binSeg` object and fit `binSeg` to `tsMat` for the maximum number of change points.
 #' binSegObj = binSeg$new(costFuncObj = createCostFunc("SIGMA"))
-#' binSegObj$fit(tsMat) #Need to run this before running $predict()
+#' binSegObj$fit(tsMat)
 #' # Perform binSeg for a specific linear penalty threshold
 #' binSegObj$predict(pen = 50)
 #' # Plot the latest segmentation solution
 #' binSegObj$plot(main = "binSeg:SIGMA:pen=50", ncol = 1)
-#' # Describe the binSeg object (and invisibly return the object's fields)
+#' # Describe the `binSeg` object and invisibly return the object's fields
 #' binSegObj$describe()
 #'
 #' @section Methods:
 #' \describe{
-#'   \item{\code{$new()}}{Initialises a binSeg object.}
-#'   \item{\code{$describe()}}{Describes the binSeg object.}
-#'   \item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
+#'   \item{\code{$new()}}{Initialises a `binSeg` object.}
+#'   \item{\code{$describe()}}{Describes the `binSeg` object.}
+#'   \item{\code{$fit()}}{Takes a time series matrix as input and perform `binSeg` for the
 #' maximum number of change points.}
 #'   \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
 #'   \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-#'   \item{\code{$clone()}}{Clone the binSeg object.}
+#'   \item{\code{$clone()}}{Clone the `binSeg` object.}
 #' }
 #'
 #' @references
@@ -116,7 +116,7 @@ binSeg = R6Class(
 
   public = list(
 
-    #' @description Initialises a binSeg object.
+    #' @description Initialises a `binSeg` object.
     #'
     #' @param minSize Integer. Minimum allowed segment length. Default: `1L`.
     #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: `1L`.
@@ -146,13 +146,13 @@ binSeg = R6Class(
       invisible(NULL)
     },
 
-    #' @description Describes a binSeg object.
+    #' @description Describes a `binSeg` object.
     #'
     #' @return Invisibly returns a list containing some of the following fields:
     #' \describe{
     #'   \item{\code{minSize}}{Minimum allowed segment length.}
     #'   \item{\code{jump}}{Search grid step size.}
-    #'   \item{\code{costFuncObj}}{The costFun object.}
+    #'   \item{\code{costFuncObj}}{The `costFun` object.}
     #'   \item{\code{fitted}}{Whether or not `$fit()` has been run.}
     #'   \item{\code{tsMat}}{Input time series matrix.}
     #'   \item{\code{n}}{Number of observations.}
@@ -191,7 +191,7 @@ binSeg = R6Class(
       }
 
       if(private$.costFuncObj$costFunc == "VAR"){
-        cat(sprintf("pVAR.        : %s\n", private$.costFuncObj$epsilon))
+        cat(sprintf("pVAR.        : %s\n", private$.costFuncObj$pVAR))
         params[["pVAR"]] = private$.costFuncObj$pVAR
       }
 
@@ -208,7 +208,7 @@ binSeg = R6Class(
     #'
     #' @param tsMat Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
     #'
-    #' @return Invisibly returns NULL.
+    #' @return Invisibly returns `NULL`.
     #'
     #' @details Initialises `private$.tsMat`, `private$.n`, `private$.p`, `private$.bkps`, and `private$.cost`. Sets private$.fitted to TRUE,
     #' enabling the use of `$predict()`. Run `$describe()` for detailed configurations.
@@ -282,10 +282,10 @@ binSeg = R6Class(
     #' @param bgAlpha Numeric. Background transparency. Default: `0.5`.
     #' @param ncol Integer. Number of columns in facet layout. Default: `1L`.
     #'
-    #' @details Plots change point segmentation results. Based on ggplot2. Multiple plots can easily be
-    #' horizontally and vertically stacked using patchwork's operators `/` and `|`, respectively.
+    #' @details Plots change point segmentation results. Based on `ggplot2`. Multiple plots can easily be
+    #' horizontally and vertically stacked using `patchwork`'s operators `/` and `|`, respectively.
     #'
-    #' @return An object of classes "gg" and "ggplot".
+    #' @return An object of classes `gg` and `ggplot`.
     #'
     #' @examples
     #' L2Obj= createCostFunc("L2")
