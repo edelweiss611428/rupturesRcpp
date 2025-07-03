@@ -6,3 +6,10 @@
 \description{
 Load Rcpp module for Cost_SIGMA
 }
+\details{
+\strong{SIGMA cost function}:
+\deqn{c_{\sum}(y_{(a+1)..b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)..b}} where \eqn{\hat{\Sigma}_{(a+1)..b}} is
+the empirical covariance matrix of the segment without Bessel correction. Here, if \code{addSmallDiag = TRUE}, a small
+bias \code{epsilon} is added to the diagonal of estimated covariance matrices to improve numerical stability. If
+\eqn{\hat{\Sigma}} is singular, return 0. If \code{a+1 = b}, return 0.
+}

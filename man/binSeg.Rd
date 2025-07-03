@@ -21,6 +21,8 @@ Currently supports the following cost functions:
 \code{binSeg} requires  a \code{costFunc} object, which can be created via \code{createCostFunc()}.
 
 Basic usage: \url{https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md}
+
+See \code{PELT$eval()} method for more details on computation of cost.
 }
 \section{Methods}{
 
@@ -83,6 +85,7 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \item \href{#method-binSeg-new}{\code{binSeg$new()}}
 \item \href{#method-binSeg-describe}{\code{binSeg$describe()}}
 \item \href{#method-binSeg-fit}{\code{binSeg$fit()}}
+\item \href{#method-binSeg-eval}{\code{binSeg$eval()}}
 \item \href{#method-binSeg-predict}{\code{binSeg$predict()}}
 \item \href{#method-binSeg-plot}{\code{binSeg$plot()}}
 \item \href{#method-binSeg-clone}{\code{binSeg$clone()}}
@@ -104,7 +107,8 @@ Initialises a \code{binSeg} object.
 
 \item{\code{jump}}{Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: \code{1L}.}
 
-\item{\code{costFuncObj}}{List of class \code{costFunc}. Created via \code{costFuncObj()} function. Default, \code{costFuncObj("L2")}.}
+\item{\code{costFuncObj}}{List of class \code{costFunc}. Should be created via \code{createFuncObj()} to avoid unintended error.
+Default, \code{createFuncObj("L2")}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -140,7 +144,7 @@ Invisibly returns a list containing some of the following fields:
 \if{html}{\out{<a id="method-binSeg-fit"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-fit}{}}}
 \subsection{Method \code{fit()}}{
-Takes a time series matrix as input and perform binSeg for the
+Takes a time series matrix as input and performs binSeg for the
 maximum number of change points.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{binSeg$fit(tsMat)}\if{html}{\out{</div>}}
@@ -154,12 +158,61 @@ maximum number of change points.
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Initialises \code{private$.tsMat}, \code{private$.n}, \code{private$.p}, \code{private$.bkps}, and \code{private$.cost}. Sets private$.fitted to TRUE,
-enabling the use of \verb{$predict()}. Run \verb{$describe()} for detailed configurations.
+This method does the following:
+\itemize{
+\item Initialises \code{private$.tsMat}, \code{private$.n}, and \code{private$.p}.
+\item Sets \code{private$.fitted} to \code{TRUE}, enabling the use of \verb{$predict()} and \verb{$eval()}.
+\item Initialises a cost module corresponding to \code{tsMat} and the \code{costFunc}
+object, enabling the use of \verb{$eval()}.
+\item Performs binSeg for the maximum number of change points, making \verb{$predict()}
+more efficient.
+}
 }
 
 \subsection{Returns}{
 Invisibly returns \code{NULL}.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-binSeg-eval"></a>}}
+\if{latex}{\out{\hypertarget{method-binSeg-eval}{}}}
+\subsection{Method \code{eval()}}{
+Evaluate the cost of the segment (a,b]
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$eval(a, b)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{a}}{Integer. Start index of the segment (exclusive). Must satisfy \code{start < end}.}
+
+\item{\code{b}}{Integer. End index of the segment (inclusive).}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+The segment cost is evaluated as follows:
+\itemize{
+\item \strong{L2 cost function}:
+\deqn{c_{L_2}(y_{(a+1)..b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)..b} \|_2^2}
+where \eqn{\bar{y}_{(a+1)..b}} is the empirical mean of the segment. If
+\code{a+1 = b}, return 0.
+\item \strong{SIGMA cost function}:
+\deqn{c_{\sum}(y_{(a+1)..b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)..b}} where \eqn{\hat{\Sigma}_{(a+1)..b}} is
+the empirical covariance matrix of the segment without Bessel correction. Here, if \code{addSmallDiag = TRUE}, a small
+bias \code{epsilon} is added to the diagonal of estimated covariance matrices to improve numerical stability. If
+\eqn{\hat{\Sigma}} is singular, return 0. If \code{a+1 = b}, return 0.
+\item \strong{VAR(r) cost function}:
+\deqn{c_{\mathrm{VAR}}(y_{(a+1)..b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
+where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. An approximate linear
+solver will be used when exact \code{arma::solve()} fails. If no solution found, return 0. If \code{a-b < p*r+1} (i.e., not enough observations),
+return 0.
+}
+}
+
+\subsection{Returns}{
+The segment cost
 }
 }
 \if{html}{\out{<hr>}}
