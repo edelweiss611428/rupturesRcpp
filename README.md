@@ -106,7 +106,7 @@ binSegObj$plot(d = 1:2,
 
 ## Future development
 
-- Provide additional cost functions.
+- Provide additional cost functions (e.g., `Poisson`, `Linear-L1`, and `Linear-L2`). 
 - Implement other change point detection classes (e.g., `Opt` and `Win`).  
 - Develop features for tuning the linear penalty.
 
