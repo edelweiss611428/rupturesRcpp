@@ -7,6 +7,7 @@
 #' @importFrom R6 R6Class
 #' @importFrom ggplot2 aes ggplot geom_rect geom_line scale_fill_identity theme_minimal theme geom_vline labs element_blank element_text facet_wrap
 #' @import patchwork
+#' @importFrom utils hasName
 #'
 #' @export
 #'
@@ -108,6 +109,43 @@ PELT = R6Class(
 
       if (!inherits(Obj, "costFunc") | !is.list(Obj)) {
         stop("costFuncObj must be a costFunc object! See createCostObj()!")
+      }
+
+
+      if (!hasName(Obj, "costFunc")) {
+        stop("Missing `costFunc` field in costFuncObj!")
+      }
+
+      if (!is.character(Obj$costFunc) || length(Obj$costFunc) != 1) {
+        stop("Field `costFunc` of costFuncObj must be a single character!")
+
+      } else if(Obj$costFunc == "L2"){
+        #Do nothing
+      } else if(Obj$costFunc == "VAR"){
+
+        if (!hasName(Obj, "pVAR")) {
+          stop("Missing `pVAR` field in costFuncObj!")
+        } else {
+
+          if (!is.numeric(Obj$pVAR) || length(Obj$pVAR) != 1 || any(Obj$pVAR < 1)) {
+            stop("Field `pVAR` of costFuncObj must be a single positive integer!")
+
+          }
+        }
+      } else if(Obj$costFunc == "SIGMA"){
+
+        if (!hasName(Obj, "addSmallDiag")) {
+          stop("Missing `addSmallDiag` field in costFuncObj!")
+
+        } else {
+
+          if (!is.numeric(Obj$epsilon) || length(Obj$epsilon) != 1L || any(Obj$epsilon<0)) {
+            stop("Field `epsilon` of costFuncObj must be a single non-negative numeric value!")
+
+          }
+        }
+      } else {
+        stop("Cost function not supported!")
       }
 
       private$.costFuncObj = Obj
