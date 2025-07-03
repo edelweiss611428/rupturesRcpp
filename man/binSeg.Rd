@@ -11,85 +11,51 @@ An R6 class implementing binary segmentation for offline change point detection.
 Binary segmentation is a classic algorithm for change point detection that recursively
 splits the data at locations that minimise the cost function.
 
-Currently supported cost functions:
+Currently supports the following cost functions:
 \itemize{
-\item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant covariance}
-\item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying covariance}
-\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant covariance}
+\item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant variance}
+\item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
+\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant variance}
 }
 
-See \strong{Methods} and section for more details.
+\code{binSeg} requires  a \code{costFunc} object, which can be created via \code{createCostFunc()}.
+
+Basic usage: \url{https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md}
+
+See \code{PELT$eval()} method for more details on computation of cost.
 }
 \section{Methods}{
 
 \describe{
-\item{\code{$new()}}{Initialises a binSeg object.}
-\item{\code{$describe()}}{Describes the binSeg object.}
-\item{\code{$fit()}}{Takes a time series matrix as input and perform binSeg for the
+\item{\code{$new()}}{Initialises a \code{binSeg} object.}
+\item{\code{$describe()}}{Describes the \code{binSeg} object.}
+\item{\code{$fit()}}{Takes a time series matrix as input and perform \code{binSeg} for the
 maximum number of change points.}
 \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
 \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-\item{\code{$clone()}}{Clone the binSeg object.}
+\item{\code{$clone()}}{Clones the \code{binSeg} object.}
 }
 }
 
 \examples{
-# Toy example
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
-# Initialise a binSeg object and fit the method to tsMat
-binSegObj = binSeg$new(costFunc = "SIGMA")
-binSegObj$fit(tsMat) #Need to run this before running $predict()
-# Perform binSeg for a specific linear penalty threshold
-binSegObj$predict(pen = 50)
-# Plot the latest segmentation solution
-binSegObj$plot(main = "binSeg:SIGMA:pen=50", ncol = 1)
-# Describe the binSeg object (and invisibly return the object's fields)
+
+# 2-regime simulated data example
+set.seed(1)
+tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
+              c(rnorm(100,0), rnorm(100,5,5)))
+# Create a `"SIGMA` cost object.
+SIGMAObj = createCostFunc(costFunc = "SIGMA")
+# Initialise a `binSeg` object
+binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = SIGMAObj)
+# Input the time series matrix and perform binary segmentation for the maximum number of regimes
+binSegObj$fit(tsMat)
+# Describe the `binSeg` object
 binSegObj$describe()
+# Perform binSeg with `pen = 100`
+binSegObj$predict(pen = 100)
+# Plot the segmentation results
+binSegObj$plot(d = 1:2, main = "method: binSeg; costFunc: SIGMA; pen: 100")
 
-
-## ------------------------------------------------
-## Method `binSeg$new`
-## ------------------------------------------------
-
-peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
-
-## ------------------------------------------------
-## Method `binSeg$describe`
-## ------------------------------------------------
-
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
-binSegObj$describe()
-
-
-## ------------------------------------------------
-## Method `binSeg$fit`
-## ------------------------------------------------
-
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
-
-## ------------------------------------------------
-## Method `binSeg$predict`
-## ------------------------------------------------
-
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
-binSegObj$predict()
-
-## ------------------------------------------------
-## Method `binSeg$plot`
-## ------------------------------------------------
-
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
-binSegObj$predict(pen = 1)
-pen1 = binSegObj$plot(main = "binSeg: pen = 1")
-binSegObj$predict(pen = 25)
-pen25 = binSegObj$plot(main = "binSeg: pen = 25")
-pen1 | pen25
 }
 \references{
 Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
@@ -107,15 +73,9 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 
 \item{\code{jump}}{Active binding. Sets the internal variable \code{.jump} but should not be called directly.}
 
-\item{\code{costFunc}}{Active binding. Sets the internal variable \code{.costFunc} but should not be called directly.}
+\item{\code{costFuncObj}}{Active binding. Sets the internal variable \code{.costFuncObj} but should not be called directly.}
 
 \item{\code{tsMat}}{Active binding. Sets the internal variable \code{.tsMat} but should not be called directly.}
-
-\item{\code{addSmallDiag}}{Active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.}
-
-\item{\code{epsilon}}{Active binding. Sets the internal variable \code{.epsilon} but should not be called directly.}
-
-\item{\code{pVAR}}{Active binding. Sets the internal variable \code{.pVAR} but should not be called directly.}
 }
 \if{html}{\out{</div>}}
 }
@@ -125,6 +85,7 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \item \href{#method-binSeg-new}{\code{binSeg$new()}}
 \item \href{#method-binSeg-describe}{\code{binSeg$describe()}}
 \item \href{#method-binSeg-fit}{\code{binSeg$fit()}}
+\item \href{#method-binSeg-eval}{\code{binSeg$eval()}}
 \item \href{#method-binSeg-predict}{\code{binSeg$predict()}}
 \item \href{#method-binSeg-plot}{\code{binSeg$plot()}}
 \item \href{#method-binSeg-clone}{\code{binSeg$clone()}}
@@ -134,47 +95,32 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \if{html}{\out{<a id="method-binSeg-new"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-new}{}}}
 \subsection{Method \code{new()}}{
-Initialises a binSeg object.
+Initialises a \code{binSeg} object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{binSeg$new(minSize, jump, costFunc, addSmallDiag, epsilon, pVAR)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$new(minSize, jump, costFuncObj)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{minSize}}{Integer. Minimum allowed segment length. Default: 1L.}
+\item{\code{minSize}}{Integer. Minimum allowed segment length. Default: \code{1L}.}
 
-\item{\code{jump}}{Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: 1L.}
+\item{\code{jump}}{Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: \code{1L}.}
 
-\item{\code{costFunc}}{Character. Cost function to use: one of \code{"L2"}, \code{"SIGMA"}, or \code{"VAR"}. Default: \code{"L2"}.}
-
-\item{\code{addSmallDiag}}{Logical. (SIGMA) If \code{TRUE}, add a small value to the diagonal of estimated covariance matrices
-to improve numerical stability. Default: \code{TRUE}.}
-
-\item{\code{epsilon}}{Double. (SIGMA) A small positive value used to the diagonal of estimated covariance matrices to stabilise
-matrix operations. Default: \code{1e-6}.}
-
-\item{\code{pVAR}}{Integer (VAR). Order of the vector autoregressive (VAR) model. Must be non-negative. Default: \code{1L}.}
+\item{\code{costFuncObj}}{List of class \code{costFunc}. Should be created via \code{createFuncObj()} to avoid unintended error.
+Default, \code{createFuncObj("L2")}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Invisibly returns NULL.
+Invisibly returns \code{NULL}.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-describe"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-describe}{}}}
 \subsection{Method \code{describe()}}{
-Describes a binSeg object.
+Describes a \code{binSeg} object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{binSeg$describe()}\if{html}{\out{</div>}}
 }
@@ -184,10 +130,7 @@ Invisibly returns a list containing some of the following fields:
 \describe{
 \item{\code{minSize}}{Minimum allowed segment length.}
 \item{\code{jump}}{Search grid step size.}
-\item{\code{costFunc}}{The cost function.}
-\item{\code{addSmallDiag}}{(SIGMA only) Whether to add bias for numerical stability.}
-\item{\code{epsilon}}{(SIGMA, VAR) Bias added to diagonal entries.}
-\item{\code{pVAR}}{(VAR) VAR order.}
+\item{\code{costFuncObj}}{The \code{costFun} object.}
 \item{\code{fitted}}{Whether or not \verb{$fit()} has been run.}
 \item{\code{tsMat}}{Input time series matrix.}
 \item{\code{n}}{Number of observations.}
@@ -196,22 +139,12 @@ Invisibly returns a list containing some of the following fields:
 \item{\code{cost}}{From the second element, split costs corresponding to \code{bkps}; first element is total cost without splits.}
 }
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
-binSegObj$describe()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-fit"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-fit}{}}}
 \subsection{Method \code{fit()}}{
-Takes a time series matrix as input and perform binSeg for the
+Takes a time series matrix as input and performs binSeg for the
 maximum number of change points.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{binSeg$fit(tsMat)}\if{html}{\out{</div>}}
@@ -225,23 +158,62 @@ maximum number of change points.
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Initialises \code{private$.tsMat}, \code{private$.n}, \code{private$.p}, \code{private$.bkps}, and \code{private$.cost}. Sets private$.fitted to TRUE,
-enabling the use of \verb{$predict()}. Run \verb{$describe()} for detailed configurations.
+This method does the following:
+\itemize{
+\item Initialises \code{private$.tsMat}, \code{private$.n}, and \code{private$.p}.
+\item Sets \code{private$.fitted} to \code{TRUE}, enabling the use of \verb{$predict()} and \verb{$eval()}.
+\item Initialises a cost module corresponding to \code{tsMat} and the \code{costFunc}
+object, enabling the use of \verb{$eval()}.
+\item Performs binSeg for the maximum number of change points, making \verb{$predict()}
+more efficient.
+}
 }
 
 \subsection{Returns}{
-Invisibly returns NULL.
+Invisibly returns \code{NULL}.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-binSeg-eval"></a>}}
+\if{latex}{\out{\hypertarget{method-binSeg-eval}{}}}
+\subsection{Method \code{eval()}}{
+Evaluate the cost of the segment (a,b]
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$eval(a, b)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{a}}{Integer. Start index of the segment (exclusive). Must satisfy \code{start < end}.}
+
+\item{\code{b}}{Integer. End index of the segment (inclusive).}
 }
 \if{html}{\out{</div>}}
-
+}
+\subsection{Details}{
+The segment cost is evaluated as follows:
+\itemize{
+\item \strong{L2 cost function}:
+\deqn{c_{L_2}(y_{(a+1)..b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)..b} \|_2^2}
+where \eqn{\bar{y}_{(a+1)..b}} is the empirical mean of the segment. If
+\code{a+1 = b}, return 0.
+\item \strong{SIGMA cost function}:
+\deqn{c_{\sum}(y_{(a+1)..b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)..b}} where \eqn{\hat{\Sigma}_{(a+1)..b}} is
+the empirical covariance matrix of the segment without Bessel correction. Here, if \code{addSmallDiag = TRUE}, a small
+bias \code{epsilon} is added to the diagonal of estimated covariance matrices to improve numerical stability. If
+\eqn{\hat{\Sigma}} is singular, return 0. If \code{a+1 = b}, return 0.
+\item \strong{VAR(r) cost function}:
+\deqn{c_{\mathrm{VAR}}(y_{(a+1)..b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
+where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. An approximate linear
+solver will be used when exact \code{arma::solve()} fails. If no solution found, return 0. If \code{a-b < p*r+1} (i.e., not enough observations),
+return 0.
+}
 }
 
+\subsection{Returns}{
+The segment cost
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-predict"></a>}}
@@ -269,17 +241,6 @@ end points.
 An integer vector of regime end points. By design, the last element is the
 number of observations.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
-binSegObj$predict()
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-plot"></a>}}
@@ -327,28 +288,13 @@ Plots change point segmentation
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Plots change point segmentation results. Based on ggplot2. Multiple plots can easily be
-horizontally and vertically stacked using patchwork's operators \code{/} and \code{|}, respectively.
+Plots change point segmentation results. Based on \code{ggplot2}. Multiple plots can easily be
+horizontally and vertically stacked using \code{patchwork}'s operators \code{/} and \code{|}, respectively.
 }
 
 \subsection{Returns}{
-An object of classes "gg" and "ggplot".
+An object of classes \code{gg} and \code{ggplot}.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-binSegObj$fit(tsMat)
-binSegObj$predict(pen = 1)
-pen1 = binSegObj$plot(main = "binSeg: pen = 1")
-binSegObj$predict(pen = 25)
-pen25 = binSegObj$plot(main = "binSeg: pen = 25")
-pen1 | pen25
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-clone"></a>}}

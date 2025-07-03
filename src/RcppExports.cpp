@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // PELTCpp
-std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int minSize, const int jump, std::string costFunc, bool addSmallDiag, double epsilon, int pVAR);
-RcppExport SEXP _rupturesRcpp_PELTCpp(SEXP tsMatSEXP, SEXP penaltySEXP, SEXP minSizeSEXP, SEXP jumpSEXP, SEXP costFuncSEXP, SEXP addSmallDiagSEXP, SEXP epsilonSEXP, SEXP pVARSEXP) {
+std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int minSize, const int jump, const Rcpp::List& costFuncObj);
+RcppExport SEXP _rupturesRcpp_PELTCpp(SEXP tsMatSEXP, SEXP penaltySEXP, SEXP minSizeSEXP, SEXP jumpSEXP, SEXP costFuncObjSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,28 +21,22 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type penalty(penaltySEXP);
     Rcpp::traits::input_parameter< const int >::type minSize(minSizeSEXP);
     Rcpp::traits::input_parameter< const int >::type jump(jumpSEXP);
-    Rcpp::traits::input_parameter< std::string >::type costFunc(costFuncSEXP);
-    Rcpp::traits::input_parameter< bool >::type addSmallDiag(addSmallDiagSEXP);
-    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    Rcpp::traits::input_parameter< int >::type pVAR(pVARSEXP);
-    rcpp_result_gen = Rcpp::wrap(PELTCpp(tsMat, penalty, minSize, jump, costFunc, addSmallDiag, epsilon, pVAR));
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type costFuncObj(costFuncObjSEXP);
+    rcpp_result_gen = Rcpp::wrap(PELTCpp(tsMat, penalty, minSize, jump, costFuncObj));
     return rcpp_result_gen;
 END_RCPP
 }
 // binSegCpp
-List binSegCpp(const arma::mat& tsMat, const int& minSize, const int& jump, std::string costFunc, bool addSmallDiag, double epsilon, int pVAR);
-RcppExport SEXP _rupturesRcpp_binSegCpp(SEXP tsMatSEXP, SEXP minSizeSEXP, SEXP jumpSEXP, SEXP costFuncSEXP, SEXP addSmallDiagSEXP, SEXP epsilonSEXP, SEXP pVARSEXP) {
+List binSegCpp(const arma::mat& tsMat, const int& minSize, const int& jump, const Rcpp::List& costFuncObj);
+RcppExport SEXP _rupturesRcpp_binSegCpp(SEXP tsMatSEXP, SEXP minSizeSEXP, SEXP jumpSEXP, SEXP costFuncObjSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type tsMat(tsMatSEXP);
     Rcpp::traits::input_parameter< const int& >::type minSize(minSizeSEXP);
     Rcpp::traits::input_parameter< const int& >::type jump(jumpSEXP);
-    Rcpp::traits::input_parameter< std::string >::type costFunc(costFuncSEXP);
-    Rcpp::traits::input_parameter< bool >::type addSmallDiag(addSmallDiagSEXP);
-    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    Rcpp::traits::input_parameter< int >::type pVAR(pVARSEXP);
-    rcpp_result_gen = Rcpp::wrap(binSegCpp(tsMat, minSize, jump, costFunc, addSmallDiag, epsilon, pVAR));
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type costFuncObj(costFuncObjSEXP);
+    rcpp_result_gen = Rcpp::wrap(binSegCpp(tsMat, minSize, jump, costFuncObj));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -65,8 +59,8 @@ RcppExport SEXP _rcpp_module_boot_Cost_SIGMA_module();
 RcppExport SEXP _rcpp_module_boot_Cost_VAR_module();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rupturesRcpp_PELTCpp", (DL_FUNC) &_rupturesRcpp_PELTCpp, 8},
-    {"_rupturesRcpp_binSegCpp", (DL_FUNC) &_rupturesRcpp_binSegCpp, 7},
+    {"_rupturesRcpp_PELTCpp", (DL_FUNC) &_rupturesRcpp_PELTCpp, 5},
+    {"_rupturesRcpp_binSegCpp", (DL_FUNC) &_rupturesRcpp_binSegCpp, 4},
     {"_rupturesRcpp_binSegPredCpp", (DL_FUNC) &_rupturesRcpp_binSegPredCpp, 3},
     {"_rcpp_module_boot_Cost_L2_module", (DL_FUNC) &_rcpp_module_boot_Cost_L2_module, 0},
     {"_rcpp_module_boot_Cost_SIGMA_module", (DL_FUNC) &_rcpp_module_boot_Cost_SIGMA_module, 0},

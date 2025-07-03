@@ -21,3 +21,10 @@ Imports:
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Collate: 
+    'createCostFunc.R'
+    'PeltR6.R'
+    'RcppExports.R'
+    'binSegR6.R'
+    'rupturesRcpp-package.R'
+    'zzz.R'

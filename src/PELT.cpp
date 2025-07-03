@@ -1,8 +1,8 @@
 #include <RcppArmadillo.h>
-#include "Cost_L2.h"
-#include "Cost_SIGMA.h"
-#include "Cost_VAR.h"
-#include "CostBase.h"
+#include "L2.h"
+#include "SIGMA.h"
+#include "VAR.h"
+#include "baseClass.h"
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -28,26 +28,109 @@ std::vector<int> readPath(const arma::ivec& pathVec)
 // Function to implement the PELT algorithm
 // [[Rcpp::export]]
 std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int minSize, const int jump,
-                        std::string costFunc = "L2",
-                        bool addSmallDiag = true,
-                        double epsilon = 1e-6,
-                        int pVAR = 1)
-{
+                        const Rcpp::List& costFuncObj = R_NilValue) {
+  std::string costFunc;
+
+  if (Rf_isNull(costFuncObj)) {
+    stop("costFuncObj list must be provided!");
+
+  } else{
+    if(costFuncObj.containsElementNamed("costFunc")){
+
+      if(!Rf_isString(costFuncObj["costFunc"])){
+        stop("costFunc must be a single character!");
+
+      } else{
+        costFunc = as<std::string>(costFuncObj["costFunc"]);
+
+      }
+    } else{
+      stop("costFunc is missing!");
+
+    }
+  }
+
   //Prevent memory leak
   std::unique_ptr<CostBase> Xnewptr;
 
-  if (costFunc == "SIGMA") {
-    Xnewptr = std::make_unique<Cost_SIGMA>(tsMat);
-  } else if (costFunc == "L2") {
+  if(costFunc == "VAR"){
+
+    int pVAR;
+
+    if(costFuncObj.containsElementNamed("pVAR")){
+
+      if(!Rf_isInteger(costFuncObj["pVAR"])){
+        stop("pVAR must be a single positive integer!");
+
+      } else{
+        pVAR = as<int>(costFuncObj["pVAR"]);
+
+        if(pVAR <= 0){
+          stop("pVAR must be a single positive integer!");
+        }
+
+        Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
+
+      }
+    } else{
+      stop("pVAR is missing!");
+
+    }
+
+  } else if(costFunc == "SIGMA"){
+
+    bool addSmallDiag;
+    double epsilon;
+
+    if(costFuncObj.containsElementNamed("addSmallDiag") and costFuncObj.containsElementNamed("epsilon")){
+
+      if(!Rf_isLogical(costFuncObj["addSmallDiag"])){
+        stop("addSmallDiag must be a single boolean value!");
+
+      } else{
+        addSmallDiag = as<bool>(costFuncObj["addSmallDiag"]);
+
+      }
+
+      if(!Rf_isNumeric(costFuncObj["epsilon"])){
+        stop("epsilon must be a single non-negative numeric value!");
+
+      } else{
+        epsilon = as<double>(costFuncObj["epsilon"]);
+
+        if(epsilon  < 0){
+          stop("epsilon must be a single non-negative numeric value!");
+
+        }
+      }
+
+      Xnewptr = std::make_unique<Cost_SIGMA>(tsMat, addSmallDiag, epsilon);
+
+    } else{
+      stop("Either addSmallDiag or epsilon (or both) is missing!");
+
+    }
+
+  } else if(costFunc== "L2"){
+
     Xnewptr = std::make_unique<Cost_L2>(tsMat);
-  } else if (costFunc == "VAR"){
-    Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
+
   } else {
     Rcpp::stop("Cost function not supported!");
+
   }
 
   CostBase& Xnew = *Xnewptr;
+
   const arma::uword nSamples = Xnew.nr;
+
+  if(nSamples < 2*minSize){
+    stop("Number of observations < 2*minSize!");
+  }
+
+  if(nSamples <= jump){
+    stop("Number of observations <= jump!");
+  }
 
   // Initialization
   arma::vec socVec = arma::zeros(nSamples + 1);
@@ -80,9 +163,7 @@ std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int
         continue;
       }
 
-      const double currentCost = Xnew.effEvalCpp(lastBkp, end,
-                                                 addSmallDiag,
-                                                 epsilon);
+      const double currentCost = Xnew.eval(lastBkp, end);
 
       const double currentSoc = socVec[lastBkp] + currentCost + penalty;
       tmpCostVec[kLastBkp] = currentCost;

@@ -6,3 +6,9 @@
 \description{
 Load Rcpp module for Cost_L2
 }
+\details{
+\strong{L2 cost function}:
+\deqn{c_{L_2}(y_{(a+1)..b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)..b} \|_2^2}
+where \eqn{\bar{y}_{(a+1)..b}} is the empirical mean of the segment. If
+\code{a+1 = b}, return 0.
+}
