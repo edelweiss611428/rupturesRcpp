@@ -24,6 +24,8 @@
 #'
 #' Basic usage: <https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md>
 #'
+#' See `$eval()` method for more details on computation of cost.
+#'
 #' @examples
 #'
 #' # 2-regime simulated data example
@@ -78,6 +80,7 @@ PELT = R6Class(
     .n = NULL,
     .p = NULL,
     .costFuncObj = createCostFunc(), #L2 cost function
+    .costModule = NULL,
     .tmpEndPts = NULL, #Temporary end points
     .tmpPen = NULL #Temporary penalty value
   ),
@@ -86,7 +89,7 @@ PELT = R6Class(
 
     #' @field minSize Active binding. Sets the internal variable \code{.minSize} but should not be called directly.
     minSize = function(intVal) {
-      if (is.null(intVal) || !is.numeric(intVal) || (as.integer(intVal) < 1) || length(intVal) != 1) {
+      if (!is.numeric(intVal) || any(intVal < 1) || length(intVal) != 1) {
         stop("minSize must be a single positive integer!")
       }
       private$.minSize = as.integer(intVal)
@@ -94,7 +97,7 @@ PELT = R6Class(
 
     #' @field jump Active binding. Sets the internal variable \code{.jump} but should not be called directly.
     jump = function(intVal) {
-      if (is.null(intVal) || !is.numeric(intVal) || (as.integer(intVal) < 1) || length(intVal) != 1) {
+      if (!is.numeric(intVal) || any(intVal < 1) || length(intVal) != 1) {
         stop("jump must be a single positive integer!")
       }
       private$.jump = as.integer(intVal)
@@ -102,15 +105,17 @@ PELT = R6Class(
 
     #' @field costFuncObj Active binding. Sets the internal variable \code{.costFuncObj} but should not be called directly.
     costFuncObj = function(Obj) {
+
       if (!inherits(Obj, "costFunc") | !is.list(Obj)) {
-        stop("costFuncObj must be a costFunc object! See createCostObj()")
+        stop("costFuncObj must be a costFunc object! See createCostObj()!")
       }
+
       private$.costFuncObj = Obj
     },
 
     #' @field tsMat Active binding. Sets the internal variable \code{.tsMat} but should not be called directly.
     tsMat = function(numMat) {
-      if (is.null(numMat) || !is.numeric(numMat) || !is.matrix(numMat)) {
+      if (!is.numeric(numMat) || !is.matrix(numMat)) {
         stop("tsMat must be a numeric time series matrix!")
       }
       private$.tsMat = numMat
@@ -123,8 +128,8 @@ PELT = R6Class(
     #'
     #' @param minSize Integer. Minimum allowed segment length. Default: `1L`.
     #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: `1L`.
-    #' @param costFuncObj List of class `costFunc`. Created via `costFuncObj()` function. Default, `costFuncObj("L2")`.
-    #' @return Invisibly returns `NULL`.
+    #' @param costFuncObj List of class `costFunc`. Should be created via `createFuncObj()` to avoid unintended error.
+    #' Default, `createFuncObj("L2")`.
 
     initialize = function(minSize, jump, costFuncObj) {
 
@@ -201,15 +206,89 @@ PELT = R6Class(
     #'
     #' @return Invisibly returns `NULL`.
     #'
-    #' @details Initialises `private$.tsMat`, `private$.n`, and `private$.p`, and sets private$.fitted to TRUE,
-    #' enabling the use of `$predict()`. Run `$describe()` for detailed configurations.
+    #' @details
+    #' This method does the following:
+    #' \itemize{
+    #'   \item Initialises `private$.tsMat`, `private$.n`, and `private$.p`.
+    #'   \item Sets `private$.fitted` to `TRUE`, enabling the use of `$predict()` and `$eval()`.
+    #'   \item Initialises a cost module corresponding to `tsMat` and the `costFunc`
+    #'   object, enabling the use of `$eval()`.
+    #' }
 
     fit = function(tsMat) {
       self$tsMat = tsMat
       private$.n = nrow(tsMat)
       private$.p = ncol(tsMat)
       private$.fitted = TRUE
+
+
+      if(private$.costFuncObj$costFunc == "L2"){
+        private$.costModule = new(rupturesRcpp::Cost_L2, tsMat)
+
+      } else if(private$.costFuncObj$costFunc == "SIGMA"){
+        private$.costModule = new(rupturesRcpp::Cost_SIGMA, tsMat,
+                                  private$.costFuncObj$addSmallDiag, private$.costFuncObj$epsilon)
+
+      } else if(private$.costFuncObj$costFunc == "VAR"){
+        private$.costModule = new(rupturesRcpp::Cost_VAR, tsMat,
+                                  private$.costFuncObj$pVAR)
+
+      } else {
+        stop("Cost function not supported!")
+
+      }
+
       invisible(NULL)
+    },
+
+    #' @description Evaluate the cost of the segment (a,b]
+    #'
+    #' @param a Integer. Start index of the segment (exclusive). Must satisfy \code{start < end}.
+    #' @param b Integer. End index of the segment (inclusive).
+    #'
+    #' @return The segment cost
+    #'
+    #' @details
+    #' The segment cost is evaluated as follows:
+    #'
+    #' - **L2 cost function**:
+    #' \deqn{c_{L_2}(y_{(a+1)..b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)..b} \|_2^2}
+    #' where \eqn{\bar{y}_{(a+1)..b}} is the empirical mean of the segment. If
+    #' `a+1 = b`, return 0.
+    #'
+    #' - **SIGMA cost function**:
+    #' \deqn{c_{\sum}(y_{(a+1)..b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)..b}} where \eqn{\hat{\Sigma}_{(a+1)..b}} is
+    #' the empirical covariance matrix of the segment without Bessel correction. Here, if `addSmallDiag = TRUE`, a small
+    #' bias `epsilon` is added to the diagonal of estimated covariance matrices to improve numerical stability. If
+    #' \eqn{\hat{\Sigma}} is singular, return 0. If `a+1 = b`, return 0.
+    #'
+    #' - **VAR(r) cost function**:
+    #' \deqn{c_{\mathrm{VAR}}(y_{(a+1)..b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
+    #' where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. An approximate linear
+    #' solver will be used when exact `arma::solve()` fails. If no solution found, return 0. If `a-b < p*r+1` (i.e., not enough observations),
+    #' return 0.
+    eval = function(a, b){
+
+      if(!private$.fitted){
+        stop("$fit() must be run before $eval()!")
+      }
+
+      if (!is.numeric(start) || any(start < 0) || length(start) != 1 || any(start > private$.n)) {
+        stop("`0 <= start <= n` must be true!")
+      }
+
+      if (!is.numeric(end) || any(end < 0) || length(end) != 1 || any(end>private$.n)) {
+        stop("`0 <= end <= n` must be true!")
+      }
+
+      start = as.integer(start)
+      end = as.integer(end)
+      if(start >= end){
+        stop("start must be smaller than end!")
+      }
+
+      return(private$.costModule$eval(start, end))
+
     },
 
     #' @description Performs PELT given a linear penalty value.
@@ -270,7 +349,7 @@ PELT = R6Class(
         main = paste0("PELT: ", title_text = paste0("d = (", toString(d), ")"))
 
       } else {
-        if(is.null(main) || !is.character(main) || length(main )!= 1L){
+        if(!is.character(main) || length(main )!= 1L){
           stop("main must be a single character!")
         }
       }
@@ -279,7 +358,7 @@ PELT = R6Class(
         xlab = "Time"
 
       } else {
-        if(is.null(xlab) || !is.character(xlab) || length(xlab)!= 1L){
+        if(!is.character(xlab) || length(xlab)!= 1L){
           stop("xlab must be a single character!")
         }
       }
@@ -291,7 +370,7 @@ PELT = R6Class(
           stop("Temporary endPts is NULL. Must run $predict() to obtain this!")
         }
       } else{
-        if(is.null(endPts) | !is.numeric(endPts)){
+        if(!is.numeric(endPts)){
           stop("endPts must be a numeric/integer vector specifying endpoints! Could be obtained via $predict().")
         } else{
           endPts = as.integer(sort(endPts))
@@ -310,7 +389,7 @@ PELT = R6Class(
         }
       }
 
-      if (is.null(d) || !is.numeric(d)) {
+      if (!is.numeric(d)) {
         stop("d must be a numeric/integer vector specifying dimensions! e.g., 1, or c(1,2).")
       }
 
@@ -318,7 +397,7 @@ PELT = R6Class(
         message("dimNames is missing. Proceed to use the default dimNames! e.g., paste0('X', d)).")
         dimNames = paste0("X", d)
       } else {
-        if (is.null(dimNames) || !is.character(dimNames)) {
+        if (!is.character(dimNames)) {
           stop("dimNames must be a character vector specifying feature names!")
           if(length(dimNames) != length(d)){
             stop("length(dimNames) != length(d)!")
