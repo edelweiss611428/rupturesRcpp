@@ -22,7 +22,7 @@
 
 To install the newest version of the package, use the following R code: 
 
-```
+```r
 library(devtools)
 install_github("edelweiss611428/rupturesRcpp") 
 ```
