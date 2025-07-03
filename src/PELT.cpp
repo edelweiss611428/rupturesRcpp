@@ -36,8 +36,14 @@ std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int
 
   } else{
     if(costFuncObj.containsElementNamed("costFunc")){
-      costFunc = as<std::string>(costFuncObj["costFunc"]);
 
+      if(!Rf_isString(costFuncObj["costFunc"])){
+        stop("costFunc must be a single character!");
+
+      } else{
+        costFunc = as<std::string>(costFuncObj["costFunc"]);
+
+      }
     } else{
       stop("costFunc is missing!");
 
