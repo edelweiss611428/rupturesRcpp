@@ -13,9 +13,9 @@ that prunes the search space to achieve optimal segmentation in linear time unde
 
 Currently support the following cost functions:
 \itemize{
-\item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant covariance}
-\item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying covariance}
-\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant covariance}
+\item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant variance}
+\item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
+\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant variance}
 }
 
 Cost function objects can be created via \code{createCostFunc()}.

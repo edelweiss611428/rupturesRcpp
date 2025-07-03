@@ -37,9 +37,9 @@ Creates a \code{costFunc} object, required in segmentation methods.
 
 Supported cost functions include:
 \itemize{
-\item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant covariance}
-\item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying covariance}
-\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant covariance}
+\item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant variance}
+\item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
+\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant variance}
 }
 }
 \examples{

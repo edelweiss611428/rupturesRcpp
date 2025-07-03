@@ -15,9 +15,9 @@
 #'
 #' Currently support the following cost functions:
 #'
-#' - `"L2"`: for (independent) piecewise Gaussian process with **constant covariance**
-#' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying covariance**
-#' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant covariance**
+#' - `"L2"`: for (independent) piecewise Gaussian process with **constant variance**
+#' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
+#' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant variance**
 #'
 #' Cost function objects can be created via `createCostFunc()`.
 #'
