@@ -20,7 +20,7 @@ Currently supports the following cost functions:
 
 \code{PELT} requires  a \code{costFunc} object, which can be created via \code{createCostFunc()}.
 
-See \strong{Methods} section for more details.
+Basic usage: \url{https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md}
 }
 \section{Methods}{
 

@@ -22,7 +22,7 @@
 #'
 #' `PELT` requires  a `costFunc` object, which can be created via `createCostFunc()`.
 #'
-#' See **Methods** section for more details.
+#' Basic usage: <https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md>
 #'
 #' @examples
 #'
