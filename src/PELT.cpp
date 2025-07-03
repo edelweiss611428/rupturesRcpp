@@ -60,10 +60,15 @@ std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int
     if(costFuncObj.containsElementNamed("pVAR")){
 
       if(!Rf_isInteger(costFuncObj["pVAR"])){
-        stop("pVAR must be a single integer!");
+        stop("pVAR must be a single positive integer!");
 
       } else{
         pVAR = as<int>(costFuncObj["pVAR"]);
+
+        if(pVAR <= 0){
+          stop("pVAR must be a single positive integer!");
+        }
+
         Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
 
       }
@@ -81,14 +86,22 @@ std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int
 
       if(!Rf_isLogical(costFuncObj["addSmallDiag"])){
         stop("addSmallDiag must be a single boolean value!");
+
+      } else{
         addSmallDiag = as<bool>(costFuncObj["addSmallDiag"]);
 
       }
 
       if(!Rf_isNumeric(costFuncObj["epsilon"])){
-        stop("epsilon must be a single numeric value!");
+        stop("epsilon must be a single non-negative numeric value!");
+
+      } else{
         epsilon = as<double>(costFuncObj["epsilon"]);
 
+        if(epsilon  < 0){
+          stop("epsilon must be a single non-negative numeric value!");
+
+        }
       }
 
       Xnewptr = std::make_unique<Cost_SIGMA>(tsMat, addSmallDiag, epsilon);
@@ -104,6 +117,7 @@ std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int
 
   } else {
     Rcpp::stop("Cost function not supported!");
+
   }
 
   CostBase& Xnew = *Xnewptr;

@@ -42,8 +42,8 @@ inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int&
 
   if(len < 2*minSize){
 
-    return Segment{start, end, true, start,  //This is to make sure that segment length < 2*minSize +also a way to tell the program to stop considering this segment
-                   -9999,
+    return Segment{start, end, true, start,
+                   -9999, //If(segment length < 2*minSize)
                    std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity()};
@@ -105,8 +105,14 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
 
   } else{
     if(costFuncObj.containsElementNamed("costFunc")){
-      costFunc = as<std::string>(costFuncObj["costFunc"]);
 
+      if(!Rf_isString(costFuncObj["costFunc"])){
+        stop("costFunc must be a single character!");
+
+      } else{
+        costFunc = as<std::string>(costFuncObj["costFunc"]);
+
+      }
     } else{
       stop("costFunc is missing!");
 
@@ -123,10 +129,15 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
     if(costFuncObj.containsElementNamed("pVAR")){
 
       if(!Rf_isInteger(costFuncObj["pVAR"])){
-        stop("pVAR must be a single integer!");
+        stop("pVAR must be a single positive integer!");
 
       } else{
         pVAR = as<int>(costFuncObj["pVAR"]);
+
+        if(pVAR <= 0){
+          stop("pVAR must be a single positive integer!");
+        }
+
         Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
 
       }
@@ -144,14 +155,22 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
 
       if(!Rf_isLogical(costFuncObj["addSmallDiag"])){
         stop("addSmallDiag must be a single boolean value!");
+
+      } else{
         addSmallDiag = as<bool>(costFuncObj["addSmallDiag"]);
 
       }
 
       if(!Rf_isNumeric(costFuncObj["epsilon"])){
-        stop("epsilon must be a single numeric value!");
+        stop("epsilon must be a single non-negative numeric value!");
+
+      } else{
         epsilon = as<double>(costFuncObj["epsilon"]);
 
+        if(epsilon  < 0){
+          stop("epsilon must be a single non-negative numeric value!");
+
+        }
       }
 
       Xnewptr = std::make_unique<Cost_SIGMA>(tsMat, addSmallDiag, epsilon);
@@ -167,6 +186,7 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
 
   } else {
     Rcpp::stop("Cost function not supported!");
+
   }
 
   CostBase& Xnew = *Xnewptr;
