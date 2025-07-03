@@ -46,7 +46,7 @@ To perform change point detection, our package requires three "ingredients": **c
 
 #### Cost function
 
-A `costFun` object can be obtained via `createCostFunc()`. For example, since our example involves regimes with varying variance, a suitable `costFunc` option is `"SIGMA"`. Supported methods include `"L2`, `"VAR"`, and `"SIGMA"`.
+A `costFun` object can be obtained via `createCostFunc()`. For example, since our example involves regimes with varying variance, a suitable `costFunc` option is `"SIGMA"`. Supported methods include `"L2"`, `"VAR"`, and `"SIGMA"`.
 
 ```r
 library("rupturesRcpp")
@@ -56,7 +56,7 @@ Each cost function may have additional parameters (see `?createCostFunc` for mor
 
 #### Segmentation method
 
-Our package currently implements two R6 classes for offline change point detection, namely `binSeg` for binary segmentation (`binSeg`) and `PELT` pruned exact linear time. Their interfaces are similar. Thus, it is sufficient to demonstrate only the usage of `binSeg`.
+Our package currently implements two R6 classes for offline change point detection, namely `binSeg` for binary segmentation and `PELT` pruned exact linear time. Their interfaces are similar. Thus, it is sufficient to demonstrate only the usage of `binSeg`.
 
 A `binSeg` object can be initialised as follows:
 
@@ -106,7 +106,7 @@ binSegObj$plot(d = 1:2,
 
 ## Future development
 
-- Provide additional cost functions (e.g., `Poisson`, `Linear-L1`, and `Linear-L2`). 
+- Provide additional cost functions (e.g., `"Poisson"`, `"Linear-L1"`, and `"Linear-L2"`). 
 - Implement other change point detection classes (e.g., `Opt` and `Win`).  
 - Develop features for tuning the linear penalty.
 
