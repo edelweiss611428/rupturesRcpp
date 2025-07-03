@@ -1,4 +1,5 @@
-#include "Cost_SIGMA.h"
+#include "SIGMA.h"
+
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -34,17 +35,18 @@ arma::mat covariancePrecomputer::covarianceComputer(int start, int end) const {
   return (segOuter / len) - (mean * mean.t());
 }
 
-// Cost_SIGMA constructor
-Cost_SIGMA::Cost_SIGMA(const arma::mat& inputMat)
+Cost_SIGMA::Cost_SIGMA(const arma::mat& inputMat,
+                       const bool& addSmallDiag, const double& epsilon)
+
   : preComp(inputMat) {
+  addSmallDiag_ = addSmallDiag;
+  epsilon_ = epsilon;
   nr = inputMat.n_rows;
-  nc = inputMat.n_cols;
+
 }
 
-// effevalCpp method
-double Cost_SIGMA::effEvalCpp(int start, int end,
-                              bool addSmallDiag,
-                              double epsilon) const {
+double Cost_SIGMA::eval(int start, int end) const {
+
   arma::mat covMat = preComp.covarianceComputer(start, end);
   double sign = 0.0, logDet = 0.0;
 
@@ -52,8 +54,8 @@ double Cost_SIGMA::effEvalCpp(int start, int end,
     return 0.0;
   }
 
-  if (addSmallDiag) {
-    covMat.diag() += epsilon;
+  if (addSmallDiag_) {
+    covMat.diag() += epsilon_;
   }
 
   bool success = arma::log_det(logDet, sign, covMat);
@@ -63,16 +65,14 @@ double Cost_SIGMA::effEvalCpp(int start, int end,
   }
 
   return 0; // If(singular) return 0
-}
 
+}
 
 RCPP_EXPOSED_CLASS(Cost_SIGMA)
   RCPP_MODULE(Cost_SIGMA_module) {
-    class_<Cost_SIGMA>("Cost_SIGMA")
-      .constructor<arma::mat>()
-      .method("effEvalCpp", &Cost_SIGMA::effEvalCpp,
+    Rcpp::class_<Cost_SIGMA>("Cost_SIGMA")
+    .constructor<arma::mat, bool, double>()
+    .method("eval", &Cost_SIGMA::eval,
     "Evaluate SIGMA cost on interval (start, end]")
     ;
   }
-
-

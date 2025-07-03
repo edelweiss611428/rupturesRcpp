@@ -1,7 +1,8 @@
-#include "Cost_L2.h"
+#include "L2.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
-arma::mat getCumsumCpp(const arma::mat& X) {
+arma::mat getCumSumCpp(const arma::mat& X) {
+
   int nr = X.n_rows;
   int nc = X.n_cols;
 
@@ -12,30 +13,26 @@ arma::mat getCumsumCpp(const arma::mat& X) {
 }
 
 Cost_L2::Cost_L2(const arma::mat& inputMat) {
-  csX = getCumsumCpp(inputMat);
-  csXsq = getCumsumCpp(arma::pow(inputMat, 2));
+  csX = getCumSumCpp(inputMat);
+  csXsq = getCumSumCpp(arma::pow(inputMat, 2));
   nr = inputMat.n_rows;
 }
 
-double Cost_L2::effEvalCpp(int start, int end,
-                           bool addSmallDiag,
-                           double epsilon) const {
+double Cost_L2::eval(int start, int end) const {
+
   if (start == end - 1) {
     return 0.0;
   }
 
   int len = end - start;
-  double sumErrXsq = arma::sum(csXsq.row(end) - csXsq.row(start));
-  double sqErrsumX = std::pow(arma::norm(csX.row(end) - csX.row(start), 2), 2);
-
-  return sumErrXsq - sqErrsumX / len;
+  return arma::sum(csXsq.row(end) - csXsq.row(start)) - std::pow(arma::norm(csX.row(end) - csX.row(start), 2), 2) / len;
 }
 
 RCPP_EXPOSED_CLASS(Cost_L2)
   RCPP_MODULE(Cost_L2_module) {
     Rcpp::class_<Cost_L2>("Cost_L2")
     .constructor<arma::mat>()
-    .method("effEvalCpp", &Cost_L2::effEvalCpp,
+    .method("eval", &Cost_L2::eval,
     "Evaluate L2 cost on interval (start, end]")
     ;
   }
