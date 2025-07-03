@@ -2,7 +2,7 @@
 #'
 #' @description An R6 class implementing binary segmentation for offline change point detection.
 #'
-#'
+#' @include createCostFunc.R
 #' @docType class
 #' @importFrom R6 R6Class
 #' @importFrom ggplot2 aes ggplot geom_rect geom_line scale_fill_identity theme_minimal theme geom_vline labs element_blank element_text facet_wrap
@@ -13,11 +13,13 @@
 #' Binary segmentation is a classic algorithm for change point detection that recursively
 #' splits the data at locations that minimise the cost function.
 #'
-#' Currently supported cost functions:
+#' Currently support the following cost functions:
 #'
 #' - `"L2"`: for (independent) piecewise Gaussian process with **constant covariance**
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying covariance**
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant covariance**
+#'
+#' Cost function objects can be created via `createCostFunc()`.
 #'
 #' See **Methods** and section for more details.
 #'
@@ -25,7 +27,7 @@
 #' # Toy example
 #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
 #' # Initialise a binSeg object and fit the method to tsMat
-#' binSegObj = binSeg$new(costFunc = "SIGMA")
+#' binSegObj = binSeg$new(costFuncObj = createCostFunc("SIGMA"))
 #' binSegObj$fit(tsMat) #Need to run this before running $predict()
 #' # Perform binSeg for a specific linear penalty threshold
 #' binSegObj$predict(pen = 50)
@@ -65,14 +67,11 @@ binSeg = R6Class(
 
     .minSize = 1L,
     .jump = 1L,
-    .costFunc = "L2",
+    .costFuncObj = createCostFunc(), #L2 cost function
     .tsMat = NULL,
     .fitted = FALSE,
     .n = NULL,
     .p = NULL,
-    .addSmallDiag = TRUE,
-    .epsilon = 10^-6,
-    .pVAR = 1L,
     .bkps = NULL,
     .cost = NULL,
     .tmpEndPts = NULL, #Temporary end points - obtained after running $predict()
@@ -84,7 +83,7 @@ binSeg = R6Class(
 
     #' @field minSize Active binding. Sets the internal variable \code{.minSize} but should not be called directly.
     minSize = function(intVal) {
-      if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
+      if (is.null(intVal) || !is.numeric(intVal) || any(as.integer(intVal) < 1) || length(intVal) != 1) {
         stop("minSize must be a single positive integer!")
       }
       private$.minSize = as.integer(intVal)
@@ -92,22 +91,18 @@ binSeg = R6Class(
 
     #' @field jump Active binding. Sets the internal variable \code{.jump} but should not be called directly.
     jump = function(intVal) {
-      if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
+      if (is.null(intVal) || !is.numeric(intVal) || any(as.integer(intVal) < 1) || length(intVal) != 1) {
         stop("jump must be a single positive integer!")
       }
       private$.jump = as.integer(intVal)
     },
 
-    #' @field costFunc Active binding. Sets the internal variable \code{.costFunc} but should not be called directly.
-    costFunc = function(charVal) {
-      if (is.null(charVal) || !is.character(charVal) || length(charVal) != 1) {
-        stop("costFunc must be a single character!")
-      } else{
-        if(!charVal %in% c("L2", "SIGMA", "VAR")){
-          stop("costFunc is not support!")
-        }
+    #' @field costFuncObj Active binding. Sets the internal variable \code{.costFuncObj} but should not be called directly.
+    costFuncObj = function(Obj) {
+      if (!inherits(Obj, "costFunc")) {
+        stop("costFuncObj must be a costFunc object!")
       }
-      private$.costFunc = charVal
+      private$.costFuncObj = Obj
     },
 
     #' @field tsMat Active binding. Sets the internal variable \code{.tsMat} but should not be called directly.
@@ -116,53 +111,23 @@ binSeg = R6Class(
         stop("tsMat must be a numeric time series matrix!")
       }
       private$.tsMat = numMat
-    },
-
-    #' @field addSmallDiag Active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.
-    addSmallDiag = function(boolVal) {
-      if (is.null(boolVal) || !is.logical(boolVal) || length(boolVal) != 1) {
-        stop("addSmallDiag must be a single boolean value!")
-      }
-      private$.addSmallDiag = boolVal
-    },
-
-    #' @field epsilon Active binding. Sets the internal variable \code{.epsilon} but should not be called directly.
-    epsilon = function(doubleVal) {
-      if (is.null(doubleVal) || !is.numeric(doubleVal) || as.integer(doubleVal) < 0 || length(doubleVal) != 1) {
-        stop("epsilon must be a single positive double!")
-      }
-      private$.epsilon = doubleVal
-    },
-
-    #' @field pVAR Active binding. Sets the internal variable \code{.pVAR} but should not be called directly.
-    pVAR = function(intVal) {
-      if (is.null(intVal) || !is.numeric(intVal) || as.integer(intVal) < 1 || length(intVal) != 1) {
-        stop("pVAR must be a single positive integer!")
-      }
-      private$.pVAR = as.integer(intVal)
     }
-
   ),
 
   public = list(
 
     #' @description Initialises a binSeg object.
     #'
-    #' @param minSize Integer. Minimum allowed segment length. Default: 1L.
-    #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: 1L.
-    #' @param costFunc Character. Cost function to use: one of `"L2"`, `"SIGMA"`, or `"VAR"`. Default: `"L2"`.
-    #' @param addSmallDiag Logical. (SIGMA) If `TRUE`, add a small value to the diagonal of estimated covariance matrices
-    #' to improve numerical stability. Default: `TRUE`.
-    #' @param epsilon Double. (SIGMA) A small positive value used to the diagonal of estimated covariance matrices to stabilise
-    #' matrix operations. Default: `1e-6`.
-    #' @param pVAR Integer (VAR). Order of the vector autoregressive (VAR) model. Must be non-negative. Default: `1L`.
-    #'
-    #' @return Invisibly returns NULL.
+    #' @param minSize Integer. Minimum allowed segment length. Default: `1L`.
+    #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: `1L`.
+    #' @param costFuncObj List of class `costFunc`. Created via `costFuncObj()` function. Default, `costFuncObj("L2")`.
+    #' @return Invisibly returns `NULL`.
     #'
     #' @examples
-    #' peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+    #' L2Obj = createCostFunc()
+    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 
-    initialize = function(minSize, jump, costFunc, addSmallDiag, epsilon, pVAR) {
+    initialize = function(minSize, jump, costFuncObj) {
 
       if(!missing(minSize)){
         self$minSize = minSize
@@ -172,20 +137,8 @@ binSeg = R6Class(
         self$jump = jump
       }
 
-      if(!missing(costFunc)){
-        self$costFunc = costFunc
-      }
-
-      if(!missing(epsilon)){
-        self$epsilon = epsilon
-      }
-
-      if (!missing(addSmallDiag)){
-        self$addSmallDiag = addSmallDiag
-      }
-
-      if (!missing(pVAR)){
-        self$pVAR = pVAR
+      if(!missing(costFuncObj)){
+        self$costFuncObj = costFuncObj
       }
 
       print("You have created a binSeg object!")
@@ -199,10 +152,7 @@ binSeg = R6Class(
     #' \describe{
     #'   \item{\code{minSize}}{Minimum allowed segment length.}
     #'   \item{\code{jump}}{Search grid step size.}
-    #'   \item{\code{costFunc}}{The cost function.}
-    #'   \item{\code{addSmallDiag}}{(SIGMA only) Whether to add bias for numerical stability.}
-    #'   \item{\code{epsilon}}{(SIGMA, VAR) Bias added to diagonal entries.}
-    #'   \item{\code{pVAR}}{(VAR) VAR order.}
+    #'   \item{\code{costFuncObj}}{The costFun object.}
     #'   \item{\code{fitted}}{Whether or not `$fit()` has been run.}
     #'   \item{\code{tsMat}}{Input time series matrix.}
     #'   \item{\code{n}}{Number of observations.}
@@ -212,14 +162,15 @@ binSeg = R6Class(
     #' }
     #'
     #' @examples
-    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
+    #' L2Obj = createCostFunc()
+    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
     #' binSegObj$describe()
     #'
     describe = function() {
 
       params = list(minSize = private$.minSize,
                     jump = private$.minSize,
-                    costFunc = private$.costFunc,
+                    costFuncObj = private$.costFuncObj,
                     fitted = private$.fitted,
                     tsMat = private$.tsMat,
                     n = private$.n,
@@ -230,18 +181,18 @@ binSeg = R6Class(
       cat(sprintf("Binary Segmentation (binSeg) \n"))
       cat(sprintf("minSize      : %sL\n", private$.minSize))
       cat(sprintf("jump         : %sL\n", private$.jump))
-      cat(sprintf("costFunc.    : \"%s\"\n", private$.costFunc))
+      cat(sprintf("costFunc.    : \"%s\"\n", private$.costFuncObj$costFunc))
 
-      if(private$.costFunc == "SIGMA"){
-        cat(sprintf("addSmallDiag : %s\n", private$.addSmallDiag))
-        cat(sprintf("epsilon      : %s\n", private$.epsilon))
-        params[["addSmallDiag"]] = private$.addSmallDiag
-        params[["epsilon"]] = private$.epsilon
+      if(private$.costFuncObj$costFunc == "SIGMA"){
+        cat(sprintf("addSmallDiag : %s\n", private$.costFuncObj$addSmallDiag))
+        cat(sprintf("epsilon      : %s\n", private$.costFuncObj$epsilon))
+        params[["addSmallDiag"]] = private$.costFuncObj$addSmallDiag
+        params[["epsilon"]] = private$.costFuncObj$epsilon
       }
 
-      if(private$.costFunc == "VAR"){
-        cat(sprintf("pVAR.        : %s\n", private$.epsilon))
-        params[["pVAR"]] = private$.pVAR
+      if(private$.costFuncObj$costFunc == "VAR"){
+        cat(sprintf("pVAR.        : %s\n", private$.costFuncObj$epsilon))
+        params[["pVAR"]] = private$.costFuncObj$pVAR
       }
 
       cat(sprintf("fitted       : %s\n", private$.fitted))
@@ -263,7 +214,8 @@ binSeg = R6Class(
     #' enabling the use of `$predict()`. Run `$describe()` for detailed configurations.
     #'
     #' @examples
-    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
+    #' L2Obj = createCostFunc("L2")
+    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
     #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
     #' binSegObj$fit(tsMat)
 
@@ -274,10 +226,7 @@ binSeg = R6Class(
       private$.p = ncol(tsMat)
       private$.fitted = TRUE
       detection = binSegCpp(private$.tsMat, private$.minSize, private$.jump,
-                            costFunc = private$.costFunc,
-                            addSmallDiag = private$.addSmallDiag,
-                            epsilon = private$.epsilon,
-                            pVAR = private$.pVAR)
+                            costFuncObj = private$.costFuncObj)
       private$.cost = detection$cost
       private$.bkps = detection$bkps
       invisible(NULL)
@@ -295,7 +244,8 @@ binSeg = R6Class(
     #' end points.
     #'
     #' @examples
-    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
+    #' L2Obj = createCostFunc("L2")
+    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
     #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
     #' binSegObj$fit(tsMat)
     #' binSegObj$predict()
@@ -306,7 +256,7 @@ binSeg = R6Class(
         stop("$fit() must be run before $predict()!")
       }
 
-      if(!is.numeric(pen) || length(pen)!= 1 || pen < 0){
+      if(!is.numeric(pen) || length(pen)!= 1 ||  any(pen < 0)){
         stop("pen must be a single non-negative numeric value!")
       }
 
@@ -338,7 +288,8 @@ binSeg = R6Class(
     #' @return An object of classes "gg" and "ggplot".
     #'
     #' @examples
-    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = "L2")
+    #' L2Obj= createCostFunc("L2")
+    #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
     #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
     #' binSegObj$fit(tsMat)
     #' binSegObj$predict(pen = 1)

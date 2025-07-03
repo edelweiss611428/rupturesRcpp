@@ -11,12 +11,14 @@ An R6 class implementing the PELT algorithm for offline change point detection.
 PELT (Pruned Exact Linear Time) is an efficient algorithm for change point detection
 that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
 
-Currently supported cost functions:
+Currently support the following cost functions:
 \itemize{
 \item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant covariance}
 \item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying covariance}
 \item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant covariance}
 }
+
+Cost function objects can be created via \code{createCostFunc()}.
 
 See \strong{Methods} section for more details.
 }
@@ -36,7 +38,7 @@ See \strong{Methods} section for more details.
 # Toy example
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
 # Initialise a PELT object and fit the method to tsMat
-PELTObj = PELT$new(costFunc = "SIGMA")
+PELTObj = PELT$new(costFuncObj = createCostFunc("SIGMA"))
 PELTObj$fit(tsMat) #Need to run this before running $predict()
 # Perform PELT for a specific linear penalty threshold
 PELTObj$predict(pen = 50)
@@ -50,44 +52,48 @@ PELTObj$describe()
 ## Method `PELT$new`
 ## ------------------------------------------------
 
-peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+L2Obj = createCostFunc("L2")
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 
 ## ------------------------------------------------
 ## Method `PELT$describe`
 ## ------------------------------------------------
 
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+L2Obj = createCostFunc("L2")
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 PELTObj$describe()
-
 
 ## ------------------------------------------------
 ## Method `PELT$fit`
 ## ------------------------------------------------
 
-peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+L2Obj = createCostFunc("L2")
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-peltObj$fit(tsMat)
+PELTObj$fit(tsMat)
 
 ## ------------------------------------------------
 ## Method `PELT$predict`
 ## ------------------------------------------------
 
-peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+L2Obj = createCostFunc("L2")
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-peltObj$fit(tsMat)
-peltObj$predict()
+PELTObj$fit(tsMat)
+PELTObj$predict()
 
 ## ------------------------------------------------
 ## Method `PELT$plot`
 ## ------------------------------------------------
 
-peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+L2Obj = createCostFunc("L2")
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-peltObj$fit(tsMat)
-peltObj$predict(pen = 1)
-pen1 = peltObj$plot(main = "PELT: pen = 1")
-peltObj$predict(pen = 25)
-pen25 = peltObj$plot(main = "PELT: pen = 25")
+PELTObj$fit(tsMat)
+PELTObj$predict(pen = 1)
+pen1 = PELTObj$plot(main = "PELT: pen = 1")
+PELTObj$predict(pen = 25)
+pen25 = PELTObj$plot(main = "PELT: pen = 25")
 pen1 | pen25
 }
 \references{
@@ -107,15 +113,9 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 
 \item{\code{jump}}{Active binding. Sets the internal variable \code{.jump} but should not be called directly.}
 
-\item{\code{costFunc}}{Active binding. Sets the internal variable \code{.costFunc} but should not be called directly.}
+\item{\code{costFuncObj}}{Active binding. Sets the internal variable \code{.costFuncObj} but should not be called directly.}
 
 \item{\code{tsMat}}{Active binding. Sets the internal variable \code{.tsMat} but should not be called directly.}
-
-\item{\code{addSmallDiag}}{Active binding. Sets the internal variable \code{.addSmallDiag} but should not be called directly.}
-
-\item{\code{epsilon}}{Active binding. Sets the internal variable \code{.epsilon} but should not be called directly.}
-
-\item{\code{pVAR}}{Active binding. Sets the internal variable \code{.pVAR} but should not be called directly.}
 }
 \if{html}{\out{</div>}}
 }
@@ -136,34 +136,27 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \subsection{Method \code{new()}}{
 Initialises a PELT object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PELT$new(minSize, jump, costFunc, addSmallDiag, epsilon, pVAR)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PELT$new(minSize, jump, costFuncObj)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{minSize}}{Integer. Minimum allowed segment length. Default: 1L.}
+\item{\code{minSize}}{Integer. Minimum allowed segment length. Default: \code{1L}.}
 
-\item{\code{jump}}{Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: 1L.}
+\item{\code{jump}}{Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: \code{1L}.}
 
-\item{\code{costFunc}}{Character. Cost function to use: one of \code{"L2"}, \code{"SIGMA"}, or \code{"VAR"}. Default: \code{"L2"}.}
-
-\item{\code{addSmallDiag}}{Logical. (SIGMA) If \code{TRUE}, add a small value to the diagonal of estimated covariance matrices
-to improve numerical stability. Default: \code{TRUE}.}
-
-\item{\code{epsilon}}{Double. (SIGMA) A small positive value used to the diagonal of estimated covariance matrices to stabilise
-matrix operations. Default: \code{1e-6}.}
-
-\item{\code{pVAR}}{Integer (VAR). Order of the vector autoregressive (VAR) model. Must be non-negative. Default: \code{1L}.}
+\item{\code{costFuncObj}}{List of class \code{costFunc}. Created via \code{costFuncObj()} function. Default, \code{costFuncObj("L2")}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Invisibly returns NULL.
+Invisibly returns \code{NULL}.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+\preformatted{L2Obj = createCostFunc("L2")
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 }
 \if{html}{\out{</div>}}
 
@@ -184,10 +177,7 @@ Invisibly returns a list containing some of the following fields:
 \describe{
 \item{\code{minSize}}{Minimum allowed segment length.}
 \item{\code{jump}}{Search grid step size.}
-\item{\code{costFunc}}{The cost function.}
-\item{\code{addSmallDiag}}{(SIGMA) Whether to add a bias to the diagonal of estimated covariance matrices for numerical stability.}
-\item{\code{epsilon}}{(SIGMA) Bias added to diagonal entries.}
-\item{\code{pVAR}}{(VAR) VAR order.}
+\item{\code{costFuncObj}}{The costFunc object.}
 \item{\code{fitted}}{Whether or not \verb{$fit()} has been run.}
 \item{\code{tsMat}}{Input time series matrix.}
 \item{\code{n}}{Number of observations.}
@@ -196,9 +186,9 @@ Invisibly returns a list containing some of the following fields:
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{PELTObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+\preformatted{L2Obj = createCostFunc("L2")
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 PELTObj$describe()
-
 }
 \if{html}{\out{</div>}}
 
@@ -227,13 +217,14 @@ enabling the use of \verb{$predict()}. Run \verb{$describe()} for detailed confi
 }
 
 \subsection{Returns}{
-Invisibly returns NULL.
+Invisibly returns \code{NULL}.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+\preformatted{L2Obj = createCostFunc("L2")
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-peltObj$fit(tsMat)
+PELTObj$fit(tsMat)
 }
 \if{html}{\out{</div>}}
 
@@ -258,7 +249,7 @@ Performs PELT given a linear penalty value.
 }
 \subsection{Details}{
 Performs PELT given a linear penalty value. Temporary end points are saved
-to \code{private$.tmpEndPoints}, allowing users to use  \verb{$plot()} without specifying
+to \code{private$.tmpEndPoints}, allowing users to use \verb{$plot()} without specifying
 end points.
 }
 
@@ -268,10 +259,11 @@ number of observations.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+\preformatted{L2Obj = createCostFunc("L2")
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-peltObj$fit(tsMat)
-peltObj$predict()
+PELTObj$fit(tsMat)
+PELTObj$predict()
 }
 \if{html}{\out{</div>}}
 
@@ -333,13 +325,14 @@ An object of classes "gg" and "ggplot".
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{peltObj = PELT$new(minSize = 1L, jump = 1L, costFunc = "L2")
+\preformatted{L2Obj = createCostFunc("L2")
+PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
 tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
-peltObj$fit(tsMat)
-peltObj$predict(pen = 1)
-pen1 = peltObj$plot(main = "PELT: pen = 1")
-peltObj$predict(pen = 25)
-pen25 = peltObj$plot(main = "PELT: pen = 25")
+PELTObj$fit(tsMat)
+PELTObj$predict(pen = 1)
+pen1 = PELTObj$plot(main = "PELT: pen = 1")
+PELTObj$predict(pen = 25)
+pen25 = PELTObj$plot(main = "PELT: pen = 25")
 pen1 | pen25
 }
 \if{html}{\out{</div>}}
