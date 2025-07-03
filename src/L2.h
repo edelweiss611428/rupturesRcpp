@@ -1,13 +1,13 @@
-// Cost_L2.h
+// L2.h
 
 #ifndef COST_L2_H
 #define COST_L2_H
 
-#include "CostBase.h"
+#include "baseClass.h"
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
-arma::mat getCumsumCpp(const arma::mat& X);
+arma::mat getCumSumCpp(const arma::mat& X);
 
 class Cost_L2 : public CostBase {
 
@@ -19,10 +19,7 @@ public:
 
   Cost_L2(const arma::mat& inputMat);
 
-  double effEvalCpp(int start, int end,
-                    bool addSmallDiag = true, //unused
-                    double epsilon = 1e-6 //unused
-                    ) const;
+  double eval(int start, int end) const;
 };
 
 
