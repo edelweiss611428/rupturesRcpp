@@ -13,19 +13,19 @@
 #' Binary segmentation is a classic algorithm for change point detection that recursively
 #' splits the data at locations that minimise the cost function.
 #'
-#' Currently support the following cost functions:
+#' Currently supports the following cost functions:
 #'
 #' - `"L2"`: for (independent) piecewise Gaussian process with **constant variance**
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant variance**
 #'
-#' Cost function objects can be created via `createCostFunc()`.
+#' `binSeg` requires  a `costFunc` object, which can be created via `createCostFunc()`.
 #'
-#' See **Methods** and section for more details.
+#' See **Methods** section for more details.
 #'
 #' @examples
 #' # Toy example
-#' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
+#' tsMat = matrix(c(rnorm(100,0), rnorm(100,0, 10)))
 #' # Initialise a `binSeg` object and fit `binSeg` to `tsMat` for the maximum number of change points.
 #' binSegObj = binSeg$new(costFuncObj = createCostFunc("SIGMA"))
 #' binSegObj$fit(tsMat)
@@ -44,7 +44,7 @@
 #' maximum number of change points.}
 #'   \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
 #'   \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-#'   \item{\code{$clone()}}{Clone the `binSeg` object.}
+#'   \item{\code{$clone()}}{Clones the `binSeg` object.}
 #' }
 #'
 #' @references
@@ -74,8 +74,8 @@ binSeg = R6Class(
     .p = NULL,
     .bkps = NULL,
     .cost = NULL,
-    .tmpEndPts = NULL, #Temporary end points - obtained after running $predict()
-    .tmpPen = NULL #Temporary penalty value - obtained after running
+    .tmpEndPts = NULL, #Temporary end points
+    .tmpPen = NULL #Temporary penalty value
 
   ),
 
@@ -181,7 +181,7 @@ binSeg = R6Class(
       cat(sprintf("Binary Segmentation (binSeg) \n"))
       cat(sprintf("minSize      : %sL\n", private$.minSize))
       cat(sprintf("jump         : %sL\n", private$.jump))
-      cat(sprintf("costFunc.    : \"%s\"\n", private$.costFuncObj$costFunc))
+      cat(sprintf("costFunc     : \"%s\"\n", private$.costFuncObj$costFunc))
 
       if(private$.costFuncObj$costFunc == "SIGMA"){
         cat(sprintf("addSmallDiag : %s\n", private$.costFuncObj$addSmallDiag))
@@ -191,7 +191,7 @@ binSeg = R6Class(
       }
 
       if(private$.costFuncObj$costFunc == "VAR"){
-        cat(sprintf("pVAR.        : %s\n", private$.costFuncObj$pVAR))
+        cat(sprintf("pVAR         : %s\n", private$.costFuncObj$pVAR))
         params[["pVAR"]] = private$.costFuncObj$pVAR
       }
 
@@ -216,7 +216,7 @@ binSeg = R6Class(
     #' @examples
     #' L2Obj = createCostFunc("L2")
     #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
     #' binSegObj$fit(tsMat)
 
     fit = function(tsMat) {
@@ -246,7 +246,7 @@ binSeg = R6Class(
     #' @examples
     #' L2Obj = createCostFunc("L2")
     #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
     #' binSegObj$fit(tsMat)
     #' binSegObj$predict()
 
@@ -290,7 +290,7 @@ binSeg = R6Class(
     #' @examples
     #' L2Obj= createCostFunc("L2")
     #' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
     #' binSegObj$fit(tsMat)
     #' binSegObj$predict(pen = 1)
     #' pen1 = binSegObj$plot(main = "binSeg: pen = 1")

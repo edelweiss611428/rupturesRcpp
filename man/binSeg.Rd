@@ -11,16 +11,16 @@ An R6 class implementing binary segmentation for offline change point detection.
 Binary segmentation is a classic algorithm for change point detection that recursively
 splits the data at locations that minimise the cost function.
 
-Currently support the following cost functions:
+Currently supports the following cost functions:
 \itemize{
 \item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant variance}
 \item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
 \item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant variance}
 }
 
-Cost function objects can be created via \code{createCostFunc()}.
+\code{binSeg} requires  a \code{costFunc} object, which can be created via \code{createCostFunc()}.
 
-See \strong{Methods} and section for more details.
+See \strong{Methods} section for more details.
 }
 \section{Methods}{
 
@@ -31,13 +31,13 @@ See \strong{Methods} and section for more details.
 maximum number of change points.}
 \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
 \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-\item{\code{$clone()}}{Clone the \code{binSeg} object.}
+\item{\code{$clone()}}{Clones the \code{binSeg} object.}
 }
 }
 
 \examples{
 # Toy example
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,0, 10)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,0, 10)))
 # Initialise a `binSeg` object and fit `binSeg` to `tsMat` for the maximum number of change points.
 binSegObj = binSeg$new(costFuncObj = createCostFunc("SIGMA"))
 binSegObj$fit(tsMat)
@@ -71,7 +71,7 @@ binSegObj$describe()
 
 L2Obj = createCostFunc("L2")
 binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 binSegObj$fit(tsMat)
 
 ## ------------------------------------------------
@@ -80,7 +80,7 @@ binSegObj$fit(tsMat)
 
 L2Obj = createCostFunc("L2")
 binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 binSegObj$fit(tsMat)
 binSegObj$predict()
 
@@ -90,7 +90,7 @@ binSegObj$predict()
 
 L2Obj= createCostFunc("L2")
 binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 binSegObj$fit(tsMat)
 binSegObj$predict(pen = 1)
 pen1 = binSegObj$plot(main = "binSeg: pen = 1")
@@ -228,7 +228,7 @@ Invisibly returns \code{NULL}.
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{L2Obj = createCostFunc("L2")
 binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 binSegObj$fit(tsMat)
 }
 \if{html}{\out{</div>}}
@@ -266,7 +266,7 @@ number of observations.
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{L2Obj = createCostFunc("L2")
 binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 binSegObj$fit(tsMat)
 binSegObj$predict()
 }
@@ -332,7 +332,7 @@ An object of classes \code{gg} and \code{ggplot}.
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{L2Obj= createCostFunc("L2")
 binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 binSegObj$fit(tsMat)
 binSegObj$predict(pen = 1)
 pen1 = binSegObj$plot(main = "binSeg: pen = 1")

@@ -14,13 +14,13 @@
 #' PELT (Pruned Exact Linear Time) is an efficient algorithm for change point detection
 #' that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
 #'
-#' Currently support the following cost functions:
+#' Currently supports the following cost functions:
 #'
 #' - `"L2"`: for (independent) piecewise Gaussian process with **constant variance**
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant variance**
 #'
-#' Cost function objects can be created via `createCostFunc()`.
+#' `PELT` requires  a `costFunc` object, which can be created via `createCostFunc()`.
 #'
 #' See **Methods** section for more details.
 #'
@@ -44,7 +44,7 @@
 #'   \item{\code{$fit()}}{Takes a time series matrix as input.}
 #'   \item{\code{$predict()}}{Performs PELT given a linear penalty value.}
 #'   \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-#'   \item{\code{$clone()}}{Clone the `PELT` object.}
+#'   \item{\code{$clone()}}{Clones the `PELT` object.}
 #' }
 #'
 #' @references
@@ -72,8 +72,8 @@ PELT = R6Class(
     .n = NULL,
     .p = NULL,
     .costFuncObj = createCostFunc(), #L2 cost function
-    .tmpEndPts = NULL, #Temporary end points - obtained after running $predict()
-    .tmpPen = NULL #Temporary penalty value - obtained after running $predict()
+    .tmpEndPts = NULL, #Temporary end points
+    .tmpPen = NULL #Temporary penalty value
   ),
 
   active = list(
@@ -175,7 +175,7 @@ PELT = R6Class(
       cat(sprintf("Pruned Exact Linear Time (PELT) \n"))
       cat(sprintf("minSize      : %sL\n", private$.minSize))
       cat(sprintf("jump         : %sL\n", private$.jump))
-      cat(sprintf("costFunc.    : \"%s\"\n", private$.costFuncObj$costFunc))
+      cat(sprintf("costFunc     : \"%s\"\n", private$.costFuncObj$costFunc))
 
       if(private$.costFuncObj$costFunc == "SIGMA"){
         cat(sprintf("addSmallDiag : %s\n", private$.costFuncObj$addSmallDiag))
@@ -185,7 +185,7 @@ PELT = R6Class(
       }
 
       if(private$.costFuncObj$costFunc == "VAR"){
-        cat(sprintf("pVAR.        : %s\n", private$.costFuncObj$pVAR))
+        cat(sprintf("pVAR         : %s\n", private$.costFuncObj$pVAR))
         params[["pVAR"]] = private$.costFuncObj$pVAR
       }
 
@@ -209,7 +209,7 @@ PELT = R6Class(
     #' @examples
     #' L2Obj = createCostFunc("L2")
     #' PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
     #' PELTObj$fit(tsMat)
 
     fit = function(tsMat) {
@@ -233,7 +233,7 @@ PELT = R6Class(
     #' @examples
     #' L2Obj = createCostFunc("L2")
     #' PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
     #' PELTObj$fit(tsMat)
     #' PELTObj$predict()
 
@@ -277,7 +277,7 @@ PELT = R6Class(
     #' @examples
     #' L2Obj = createCostFunc("L2")
     #' PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-    #' tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+    #' tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
     #' PELTObj$fit(tsMat)
     #' PELTObj$predict(pen = 1)
     #' pen1 = PELTObj$plot(main = "PELT: pen = 1")

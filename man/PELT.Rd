@@ -11,14 +11,14 @@ An R6 class implementing the PELT algorithm for offline change point detection.
 PELT (Pruned Exact Linear Time) is an efficient algorithm for change point detection
 that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
 
-Currently support the following cost functions:
+Currently supports the following cost functions:
 \itemize{
 \item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant variance}
 \item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
 \item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant variance}
 }
 
-Cost function objects can be created via \code{createCostFunc()}.
+\code{PELT} requires  a \code{costFunc} object, which can be created via \code{createCostFunc()}.
 
 See \strong{Methods} section for more details.
 }
@@ -30,7 +30,7 @@ See \strong{Methods} section for more details.
 \item{\code{$fit()}}{Takes a time series matrix as input.}
 \item{\code{$predict()}}{Performs PELT given a linear penalty value.}
 \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-\item{\code{$clone()}}{Clone the \code{PELT} object.}
+\item{\code{$clone()}}{Clones the \code{PELT} object.}
 }
 }
 
@@ -69,7 +69,7 @@ PELTObj$describe()
 
 L2Obj = createCostFunc("L2")
 PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 PELTObj$fit(tsMat)
 
 ## ------------------------------------------------
@@ -78,7 +78,7 @@ PELTObj$fit(tsMat)
 
 L2Obj = createCostFunc("L2")
 PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 PELTObj$fit(tsMat)
 PELTObj$predict()
 
@@ -88,7 +88,7 @@ PELTObj$predict()
 
 L2Obj = createCostFunc("L2")
 PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 PELTObj$fit(tsMat)
 PELTObj$predict(pen = 1)
 pen1 = PELTObj$plot(main = "PELT: pen = 1")
@@ -223,7 +223,7 @@ Invisibly returns \code{NULL}.
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{L2Obj = createCostFunc("L2")
 PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 PELTObj$fit(tsMat)
 }
 \if{html}{\out{</div>}}
@@ -261,7 +261,7 @@ number of observations.
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{L2Obj = createCostFunc("L2")
 PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 PELTObj$fit(tsMat)
 PELTObj$predict()
 }
@@ -327,7 +327,7 @@ An object of classes \code{gg} and \code{ggplot}.
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{L2Obj = createCostFunc("L2")
 PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = L2Obj)
-tsMat = as.matrix(c(rnorm(100,0), rnorm(100,5)))
+tsMat = matrix(c(rnorm(100,0), rnorm(100,5)))
 PELTObj$fit(tsMat)
 PELTObj$predict(pen = 1)
 pen1 = PELTObj$plot(main = "PELT: pen = 1")
