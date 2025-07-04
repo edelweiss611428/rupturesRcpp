@@ -50,7 +50,7 @@ double Cost_SIGMA::eval(int start, int end) const {
   arma::mat covMat = preComp.covarianceComputer(start, end);
   double sign = 0.0, logDet = 0.0;
 
-  if (start >= end - 1) { // If(failed), return 0
+  if (start >= end-1) { // If(failed), return 0
     return 0.0;
   }
 
