@@ -338,7 +338,7 @@ binSeg = R6Class(
         stop("a must be smaller than b!")
       }
 
-      return(private$.costModule$eval(start, end))
+      return(private$.costModule$eval(a, b))
 
     },
 
