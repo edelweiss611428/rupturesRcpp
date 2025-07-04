@@ -10,6 +10,6 @@ Load Rcpp module for Cost_VAR
 \strong{VAR cost function}:
 \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
 where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. An approximate linear
-solver will be used when exact \code{arma::solve()} fails. If no solution found, return 0. If \code{a-b < p*r+1} (i.e., not enough observations),
-return 0.
+solver will be used when exact \code{arma::solve()} fails. If no solution found, \eqn{a-b < p*r+1} (i.e., not enough
+observations), or \eqn{a \ge n-p} (where \code{n} is the time series length), return 0.
 }

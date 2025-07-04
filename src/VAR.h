@@ -10,10 +10,14 @@ using namespace Rcpp;
 class Cost_VAR : public CostBase {
 
 private:
+
   int p;
   int J;
   arma::mat X;
-  arma::mat Z_full; //Stacked design matrix; each i-th row is `p` previous observations of the (p+i)th observation
+  arma::mat Z; //Stacked design matrix; each i-th row is the `p` previous obs of the (p+i)th obs
+  std::vector<arma::mat> csZtZ;
+  std::vector<arma::mat> csZtY;
+  std::vector<arma::mat> csYtY;
 
 public:
 
