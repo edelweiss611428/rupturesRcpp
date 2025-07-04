@@ -19,7 +19,7 @@
 #'
 #' - `"L2"`: for (independent) piecewise Gaussian process with **constant variance**
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
-#' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant variance**
+#' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
 #'
 #' `PELT` requires  a `costFunc` object, which can be created via `createCostFunc()`.
 #'
