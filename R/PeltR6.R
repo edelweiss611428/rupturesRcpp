@@ -311,18 +311,18 @@ PELT = R6Class(
         stop("$fit() must be run before $eval()!")
       }
 
-      if (!is.numeric(start) || any(start < 0) || length(start) != 1 || any(start > private$.n)) {
-        stop("`0 <= start <= n` must be true!")
+      if (!is.numeric(a) || any(a < 0) || length(a) != 1 || any(a > private$.n)) {
+        stop("`0 <= a <= n` must be true!")
       }
 
-      if (!is.numeric(end) || any(end < 0) || length(end) != 1 || any(end>private$.n)) {
-        stop("`0 <= end <= n` must be true!")
+      if (!is.numeric(b) || any(b < 0) || length(b) != 1 || any(b>private$.n)) {
+        stop("`0 <= b <= n` must be true!")
       }
 
-      start = as.integer(start)
-      end = as.integer(end)
-      if(start >= end){
-        stop("start must be smaller than end!")
+      a = as.integer(a)
+      b = as.integer(b)
+      if(a >= b){
+        stop("a must be smaller than b!")
       }
 
       return(private$.costModule$eval(start, end))
