@@ -20,7 +20,7 @@ Cost_L2::Cost_L2(const arma::mat& inputMat) {
 
 double Cost_L2::eval(int start, int end) const {
 
-  if (start >= end - 1) {
+  if (start == end - 1) {
     return 0.0;
   }
 
