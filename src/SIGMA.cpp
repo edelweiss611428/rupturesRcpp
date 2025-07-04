@@ -51,7 +51,7 @@ double Cost_SIGMA::eval(int start, int end) const {
   double sign = 0.0, logDet = 0.0;
 
   if (start >= end-1) { // If(failed), return 0
-    return 0.0;
+    return -std::numeric_limits<double>::max();
   }
 
   if (addSmallDiag_) {
@@ -64,7 +64,7 @@ double Cost_SIGMA::eval(int start, int end) const {
     return logDet * (end - start);
   }
 
-  return 0; // If(singular) return 0
+  return -std::numeric_limits<double>::max(); // If(failed) return the most negative double
 
 }
 
