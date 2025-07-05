@@ -15,7 +15,7 @@ Currently supports the following cost functions:
 \itemize{
 \item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant variance}
 \item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
-\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant variance}
+\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant noise variance}
 }
 
 \code{PELT} requires  a \code{costFunc} object, which can be created via \code{createCostFunc()}.
@@ -192,13 +192,14 @@ where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a 
 \item \strong{SIGMA cost function}:
 \deqn{c_{\sum}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
 the empirical covariance matrix of the segment without Bessel's correction. Here, if \code{addSmallDiag = TRUE}, a small
-bias \code{epsilon} is added to the diagonal of estimated covariance matrices to improve numerical stability. If
-\eqn{\hat{\Sigma}} or \eqn{a \ge b - 1}, return the most negative double.
+bias \code{epsilon} is added to the diagonal of estimated covariance matrices to improve numerical stability. \cr
+\cr
+By default, \code{addSmallDiag = TRUE} and \code{epsilon = 1e-6}. In case \code{addSmallDiag = TRUE}, if the computed determinant of covariance matrix is either 0 (singular)
+or smaller than \code{p*log(epsilon)} - the lower bound, return \code{(b - a)*p*log(epsilon)}, otherwise, output an error message.
 \item \strong{VAR(r) cost function}:
 \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
-where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. An approximate linear
-solver will be used when exact \code{arma::solve()} fails. If no solution found, \eqn{a-b < p*r+1} (i.e., not enough
-observations), or \eqn{a \ge n-p} (where \code{n} is the time series length), return 0.
+where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
+\eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where \code{n} is the time series length), return 0.
 }
 }
 
