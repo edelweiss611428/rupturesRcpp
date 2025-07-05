@@ -12,8 +12,8 @@ R_L2eval = function(X, start, end){
 }
 
 set.seed(1)
-tsMat = cbind(c(rnorm(10,0), rnorm(10,5,5)),
-              c(rnorm(10,0), rnorm(10,5,5)))
+tsMat = cbind(c(rnorm(10,0), rnorm(10,5,5)))
+
 nr = nrow(tsMat)
 tsMat_L2module = new(rupturesRcpp::Cost_L2, tsMat)
 
@@ -41,7 +41,7 @@ test_that("Expect error", {
   expect_error(tsMat_L2module$eval(-1,nr),
                regexp = "out of bounds")
   expect_error(binSegObj$eval(0,0),
-               regexp = "smaller") #error if start >= endß
+               regexp = "smaller") #error if start >= end
   expect_error(PELTObj$eval(0,0),
                regexp = "smaller")
 })
