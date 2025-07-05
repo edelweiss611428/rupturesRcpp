@@ -69,7 +69,7 @@ std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int
           stop("pVAR must be a single positive integer!");
         }
 
-        Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
+        Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR, true);
 
       }
     } else{
@@ -98,13 +98,13 @@ std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int
       } else{
         epsilon = as<double>(costFuncObj["epsilon"]);
 
-        if(epsilon  < 0){
-          stop("epsilon must be a single non-negative numeric value!");
+        if(epsilon  <=  0.0){
+          stop("epsilon must be a single positive numeric value!");
 
         }
       }
 
-      Xnewptr = std::make_unique<Cost_SIGMA>(tsMat, addSmallDiag, epsilon);
+      Xnewptr = std::make_unique<Cost_SIGMA>(tsMat, addSmallDiag, epsilon, true);
 
     } else{
       stop("Either addSmallDiag or epsilon (or both) is missing!");

@@ -18,9 +18,9 @@ Cost_L2::Cost_L2(const arma::mat& inputMat) {
   nr = inputMat.n_rows;
 }
 
-double Cost_L2::eval(int start, int end) const {
+double Cost_L2::eval(int start, int end) {
 
-  if (start >= end-1) { // If(failed), return 0
+  if (start >= end-1) {
     return 0.0;
   }
 

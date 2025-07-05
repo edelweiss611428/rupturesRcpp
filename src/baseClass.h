@@ -11,7 +11,7 @@ public:
 
   virtual ~CostBase() = default;
 
-  virtual double eval(int start, int end) const = 0;
+  virtual double eval(int start, int end) = 0;
 
 };
 

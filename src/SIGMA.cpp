@@ -36,42 +36,70 @@ arma::mat covariancePrecomputer::covarianceComputer(int start, int end) const {
 }
 
 Cost_SIGMA::Cost_SIGMA(const arma::mat& inputMat,
-                       const bool& addSmallDiag, const double& epsilon)
+                       const bool& addSmallDiag, const double& epsilon,
+                       const bool&warnOnce)
 
   : preComp(inputMat) {
   addSmallDiag_ = addSmallDiag;
   epsilon_ = epsilon;
   nr = inputMat.n_rows;
+  nc = inputMat.n_cols;
+  lbDet = nc*log(epsilon);
+  warnOnce_ = warnOnce;
+  const bool keepWarning = not warnOnce;
+  (void)keepWarning;
 
 }
 
-double Cost_SIGMA::eval(int start, int end) const {
+double Cost_SIGMA::eval(int start, int end) {
 
   arma::mat covMat = preComp.covarianceComputer(start, end);
-  double sign = 0.0, logDet = 0.0;
-
-  if (start >= end-1) { // If(failed), return 0
-    return -std::numeric_limits<double>::max();
-  }
+  double logDet = 0.0;
 
   if (addSmallDiag_) {
     covMat.diag() += epsilon_;
   }
 
-  bool success = arma::log_det(logDet, sign, covMat);
+  logDet = arma::log_det_sympd(covMat);
 
-  if (success && sign > 0 && std::isfinite(logDet)) {
-    return logDet * (end - start);
+  if (std::isfinite(logDet)) {
+    if(not addSmallDiag_){
+      return logDet * (end - start);
+
+    } else{
+      if(logDet < lbDet){
+        return lbDet * (end - start);
+
+      } else{
+        return logDet * (end - start);
+
+      }
+    }
+  } else if(addSmallDiag_ and epsilon_ > 0.0){
+
+    if(warnOnce_){
+      warning("`covMat` is singular! Consider increasing either `epsilon` or `minSize`");
+      warnOnce_ = false;
+      warning("Return the lower-bound `p*log(epsilon)*segLen`!");
+    }
+
+    if(keepWarning){
+      warning("`covMat` is singular! Consider increasing either `epsilon` or `minSize`");
+      warning("Return the lower-bound `p*log(epsilon)*segLen`!");
+    }
+
+    return lbDet*(end-start);
+
+  } else{
+    stop("`covMat` is singular! Consider using `addSmallDiag` option or increasing `minSize`!");
   }
-
-  return -std::numeric_limits<double>::max(); // If(failed) return the most negative double
 
 }
 
 RCPP_EXPOSED_CLASS(Cost_SIGMA)
   RCPP_MODULE(Cost_SIGMA_module) {
     Rcpp::class_<Cost_SIGMA>("Cost_SIGMA")
-    .constructor<arma::mat, bool, double>()
+    .constructor<arma::mat, bool, double, bool>()
     .method("eval", &Cost_SIGMA::eval,
     "Evaluate SIGMA cost on interval (start, end]")
     ;

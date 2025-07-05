@@ -30,7 +30,7 @@ struct Segment {
 // Fast implementation based on heap, which involves an O(1) search instead
 // of O(k) (see ../deprecated); also supports minSize, and jump.
 
-inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int& end,
+inline Segment miniOptHeapCpp(CostBase& Xnew, const int& start, const int& end,
                                const int& minSize = 1,  const int& jump = 1,
                                double totalErr = -1) {
 
@@ -43,10 +43,11 @@ inline Segment miniOptHeapCpp(const CostBase& Xnew, const int& start, const int&
   if(len < 2*minSize){
 
     return Segment{start, end, true, start,
-                   -9999, //If(segment length < 2*minSize)
+                   -std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity()};
+
   } else if(len == 2*minSize){
 
     int cp = start + jump;
@@ -138,7 +139,7 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
           stop("pVAR must be a single positive integer!");
         }
 
-        Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR);
+        Xnewptr = std::make_unique<Cost_VAR>(tsMat, pVAR, true);
 
       }
     } else{
@@ -167,13 +168,13 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
       } else{
         epsilon = as<double>(costFuncObj["epsilon"]);
 
-        if(epsilon  < 0){
-          stop("epsilon must be a single non-negative numeric value!");
+        if(epsilon  <= 0.0){
+          stop("epsilon must be a single positive numeric value!");
 
         }
       }
 
-      Xnewptr = std::make_unique<Cost_SIGMA>(tsMat, addSmallDiag, epsilon);
+      Xnewptr = std::make_unique<Cost_SIGMA>(tsMat, addSmallDiag, epsilon, true);
 
     } else{
       stop("Either addSmallDiag or epsilon (or both) is missing!");
@@ -248,7 +249,6 @@ List binSegCpp(const arma::mat& tsMat, const int& minSize = 1,  const int& jump 
     Named("bkps") = changePoints[Range(0,nRegimes-2)],
     Named("cost") = cost[Range(0,nRegimes-1)]
   );
-
 
 }
 
