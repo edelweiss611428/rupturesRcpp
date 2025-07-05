@@ -3,11 +3,14 @@
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-Cost_VAR::Cost_VAR(const arma::mat& inputMat, const int& pVAR){
+Cost_VAR::Cost_VAR(const arma::mat& inputMat, const int& pVAR,
+                   const bool&warnOnce){
 
-  X = inputMat;
-  nr = X.n_rows;
-  nc = X.n_cols;
+  nr = inputMat.n_rows;
+  nc = inputMat.n_cols;
+  warnOnce_ = warnOnce;
+  bool keepWarning = not warnOnce;
+  (void)keepWarning;
 
   p = pVAR;
   J = 1 + p * nc;
@@ -30,7 +33,7 @@ Cost_VAR::Cost_VAR(const arma::mat& inputMat, const int& pVAR){
   csYtY.resize(nr+1, arma::mat(nc,nc,arma::fill::zeros));
 
   for (int L = 0; L < p; L++) {
-    Z.cols(1 + L * nc, (L + 1) * nc) = X.rows(p - L - 1, nr - L - 2);
+    Z.cols(1 + L * nc, (L + 1) * nc) = inputMat.rows(p - L - 1, nr - L - 2);
   }
 
 
@@ -40,7 +43,7 @@ Cost_VAR::Cost_VAR(const arma::mat& inputMat, const int& pVAR){
 
   for (int i = p; i < nr; i++) {
     Zi = Z.row(i-p);
-    Yi = X.row(i);
+    Yi = inputMat.row(i);
     csZtZ[i+1] = csZtZ[i] + Zi.t() * Zi;
     csZtY[i+1] = csZtY[i] + Zi.t() * Yi;
     csYtY[i+1] = csYtY[i] + Yi.t() * Yi;
@@ -48,17 +51,18 @@ Cost_VAR::Cost_VAR(const arma::mat& inputMat, const int& pVAR){
 
 }
 
-double Cost_VAR::eval(int start, int end) const {
+double Cost_VAR::eval(int start, int end) {
+
 
   //p-step-ahead
   if(start > nr-p){
-    return 0;
+    return 0.0;
   }
 
   int len = end - start;
 
   if(len < J){ // (start, end] must have at least J points
-    return 0; //Return 0
+    return 0.0; //Return 0
   }
 
   //p-step-ahead
@@ -68,9 +72,21 @@ double Cost_VAR::eval(int start, int end) const {
 
   // Solve G * B = H
   arma::mat B;
-  bool success = arma::solve(B, G, H);
+
+  bool success = arma::solve(B, G, H, arma::solve_opts::no_approx);
   if (!success) {
-    return 0.0; //If failed return 0
+
+    if(warnOnce_){
+      warning("Some systems seem singular! Consider increasing either `epsilon` or `minSize`!");
+      warnOnce_ = false;
+    }
+
+    if(keepWarning){
+      warning("Some systems seem singular! Consider increasing either `epsilon` or `minSize`!");
+    }
+
+    return 0.0;
+
   }
 
   double trace_Syy = arma::trace(Syy);
@@ -83,7 +99,7 @@ double Cost_VAR::eval(int start, int end) const {
 RCPP_EXPOSED_CLASS(Cost_VAR)
   RCPP_MODULE(Cost_VAR_module) {
     Rcpp::class_<Cost_VAR>("Cost_VAR")
-    .constructor<arma::mat, int>()
+    .constructor<arma::mat, int, bool>()
     .method("eval", &Cost_VAR::eval,
     "Evaluate VAR cost on interval (start, end]")
     ;
