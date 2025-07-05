@@ -91,7 +91,7 @@ double Cost_SIGMA::eval(int start, int end) {
     return lbDet*(end-start);
 
   } else{
-    stop("`covMat` is singular! Consider using `addSmallDiag` option!");
+    stop("`covMat` is singular! Consider using `addSmallDiag` option or increasing `minSize`!");
   }
 
 }
