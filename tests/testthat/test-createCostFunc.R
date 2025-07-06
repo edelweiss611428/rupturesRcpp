@@ -4,15 +4,15 @@ test_that("Test for error", {
   expect_error(createCostFunc("Sydney"), regexp = "not supported")
   expect_error(createCostFunc("SIGMA", addSmallDiag = 1111), regexp = "single boolean")
   expect_error(createCostFunc("SIGMA", addSmallDiag = T, epsilon = T),
-               regexp = "single non-negative")
+               regexp = "single positive")
   expect_error(createCostFunc("SIGMA", addSmallDiag = T, epsilon = -1),
-               regexp = "single non-negative")
+               regexp = "single positive")
   expect_error(createCostFunc("SIGMA", addSmallDiag = c(T,T), epsilon = -1),
                regexp = "single boolean")
-  expect_error(createCostFunc("SIGMA", addSmallDiag = T, epsilon = -1),
-               regexp = "single non-negative")
+  expect_error(createCostFunc("SIGMA", addSmallDiag = T, epsilon = 0),
+               regexp = "single positive")
   expect_error(createCostFunc("SIGMA", addSmallDiag = T, epsilon = c(1,1)),
-               regexp = "single non-negative")
+               regexp = "single positive")
   expect_error(createCostFunc("VAR", pVAR = 0.5),
                regexp = "single positive integer")
 })
