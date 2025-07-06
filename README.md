@@ -2,7 +2,7 @@
 
 ## Description
 
-<p align="justify"> The R package provides an efficient, object-oriented R6 interface for offline change point detection, implemented in C++ for high performance, created as part of the Google Summer of Code 2025 program. </p>
+<p align="justify"> The R package provides an efficient, object-oriented R6 interface for offline change point deêtction, implemented in C++ for high performance. This was created as part of the Google Summer of Code 2025 program. </p>
 
 
 <pre>
