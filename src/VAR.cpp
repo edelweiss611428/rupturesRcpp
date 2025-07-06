@@ -66,14 +66,14 @@ double Cost_VAR::eval(int start, int end) {
   }
 
   //p-step-ahead
-  arma::mat G = csZtZ[end] - csZtZ[start+p];
-  arma::mat H = csZtY[end] - csZtY[start+p];
-  arma::mat Syy = csYtY[end] - csYtY[start+p];
+  arma::mat G = csZtZ[end] - csZtZ[start];
+  arma::mat H = csZtY[end] - csZtY[start];
+  arma::mat Syy = csYtY[end] - csYtY[start];
 
   // Solve G * B = H
   arma::mat B;
 
-  bool success = arma::solve(B, G, H, arma::solve_opts::no_approx);
+  bool success = arma::solve(B, G, H);
   if (!success) {
 
     if(warnOnce_){
