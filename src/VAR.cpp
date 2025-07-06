@@ -3,11 +3,15 @@
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-Cost_VAR::Cost_VAR(const arma::mat& inputMat, const int& pVAR){
+Cost_VAR::Cost_VAR(const arma::mat& inputMat, const int& pVAR,
+                   const bool&warnOnce){
 
-  X = inputMat;
-  nr = X.n_rows;
-  nc = X.n_cols;
+  nr = inputMat.n_rows;
+  nc = inputMat.n_cols;
+  warnOnce_ = warnOnce;
+  bool keepWarning = not warnOnce;
+  (void)keepWarning;
+
   p = pVAR;
   J = 1 + p * nc;
 
@@ -19,53 +23,83 @@ Cost_VAR::Cost_VAR(const arma::mat& inputMat, const int& pVAR){
     stop("Not enough observations to fit VAR(p)");
   }
 
-  Z_full.set_size(nr-p, J);
-  Z_full.col(0).ones();
+  Z.set_size(nr-p, J);
+  Z.col(0).ones();
+
+  //Initialise precomputed matrices
+
+  csZtZ.resize(nr+1, arma::mat(J,J,arma::fill::zeros));
+  csZtY.resize(nr+1, arma::mat(J,nc,arma::fill::zeros));
+  csYtY.resize(nr+1, arma::mat(nc,nc,arma::fill::zeros));
 
   for (int L = 0; L < p; L++) {
-    Z_full.cols(1 + L * nc, (L + 1) * nc) = X.rows(p - L - 1, nr - L - 2);
+    Z.cols(1 + L * nc, (L + 1) * nc) = inputMat.rows(p - L - 1, nr - L - 2);
+  }
+
+
+  //Precomputation
+  arma::rowvec Zi;
+  arma::rowvec Yi;
+
+  for (int i = p; i < nr; i++) {
+    Zi = Z.row(i-p);
+    Yi = inputMat.row(i);
+    csZtZ[i+1] = csZtZ[i] + Zi.t() * Zi;
+    csZtY[i+1] = csZtY[i] + Zi.t() * Yi;
+    csYtY[i+1] = csYtY[i] + Yi.t() * Yi;
   }
 
 }
 
-double Cost_VAR::eval(int start, int end) const {
+double Cost_VAR::eval(int start, int end) {
+
 
   //p-step-ahead
-  if(start > nr-p-1){
-    return 0;
+  if(start > nr-p){
+    return 0.0;
   }
-
-  end = end - 1;
 
   int len = end - start;
-  if(len < J){ // (start, end] must have at least J points (for OLS)
-    return 0; //Return 0
+
+  if(len < J){ // (start, end] must have at least J points
+    return 0.0; //Return 0
   }
 
   //p-step-ahead
-  arma::mat Z_sub = Z_full.rows(start, end-p);
-  arma::mat Y_sub = X.rows(start+p, end); //The longest valid section is y[p:(nr-1)]
+  arma::mat G = csZtZ[end] - csZtZ[start+p];
+  arma::mat H = csZtY[end] - csZtY[start+p];
+  arma::mat Syy = csYtY[end] - csYtY[start+p];
 
-  arma::mat regCoefs;
+  // Solve G * B = H
+  arma::mat B;
 
-  try {
-    // Standard solve()
-    regCoefs = arma::solve(Z_sub, Y_sub);
-  } catch (const std::exception&) {
-    Rcpp::Rcout << "Standard solve failed! Return 0" << std::endl;
-    return 0;
+  bool success = arma::solve(B, G, H, arma::solve_opts::no_approx);
+  if (!success) {
+
+    if(warnOnce_){
+      warning("Some systems seem singular! Consider increasing either `epsilon` or `minSize`!");
+      warnOnce_ = false;
+    }
+
+    if(keepWarning){
+      warning("Some systems seem singular! Consider increasing either `epsilon` or `minSize`!");
+    }
+
+    return 0.0;
+
   }
 
-  arma::mat errMat = Y_sub - Z_sub * regCoefs;
+  double trace_Syy = arma::trace(Syy);
+  double trace_BtH = arma::trace(B.t() * H);
 
-  return arma::accu(arma::square(errMat));
+  return trace_Syy - trace_BtH;
 
 }
 
 RCPP_EXPOSED_CLASS(Cost_VAR)
   RCPP_MODULE(Cost_VAR_module) {
     Rcpp::class_<Cost_VAR>("Cost_VAR")
-    .constructor<arma::mat, int>()
+    .constructor<arma::mat, int, bool>()
     .method("eval", &Cost_VAR::eval,
     "Evaluate VAR cost on interval (start, end]")
     ;

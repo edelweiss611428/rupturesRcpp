@@ -29,11 +29,17 @@ private:
 
 public:
 
+  bool warnOnce_;
+  bool keepWarning;
+  double lbDet; //lower bound for the determinant
+
+
   Cost_SIGMA(const arma::mat& inputMat,
              const bool& addSmallDiag = true,
-             const double& epsilon = 1e-6);
+             const double& epsilon = 1e-6,
+             const bool&warnOnce = true);
 
-  double eval(int start, int end) const;
+  double eval(int start, int end);
 };
 
 

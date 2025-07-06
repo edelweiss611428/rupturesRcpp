@@ -18,7 +18,7 @@
 #'
 #' - `"L2"`: for (independent) piecewise Gaussian process with **constant variance**
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
-#' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant variance**
+#' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
 #'
 #' `binSeg` requires  a `costFunc` object, which can be created via `createCostFunc()`.
 #'
@@ -89,21 +89,30 @@ binSeg = R6Class(
 
   ),
 
-
   active = list(
 
     #' @field minSize Active binding. Sets the internal variable \code{.minSize} but should not be called directly.
     minSize = function(intVal) {
-      if (!is.numeric(intVal) || any(intVal < 1) || length(intVal) != 1) {
-        stop("minSize must be a single positive integer!")
+
+      if(is.null(intVal)){
+        stop("'minSize' must not be NULL!")
+      }
+
+      if (!is.numeric(intVal) | any(intVal < 1) | length(intVal) != 1) {
+        stop("'minSize' must be a single positive integer!")
       }
       private$.minSize = as.integer(intVal)
     },
 
     #' @field jump Active binding. Sets the internal variable \code{.jump} but should not be called directly.
     jump = function(intVal) {
-      if (!is.numeric(intVal) || any(intVal < 1) || length(intVal) != 1) {
-        stop("jump must be a single positive integer!")
+
+      if(is.null(intVal)){
+        stop("'jump' must not be NULL!")
+      }
+
+      if (!is.numeric(intVal) | any(intVal < 1) | length(intVal) != 1) {
+        stop("'jump' must be a single positive integer!")
       }
       private$.jump = as.integer(intVal)
     },
@@ -112,42 +121,68 @@ binSeg = R6Class(
     costFuncObj = function(Obj) {
 
       if (!inherits(Obj, "costFunc") | !is.list(Obj)) {
-        stop("costFuncObj must be a costFunc object! See createCostObj()!")
+        stop("`costFuncObj` must be a `costFunc` object! See createCostObj()!")
       }
 
 
       if (!hasName(Obj, "costFunc")) {
-        stop("Missing `costFunc` field in costFuncObj!")
+        stop("Missing `costFunc` field in `costFuncObj`!")
       }
 
-      if (!is.character(Obj$costFunc) || length(Obj$costFunc) != 1) {
-        stop("Field `costFunc` of costFuncObj must be a single character!")
+      if (!is.character(Obj$costFunc) | length(Obj$costFunc) != 1) {
+        stop("Field `costFunc` of `costFuncObj` must be a single character!")
 
       } else if(Obj$costFunc == "L2"){
         #Do nothing
       } else if(Obj$costFunc == "VAR"){
 
         if (!hasName(Obj, "pVAR")) {
-          stop("Missing `pVAR` field in costFuncObj!")
+          stop("Missing field `pVAR` in `costFuncObj`!")
         } else {
 
-          if (!is.numeric(Obj$pVAR) || length(Obj$pVAR) != 1 || any(Obj$pVAR < 1)) {
-            stop("Field `pVAR` of costFuncObj must be a single positive integer!")
+
+          if(is.null(Obj$pVAR)){
+            stop("Field `pVAR` must not be NULL!")
+          }
+
+          if (!is.numeric(Obj$pVAR) | length(Obj$pVAR) != 1 | any(Obj$pVAR < 1)) {
+            stop("Field `pVAR` of `costFuncObj` must be a single positive integer!")
 
           }
         }
+
       } else if(Obj$costFunc == "SIGMA"){
 
         if (!hasName(Obj, "addSmallDiag")) {
-          stop("Missing `addSmallDiag` field in costFuncObj!")
+          stop("Missing field `addSmallDiag` in `costFuncObj`!")
 
         } else {
 
-          if (!is.numeric(Obj$epsilon) || length(Obj$epsilon) != 1L || any(Obj$epsilon<0)) {
-            stop("Field `epsilon` of costFuncObj must be a single non-negative numeric value!")
+          if(is.null(Obj$addSmallDiag)){
+            stop("Field `addSmallDiag` must not be NULL!")
+          }
+
+          if (!is.logical(Obj$addSmallDiag) | length(Obj$addSmallDiag) != 1L) {
+            stop("Field `addSmallDiag` of 'costFuncObj' must be a single logical value")
 
           }
         }
+
+        if (!hasName(Obj, "epsilon")) {
+          stop("Missing field `epsilon` in `costFuncObj`!")
+
+        } else {
+
+          if(is.null(Obj$epsilon)){
+            stop("Field `epsilon` of 'costFuncObj' must not be NULL!")
+          }
+
+          if (!is.numeric(Obj$epsilon) | length(Obj$epsilon) != 1L | any(Obj$epsilon<=0)) {
+            stop("Field `epsilon` of 'costFuncObj' must be a single positive numeric value!")
+
+          }
+        }
+
       } else {
         stop("Cost function not supported!")
       }
@@ -157,7 +192,7 @@ binSeg = R6Class(
 
     #' @field tsMat Active binding. Sets the internal variable \code{.tsMat} but should not be called directly.
     tsMat = function(numMat) {
-      if (!is.numeric(numMat) || !is.matrix(numMat)) {
+      if (!is.numeric(numMat) | !is.matrix(numMat)) {
         stop("tsMat must be a numeric time series matrix!")
       }
       private$.tsMat = numMat
@@ -273,16 +308,18 @@ binSeg = R6Class(
       private$.cost = detection$cost
       private$.bkps = detection$bkps
 
+      #The boolean value indicates whether or not to output warnings only once.
+
       if(private$.costFuncObj$costFunc == "L2"){
         private$.costModule = new(rupturesRcpp::Cost_L2, tsMat)
 
       } else if(private$.costFuncObj$costFunc == "SIGMA"){
         private$.costModule = new(rupturesRcpp::Cost_SIGMA, tsMat,
-                                  private$.costFuncObj$addSmallDiag, private$.costFuncObj$epsilon)
+                                  private$.costFuncObj$addSmallDiag, private$.costFuncObj$epsilon, FALSE)
 
       } else if(private$.costFuncObj$costFunc == "VAR"){
         private$.costModule = new(rupturesRcpp::Cost_VAR, tsMat,
-                                  private$.costFuncObj$pVAR)
+                                  private$.costFuncObj$pVAR, FALSE)
 
       } else {
         stop("Cost function not supported!")
@@ -304,31 +341,36 @@ binSeg = R6Class(
     #'
     #' - **L2 cost function**:
     #' \deqn{c_{L_2}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)...b} \|_2^2}
-    #' where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If
-    #' `a+1 = b`, return 0.
+    #' where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a \ge b - 1}, return 0.
     #'
     #' - **SIGMA cost function**:
     #' \deqn{c_{\sum}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
     #' the empirical covariance matrix of the segment without Bessel's correction. Here, if `addSmallDiag = TRUE`, a small
-    #' bias `epsilon` is added to the diagonal of estimated covariance matrices to improve numerical stability. If
-    #' \eqn{\hat{\Sigma}} is singular, return 0. If `a+1 = b`, return 0.
+    #' bias `epsilon` is added to the diagonal of estimated covariance matrices to improve numerical stability. \cr
+    #' \cr
+    #' By default, `addSmallDiag = TRUE` and `epsilon = 1e-6`. In case `addSmallDiag = TRUE`, if the computed determinant of covariance matrix is either 0 (singular)
+    #' or smaller than `p*log(epsilon)` - the lower bound, return `(b - a)*p*log(epsilon)`, otherwise, output an error message.
     #'
     #' - **VAR(r) cost function**:
     #' \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
-    #' where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. An approximate linear
-    #' solver will be used when exact `arma::solve()` fails. If no solution found, return 0. If `a-b < p*r+1` (i.e., not enough observations),
-    #' return 0.
+    #' where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
+    #' \eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where `n` is the time series length), return 0.
+    #'
     eval = function(a, b){
 
       if(!private$.fitted){
         stop("$fit() must be run before $eval()!")
       }
 
-      if (!is.numeric(a) || any(a < 0) || length(a) != 1 || any(a > private$.n)) {
+      if(is.null(a) | is.null(b)){
+        stop("`a` and `b` must not be NULL")
+      }
+
+      if (!is.numeric(a) | any(a < 0) | length(a) != 1 | any(a > private$.n)) {
         stop("`0 <= start <= n` must be true!")
       }
 
-      if (!is.numeric(b) || any(b < 0) || length(b) != 1 || any(b>private$.n)) {
+      if (!is.numeric(b) | any(b < 0) | length(b) != 1 | any(b>private$.n)) {
         stop("`0 <= end <= n` must be true!")
       }
 
@@ -359,7 +401,11 @@ binSeg = R6Class(
         stop("$fit() must be run before $predict()!")
       }
 
-      if(!is.numeric(pen) || length(pen)!= 1 ||  any(pen < 0)){
+      if(is.null(pen)){
+        stop("pen must not be NULL!")
+      }
+
+      if(!is.numeric(pen) | length(pen)!= 1 |  any(pen < 0)){
         stop("pen must be a single non-negative numeric value!")
       }
 
@@ -401,7 +447,7 @@ binSeg = R6Class(
         main = paste0("binSeg: ", title_text = paste0("d = (", toString(d), ")"))
 
       } else {
-        if(!is.character(main) || length(main )!= 1L){
+        if(!is.character(main) | length(main )!= 1L){
           stop("main must be a single character!")
         }
       }
@@ -410,7 +456,7 @@ binSeg = R6Class(
         xlab = "Time"
 
       } else {
-        if(!is.character(xlab) || length(xlab)!= 1L){
+        if(!is.character(xlab) | length(xlab)!= 1L){
           stop("xlab must be a single character!")
         }
       }

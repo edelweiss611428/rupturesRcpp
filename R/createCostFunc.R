@@ -72,8 +72,8 @@ createCostFunc = function(costFunc = "L2", ...){
       costFuncObj[["epsilon"]] = 1e-6
 
     }  else{
-      if(!is.numeric(args$epsilon) | length(args$epsilon) != 1L | any(args$epsilon < 0)){
-        stop("`epsilon` must be a single non-negative numeric value (ideally small)!")
+      if(!is.numeric(args$epsilon) | length(args$epsilon) != 1L | any(args$epsilon <= 0)){
+        stop("`epsilon` must be a single positive numeric value (ideally small)!")
 
       }
       costFuncObj[["epsilon"]] = args$epsilon
