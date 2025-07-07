@@ -79,14 +79,14 @@ double Cost_SIGMA::eval(int start, int end) {
   } else if(addSmallDiag_ and epsilon_ > 0.0){
 
     if(warnOnce_){
-      warning("`covMat` is singular! Consider increasing either `epsilon` or `minSize`");
+      Rcpp::warning("`covMat` is singular! Consider increasing either `epsilon` or `minSize`");
+      Rcpp::warning("Return the lower-bound `p*log(epsilon)*segLen`!");
       warnOnce_ = false;
-      warning("Return the lower-bound `p*log(epsilon)*segLen`!");
     }
 
     if(keepWarning){
-      warning("`covMat` is singular! Consider increasing either `epsilon` or `minSize`");
-      warning("Return the lower-bound `p*log(epsilon)*segLen`!");
+      Rcpp::warning("`covMat` is singular! Consider increasing either `epsilon` or `minSize`");
+      Rcpp::warning("Return the lower-bound `p*log(epsilon)*segLen`!");
     }
 
     return lbDet*(end-start);
