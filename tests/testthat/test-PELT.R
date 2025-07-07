@@ -18,7 +18,8 @@ test_that("PELT with L2/SIGMA/VAR works for constant segments", {
   costFuncObj = createCostFunc("VAR")
   PeltObj = PELT$new(costFuncObj = costFuncObj)
   PeltObj$fit(tsMat)
-  expect_equal( PeltObj$predict(pen = 0.1), seq(50,150,50))
-  expect_false(PeltObj$eval(0,51) == 0)
-  expect_true(all.equal(PeltObj$eval(0,50), 0))
+  expect_warning(expect_equal(PeltObj$predict(pen = 0.1), seq(50,150,50)),
+                 "Some systems seem singular!")
+  expect_warning(expect_false(PeltObj$eval(0,51) == 0), "seems singular")
+  expect_warning(expect_true(all.equal(PeltObj$eval(0,50), 0)), "seems singular")
 })

@@ -9,8 +9,8 @@ Cost_VAR::Cost_VAR(const arma::mat& inputMat, const int& pVAR,
   nr = inputMat.n_rows;
   nc = inputMat.n_cols;
   warnOnce_ = warnOnce;
-  bool keepWarning = not warnOnce;
-  (void)keepWarning;
+  keepWarning = not warnOnce;
+
 
   p = pVAR;
   J = 1 + p * nc;
@@ -72,22 +72,23 @@ double Cost_VAR::eval(int start, int end) {
 
   // Solve G * B = H
   arma::mat B;
+  bool success = arma::solve(B, G, H, arma::solve_opts::no_approx + arma::solve_opts::likely_sympd);
 
-  bool success = arma::solve(B, G, H);
-  if (!success) {
+  if(!success){
 
     if(warnOnce_){
-      warning("Some systems seem singular! Consider increasing either `epsilon` or `minSize`!");
+      Rcpp::warning("Some systems seem singular! Switch to approximate the arma::solve solve()!");
       warnOnce_ = false;
     }
 
     if(keepWarning){
-      warning("Some systems seem singular! Consider increasing either `epsilon` or `minSize`!");
+      Rcpp::warning("The system seems singular! Switch to approximate the arma::solve solve()!");
     }
 
-    return 0.0;
-
+    arma::solve(B, G, H, arma::solve_opts::force_approx);
   }
+
+
 
   double trace_Syy = arma::trace(Syy);
   double trace_BtH = arma::trace(B.t() * H);

@@ -60,9 +60,10 @@ double Cost_SIGMA::eval(int start, int end) {
     covMat.diag() += epsilon_;
   }
 
-  logDet = arma::log_det_sympd(covMat);
+  bool success = log_det_sympd(logDet, covMat);
 
-  if (std::isfinite(logDet)) {
+  if (success) {
+
     if(not addSmallDiag_){
       return logDet * (end - start);
 
