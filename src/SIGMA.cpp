@@ -35,6 +35,7 @@ arma::mat covariancePrecomputer::covarianceComputer(int start, int end) const {
   return (segOuter / len) - (mean * mean.t());
 }
 
+
 Cost_SIGMA::Cost_SIGMA(const arma::mat& inputMat,
                        const bool& addSmallDiag, const double& epsilon,
                        const bool&warnOnce)
@@ -46,8 +47,8 @@ Cost_SIGMA::Cost_SIGMA(const arma::mat& inputMat,
   nc = inputMat.n_cols;
   lbDet = nc*log(epsilon);
   warnOnce_ = warnOnce;
-  const bool keepWarning = not warnOnce;
-  (void)keepWarning;
+  keepWarning = not warnOnce;
+
 
 }
 
