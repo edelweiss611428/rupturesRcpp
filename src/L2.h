@@ -19,7 +19,7 @@ public:
 
   Cost_L2(const arma::mat& inputMat);
 
-  double eval(int start, int end);
+  double eval(int start, int end) const override;
 };
 
 

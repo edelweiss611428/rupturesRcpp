@@ -29,7 +29,7 @@ private:
 
 public:
 
-  bool warnOnce_;
+  mutable bool warnOnce_;
   bool keepWarning;
   double lbDet; //lower bound for the determinant
 
@@ -39,7 +39,7 @@ public:
              const double& epsilon = 1e-6,
              const bool&warnOnce = true);
 
-  double eval(int start, int end);
+  double eval(int start, int end) const override;
 };
 
 

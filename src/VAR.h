@@ -20,13 +20,13 @@ private:
 
 public:
 
-  bool warnOnce_;
+  mutable bool warnOnce_;
   bool keepWarning;
 
   Cost_VAR(const arma::mat& inputMat, const int& pVAR = 1,
            const bool&warnOnce = true);
 
-  double eval(int start, int end);
+  double eval(int start, int end) const override;
 };
 
 

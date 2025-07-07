@@ -52,7 +52,7 @@ Cost_SIGMA::Cost_SIGMA(const arma::mat& inputMat,
 
 }
 
-double Cost_SIGMA::eval(int start, int end) {
+double Cost_SIGMA::eval(int start, int end) const {
 
   arma::mat covMat = preComp.covarianceComputer(start, end);
   double logDet = 0.0;

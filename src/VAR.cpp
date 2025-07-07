@@ -51,7 +51,7 @@ Cost_VAR::Cost_VAR(const arma::mat& inputMat, const int& pVAR,
 
 }
 
-double Cost_VAR::eval(int start, int end) {
+double Cost_VAR::eval(int start, int end) const {
 
 
   //p-step-ahead
@@ -97,11 +97,13 @@ double Cost_VAR::eval(int start, int end) {
 
 }
 
+
+
 RCPP_EXPOSED_CLASS(Cost_VAR)
+
   RCPP_MODULE(Cost_VAR_module) {
     Rcpp::class_<Cost_VAR>("Cost_VAR")
     .constructor<arma::mat, int, bool>()
     .method("eval", &Cost_VAR::eval,
-    "Evaluate VAR cost on interval (start, end]")
-    ;
+    "Evaluate VAR cost on interval (start, end]");
   }
