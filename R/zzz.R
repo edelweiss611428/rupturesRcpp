@@ -1,48 +1,27 @@
-#' @title Cost_L2 module
-#' @description Load Rcpp module for Cost_L2
-#' @importFrom Rcpp loadModule
-#' @import methods
-#' @details
-#' **L2 cost function**:
-#' \deqn{c_{L_2}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)...b} \|_2^2}
-#' where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a \ge b - 1}, return 0.
-#'
-#' @export
-#' @name Cost_L2
-loadModule("Cost_L2_module", TRUE)
+#' @importFrom methods loadMethod
+NULL
 
-#' @title Cost_VAR module
-#' @description Load Rcpp module for Cost_VAR
-#' @importFrom Rcpp loadModule
-#' @import methods
-#' @details
-#' **VAR cost function**:
-#' \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
-#' where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
-#' \eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where `n` is the time series length), return 0.
-#'
-#' @export
-#' @name Cost_VAR
-loadModule("Cost_VAR_module", TRUE)
+.onLoad <- function(libname, pkgname) {
 
-#' @title Cost_SIGMA module
-#' @description Load Rcpp module for Cost_SIGMA
-#' @importFrom Rcpp loadModule
-#' @import methods
-#' @details
-#' **SIGMA cost function**:
-#' \deqn{c_{\sum}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
-#' the empirical covariance matrix of the segment without Bessel's correction. Here, if `addSmallDiag = TRUE`, a small
-#' bias `epsilon` is added to the diagonal of estimated covariance matrices to improve numerical stability.
-#'
-#' By default, `addSmallDiag = TRUE` and `epsilon = 1e-6`. In case `addSmallDiag = TRUE`, if the computed determinant of covariance matrix is either 0 (singular)
-#' or smaller than `p*log(epsilon)` - the lower bound, return `(b - a)*p*log(epsilon)`, otherwise, output an error message.
-#'
-#' @export
-#' @name Cost_SIGMA
-loadModule("Cost_SIGMA_module", TRUE)
+  #Cost modules
+  Rcpp::loadModule("Cost_L2_module", TRUE)
+  Rcpp::loadModule("Cost_VAR_module", TRUE)
+  Rcpp::loadModule("Cost_SIGMA_module", TRUE)
+
+  #Pelt
+  Rcpp::loadModule("PELTCpp_L2_module", TRUE)
+  Rcpp::loadModule("PELTCpp_VAR_module", TRUE)
+  Rcpp::loadModule("PELTCpp_SIGMA_module", TRUE)
+
+  #binSeg
+  Rcpp::loadModule("binSegCpp_L2_module", TRUE)
+  Rcpp::loadModule("binSegCpp_VAR_module", TRUE)
+  Rcpp::loadModule("binSegCpp_SIGMA_module", TRUE)
+
+}
 
 .onAttach <- function(libname, pkgname) {
+
   packageStartupMessage(r"(
 
 +--------------------------------------------------------------------+

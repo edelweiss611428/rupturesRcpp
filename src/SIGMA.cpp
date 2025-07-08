@@ -1,7 +1,11 @@
 #include "SIGMA.h"
 
-
 // [[Rcpp::depends(RcppArmadillo)]]
+
+
+// ========================================================
+//           Utility: covariancePrecomputer class
+// ========================================================
 
 // covariancePrecomputer constructor
 covariancePrecomputer::covariancePrecomputer(const arma::mat& X) {
@@ -35,10 +39,12 @@ arma::mat covariancePrecomputer::covarianceComputer(int start, int end) const {
   return (segOuter / len) - (mean * mean.t());
 }
 
+// ========================================================
+//                    Cost_SIGMA class
+// ========================================================
 
 Cost_SIGMA::Cost_SIGMA(const arma::mat& inputMat,
-                       const bool& addSmallDiag, const double& epsilon,
-                       const bool&warnOnce)
+                       bool addSmallDiag, double epsilon, bool warnOnce)
 
   : preComp(inputMat) {
   addSmallDiag_ = addSmallDiag;
@@ -98,11 +104,20 @@ double Cost_SIGMA::eval(int start, int end) const {
 
 }
 
+void Cost_SIGMA::resetWarning(bool reset){
+
+  warnOnce_ = reset;
+  keepWarning = not reset;
+
+}
+
+
 RCPP_EXPOSED_CLASS(Cost_SIGMA)
   RCPP_MODULE(Cost_SIGMA_module) {
     Rcpp::class_<Cost_SIGMA>("Cost_SIGMA")
     .constructor<arma::mat, bool, double, bool>()
     .method("eval", &Cost_SIGMA::eval,
     "Evaluate SIGMA cost on interval (start, end]")
-    ;
+    .method("resetWarning", &Cost_SIGMA::resetWarning,
+    "Set the status of warnOnce_");
   }

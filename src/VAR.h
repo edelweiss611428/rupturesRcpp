@@ -7,6 +7,11 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
+
+// ========================================================
+//                      Cost_VAR class
+// ========================================================
+
 class Cost_VAR : public CostBase {
 
 private:
@@ -23,10 +28,10 @@ public:
   mutable bool warnOnce_;
   bool keepWarning;
 
-  Cost_VAR(const arma::mat& inputMat, const int& pVAR = 1,
-           const bool&warnOnce = true);
+  Cost_VAR(const arma::mat& inputMat, int pVAR = 1, bool warnOnce = true);
 
   double eval(int start, int end) const override;
+  void resetWarning(bool reset) override;
 };
 
 
