@@ -104,17 +104,17 @@ binSegObj$plot(d = 1:2,
 
 #### Active bindings
 
-An implicit way to change the fields of `binSeg` is through its active bindings. These can be used to extract important fields of a `binSeg` object, but can also be used to modify the object.
+An implicit way to modify the fields of a binSeg object is through its active bindings, which can be used not only to extract key fields but also to update them.
 
 The `R6` class `binSeg` has 4 active bindings, namely `minSize`, `jump`, `costFunc` and `tsMat`. We can modify an existing `binSeg` object by assigning new values to its active bindings. To demonstrate this, we
-consider a new piecewise vector autoregressive example with constant noise variance.
+consider a piecewise vector autoregressive example with constant noise variance.
 
 ```r
 set.seed(1)
 tsMat = matrix(c(filter(rnorm(100), filter = 0.9, method = "recursive"), 
                  filter(rnorm(100), filter = -0.9, method = "recursive")))
 ```
-![image](https://github.com/user-attachments/assets/85d1658d-4b23-4389-a42d-161012ff3c0f)
+![image](https://github.com/user-attachments/assets/de7a44ef-bc21-4348-b77d-3c05f1ff9c0a)
 
 Here, the most suitable cost function is `"VAR"`. Instead of creating a new `binSeg` object, we will modify the current `binSegObj` as follows: 
 
@@ -147,7 +147,7 @@ binSegObj$predict(pen = 25)
 binSegObj$plot(d = 1L, 
                main = "method: binSeg; costFunc: VAR; pen: 25")
 ```
-![image](https://github.com/user-attachments/assets/6b4740e2-20ad-43df-ab87-9d0899a38d3b)
+![image](https://github.com/user-attachments/assets/37e45eaa-43f0-492b-ba2f-2b3a7ab6c72a)
 
 
 ## Future development
