@@ -34,11 +34,11 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \describe{
 \item{\code{costFunc}}{Active binding. Sets the internal variable \code{.costFunc} but should not be called directly.}
 
-\item{\code{pVAR}}{Active binding. Sets the internal variable \code{params$.pVAR} but should not be called directly.}
+\item{\code{pVAR}}{Integer. Vector autoregressive order. Can be accessed or modified via \verb{$pVAR}.}
 
-\item{\code{addSmallDiag}}{Active binding. Sets the internal variable \code{params$.addSmallDiag} but should not be called directly.}
+\item{\code{addSmallDiag}}{Logical. Whether to add a bias value to the diagonal of estimated covariance matrices to stabilise matrix operations. Can be accessed or modified via \verb{$addSmallDiag}.}
 
-\item{\code{epsilon}}{Active binding. Sets the internal variable \code{params$.epsilon} but should not be called directly.}
+\item{\code{epsilon}}{Double. A bias value added to the diagonal of estimated covariance matrices to stabilise matrix operations. Can be accessed or modified via \verb{$epsilon}.}
 }
 \if{html}{\out{</div>}}
 }
