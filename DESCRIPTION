@@ -1,6 +1,6 @@
 Package: rupturesRcpp
 Type: Package
-Title: A Semi-Modular Object-Oriented Interface for Change-point Detection 
+Title: A Semi-Modular Object-Oriented Interface for Change-Point Detection 
 Version: 0.1.0
 Authors@R: 
     person("Minh Long", "Nguyen", , "edelweiss611428@gmail.com", role = c("aut", "cre"))
