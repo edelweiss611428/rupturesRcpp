@@ -45,17 +45,18 @@ To perform change point detection, our package requires three "ingredients": **c
 
 #### Cost function
 
-A `R6` object of class `costFunc` can be obtained via `costFunc$new()`. Since our example involves regimes with varying variance, a suitable `costFunc` option is `"SIGMA"`. Supported methods include `"L2"`, `"VAR"`, and `"SIGMA"`.
+An `R6` object of class `costFunc` can be obtained via `costFunc$new()`. As our example involves regimes with varying variance, a suitable `costFunc` option is `"SIGMA"`. Supported methods include `"L2"`, `"VAR"`, and `"SIGMA"`.
 
 ```r
 library("rupturesRcpp")
 SIGMAObj = costFunc$new("SIGMA")
 ```
-Each cost function may have some optional parameters (see `?costFunc` for more details). For `"SIGMA"`, `addSmallDiag` and `epsilon` are required. If not specified, the default options will be used.
+Each cost function may have some optional parameters (see `?costFunc` for more details). For `"SIGMA"`, we need to specify `addSmallDiag` and `epsilon`. Here, if `addSmallDiag = TRUE`, a small `epsilon` is added to the diagonal of estimated covariance matrices, which 
+stabilises matrix operations. If any are not specified, the default options will be used.
 
 #### Segmentation method
 
-Our package currently implements two R6 classes for offline change point detection, namely `binSeg` for binary segmentation and `PELT` pruned exact linear time. Their interfaces are similar. Thus, it is sufficient to demonstrate only the usage of `binSeg`.
+Our package currently implements two R6 classes for offline change point detection, namely `binSeg` for binary segmentation and `PELT` for pruned exact linear time. Their interfaces are similar. Thus, it is sufficient to demonstrate the usage of only `binSeg`.
 
 A `binSeg` object can be initialised as follows:
 
