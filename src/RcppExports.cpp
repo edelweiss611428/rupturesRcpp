@@ -11,60 +11,27 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// PELTCpp
-std::vector<int> PELTCpp(const arma::mat& tsMat, const double penalty, const int minSize, const int jump, const Rcpp::List& costFuncObj);
-RcppExport SEXP _rupturesRcpp_PELTCpp(SEXP tsMatSEXP, SEXP penaltySEXP, SEXP minSizeSEXP, SEXP jumpSEXP, SEXP costFuncObjSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type tsMat(tsMatSEXP);
-    Rcpp::traits::input_parameter< const double >::type penalty(penaltySEXP);
-    Rcpp::traits::input_parameter< const int >::type minSize(minSizeSEXP);
-    Rcpp::traits::input_parameter< const int >::type jump(jumpSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type costFuncObj(costFuncObjSEXP);
-    rcpp_result_gen = Rcpp::wrap(PELTCpp(tsMat, penalty, minSize, jump, costFuncObj));
-    return rcpp_result_gen;
-END_RCPP
-}
-// binSegCpp
-List binSegCpp(const arma::mat& tsMat, const int& minSize, const int& jump, const Rcpp::List& costFuncObj);
-RcppExport SEXP _rupturesRcpp_binSegCpp(SEXP tsMatSEXP, SEXP minSizeSEXP, SEXP jumpSEXP, SEXP costFuncObjSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type tsMat(tsMatSEXP);
-    Rcpp::traits::input_parameter< const int& >::type minSize(minSizeSEXP);
-    Rcpp::traits::input_parameter< const int& >::type jump(jumpSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type costFuncObj(costFuncObjSEXP);
-    rcpp_result_gen = Rcpp::wrap(binSegCpp(tsMat, minSize, jump, costFuncObj));
-    return rcpp_result_gen;
-END_RCPP
-}
-// binSegPredCpp
-IntegerVector binSegPredCpp(const IntegerVector& bkps, const NumericVector& cost, const double& penalty);
-RcppExport SEXP _rupturesRcpp_binSegPredCpp(SEXP bkpsSEXP, SEXP costSEXP, SEXP penaltySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerVector& >::type bkps(bkpsSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type cost(costSEXP);
-    Rcpp::traits::input_parameter< const double& >::type penalty(penaltySEXP);
-    rcpp_result_gen = Rcpp::wrap(binSegPredCpp(bkps, cost, penalty));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 RcppExport SEXP _rcpp_module_boot_Cost_L2_module();
 RcppExport SEXP _rcpp_module_boot_Cost_SIGMA_module();
 RcppExport SEXP _rcpp_module_boot_Cost_VAR_module();
+RcppExport SEXP _rcpp_module_boot_binSegCpp_VAR_module();
+RcppExport SEXP _rcpp_module_boot_binSegCpp_L2_module();
+RcppExport SEXP _rcpp_module_boot_binSegCpp_SIGMA_module();
+RcppExport SEXP _rcpp_module_boot_PELTCpp_VAR_module();
+RcppExport SEXP _rcpp_module_boot_PELTCpp_L2_module();
+RcppExport SEXP _rcpp_module_boot_PELTCpp_SIGMA_module();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rupturesRcpp_PELTCpp", (DL_FUNC) &_rupturesRcpp_PELTCpp, 5},
-    {"_rupturesRcpp_binSegCpp", (DL_FUNC) &_rupturesRcpp_binSegCpp, 4},
-    {"_rupturesRcpp_binSegPredCpp", (DL_FUNC) &_rupturesRcpp_binSegPredCpp, 3},
     {"_rcpp_module_boot_Cost_L2_module", (DL_FUNC) &_rcpp_module_boot_Cost_L2_module, 0},
     {"_rcpp_module_boot_Cost_SIGMA_module", (DL_FUNC) &_rcpp_module_boot_Cost_SIGMA_module, 0},
     {"_rcpp_module_boot_Cost_VAR_module", (DL_FUNC) &_rcpp_module_boot_Cost_VAR_module, 0},
+    {"_rcpp_module_boot_binSegCpp_VAR_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_VAR_module, 0},
+    {"_rcpp_module_boot_binSegCpp_L2_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_L2_module, 0},
+    {"_rcpp_module_boot_binSegCpp_SIGMA_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_SIGMA_module, 0},
+    {"_rcpp_module_boot_PELTCpp_VAR_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_VAR_module, 0},
+    {"_rcpp_module_boot_PELTCpp_L2_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_L2_module, 0},
+    {"_rcpp_module_boot_PELTCpp_SIGMA_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_SIGMA_module, 0},
     {NULL, NULL, 0}
 };
 
