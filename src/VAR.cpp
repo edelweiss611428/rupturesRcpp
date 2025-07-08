@@ -3,8 +3,11 @@
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-Cost_VAR::Cost_VAR(const arma::mat& inputMat, const int& pVAR,
-                   const bool&warnOnce){
+// ========================================================
+//                      Cost_VAR class
+// ========================================================
+
+Cost_VAR::Cost_VAR(const arma::mat& inputMat, int pVAR, bool warnOnce){
 
   nr = inputMat.n_rows;
   nc = inputMat.n_cols;
@@ -97,6 +100,13 @@ double Cost_VAR::eval(int start, int end) const {
 
 }
 
+void Cost_VAR::resetWarning(bool reset){
+
+  warnOnce_ = reset;
+  keepWarning = not reset;
+
+}
+
 
 
 RCPP_EXPOSED_CLASS(Cost_VAR)
@@ -105,5 +115,7 @@ RCPP_EXPOSED_CLASS(Cost_VAR)
     Rcpp::class_<Cost_VAR>("Cost_VAR")
     .constructor<arma::mat, int, bool>()
     .method("eval", &Cost_VAR::eval,
-    "Evaluate VAR cost on interval (start, end]");
+    "Evaluate VAR cost on interval (start, end]")
+    .method("resetWarning", &Cost_VAR::resetWarning,
+    "Set the status of warnOnce_");
   }

@@ -7,6 +7,11 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
+
+// ========================================================
+//           Utility: covariancePrecomputer class
+// ========================================================
+
 struct covariancePrecomputer {
   arma::mat S_k;                  // cumsum of data by row
   std::vector<arma::mat> Q_k;     // cumsum of outer products
@@ -18,6 +23,10 @@ struct covariancePrecomputer {
 
   arma::mat covarianceComputer(int start, int end) const;
 };
+
+// ========================================================
+//                    Cost_SIGMA class
+// ========================================================
 
 class Cost_SIGMA : public CostBase {
 
@@ -35,11 +44,10 @@ public:
 
 
   Cost_SIGMA(const arma::mat& inputMat,
-             const bool& addSmallDiag = true,
-             const double& epsilon = 1e-6,
-             const bool&warnOnce = true);
+             bool addSmallDiag = true, double epsilon = 1e-6, bool warnOnce = true);
 
   double eval(int start, int end) const override;
+  void resetWarning(bool reset) override;
 };
 
 

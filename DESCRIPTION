@@ -1,10 +1,10 @@
 Package: rupturesRcpp
 Type: Package
-Title: An Object-Oriented R Package for Change Point Detection via Modern C++
+Title: A Semi-Modular Object-Oriented Interface for Change-point Detection 
 Version: 0.1.0
 Authors@R: 
     person("Minh Long", "Nguyen", , "edelweiss611428@gmail.com", role = c("aut", "cre"))
-Description: A collection of efficient implementations of classical and modern algorithms for change point detection, featuring consistent interfaces for practical use and comparative analysis.
+Description: A collection of efficient implementations of classical and modern change-point detection algorithm, featuring a consistent, object-oriented interface for practical use and comparative analysis.
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
@@ -22,9 +22,8 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Collate: 
-    'createCostFunc.R'
+    'costFuncR6.R'
     'PeltR6.R'
-    'RcppExports.R'
     'binSegR6.R'
     'rupturesRcpp-package.R'
     'zzz.R'

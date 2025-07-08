@@ -15,7 +15,7 @@ set.seed(1)
 tsMat = cbind(c(rnorm(10,0), rnorm(10,5,5)))
 
 nr = nrow(tsMat)
-tsMat_L2module = new(rupturesRcpp::Cost_L2, tsMat)
+tsMat_L2module = new(rupturesRcpp:::Cost_L2, tsMat)
 
 binSegObj = binSeg$new() #L2 by default
 binSegObj$fit(tsMat)
@@ -33,9 +33,11 @@ test_that("Expect equal", {
       expect_equal(PELTObj$eval(i,j), gs)
     }
   }
+
 })
 
 test_that("Expect error", {
+
   expect_error(tsMat_L2module$eval(0,nr+1),
                regexp = "out of bounds")
   expect_error(tsMat_L2module$eval(-1,nr),
@@ -44,11 +46,14 @@ test_that("Expect error", {
                regexp = "smaller") #error if start >= end
   expect_error(PELTObj$eval(0,0),
                regexp = "smaller")
+
 })
 
 
 
 test_that("Cpp L2 module gives 0 if start>=end+1", {
+
   expect_equal(tsMat_L2module$eval(0,0), 0)
   expect_equal(tsMat_L2module$eval(0,1), 0)
+
 })

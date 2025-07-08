@@ -5,11 +5,12 @@
 \alias{PELT}
 \title{Pruned Exact Linear Time (PELT)}
 \description{
-An R6 class implementing the PELT algorithm for offline change point detection.
+An \code{R6} class implementing the PELT algorithm for offline change-point detection.
 }
 \details{
 PELT (Pruned Exact Linear Time) is an efficient algorithm for change point detection
-that prunes the search space to achieve optimal segmentation in linear time under certain conditions.
+that prunes the search space to achieve optimal segmentation in linear time under
+certain conditions.
 
 Currently supports the following cost functions:
 \itemize{
@@ -18,7 +19,7 @@ Currently supports the following cost functions:
 \item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant noise variance}
 }
 
-\code{PELT} requires  a \code{costFunc} object, which can be created via \code{createCostFunc()}.
+\code{PELT} requires  a \code{R6} object of class \code{costFunc}, which can be created via \code{costFunc$new()}.
 
 Basic usage: \url{https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md}
 
@@ -29,33 +30,14 @@ See \verb{$eval()} method for more details on computation of cost.
 \describe{
 \item{\code{$new()}}{Initialises a \code{PELT} object.}
 \item{\code{$describe()}}{Describes the \code{PELT} object.}
-\item{\code{$fit()}}{Takes a time series matrix as input.}
-\item{\code{$predict()}}{Performs PELT given a linear penalty value.}
-\item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-\item{\code{$clone()}}{Clones the \code{PELT} object.}
+\item{\code{$fit()}}{Constructs a \code{PELT} module in \verb{C++}.}
+\item{\code{$eval()}}{Evaluate the cost of a segment.}
+\item{\code{$predict()}}{Performs \code{PELT} given a linear penalty value.}
+\item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
+\item{\code{$clone()}}{Clones the \code{R6} object.}
 }
 }
 
-\examples{
-
-# 2-regime simulated data example
-set.seed(1)
-tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
-              c(rnorm(100,0), rnorm(100,5,5)))
-# Create a `"SIGMA` cost object.
-SIGMAObj = createCostFunc(costFunc = "SIGMA")
-# Initialise a `PELT` object
-PELTObj = PELT$new(minSize = 1L, jump = 1L, costFuncObj = SIGMAObj)
-# Input the time series matrix
-PELTObj$fit(tsMat)
-# Describe the `PELT` object
-PELTObj$describe()
-# Perform PELT with `pen = 100`
-PELTObj$predict(pen = 100)
-# Plot the segmentation results
-PELTObj$plot(d = 1:2, main = "method: PELT; costFunc: SIGMA; pen: 100")
-
-}
 \references{
 Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
 Signal Processing, 167, 107299.
@@ -69,13 +51,14 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{minSize}}{Active binding. Sets the internal variable \code{.minSize} but should not be called directly.}
+\item{\code{minSize}}{Integer. Minimum allowed segment length. Can be accessed or modified via \verb{$minSize}.}
 
-\item{\code{jump}}{Active binding. Sets the internal variable \code{.jump} but should not be called directly.}
+\item{\code{jump}}{Integer. Search grid step size. Can be accessed or modified via \verb{$jump}.}
 
-\item{\code{costFuncObj}}{Active binding. Sets the internal variable \code{.costFuncObj} but should not be called directly.}
+\item{\code{costFunc}}{\code{R6} object of class \code{costFunc}. Search grid step size. Can be accessed or modified via \verb{$costFunc}.}
 
-\item{\code{tsMat}}{Active binding. Sets the internal variable \code{.tsMat} but should not be called directly.}
+\item{\code{tsMat}}{Numeric matrix. Input time series matrix of size \eqn{n \times p}. Can be accessed or modified via \verb{$tsMat}.
+Modifying \code{tsMat} will automatically trigger \verb{$fit()}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -97,7 +80,7 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \subsection{Method \code{new()}}{
 Initialises a \code{PELT} object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PELT$new(minSize, jump, costFuncObj)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PELT$new(minSize, jump, costFunc)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -107,10 +90,13 @@ Initialises a \code{PELT} object.
 
 \item{\code{jump}}{Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: \code{1L}.}
 
-\item{\code{costFuncObj}}{List of class \code{costFunc}. Should be created via \code{createFuncObj()} to avoid unintended error.
-Default, \code{createFuncObj("L2")}.}
+\item{\code{costFunc}}{A \code{R6} object of class \code{costFunc}. Should be created via \code{costFunc$new()} to avoid error.
+Default: \code{costFunc$new("L2")}.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Invisibly returns \code{NULL}.
 }
 }
 \if{html}{\out{<hr>}}
@@ -119,17 +105,25 @@ Default, \code{createFuncObj("L2")}.}
 \subsection{Method \code{describe()}}{
 Describes a \code{PELT} object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PELT$describe()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PELT$describe(printConfig = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{printConfig}}{Logical. Whether to print object configurations. Default: \code{FALSE}.}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
-Invisibly returns a list containing some of the following fields:
+Invisibly returns a list storing at least the following fields:
+
 \describe{
 \item{\code{minSize}}{Minimum allowed segment length.}
 \item{\code{jump}}{Search grid step size.}
-\item{\code{costFuncObj}}{The \code{costFunc} object.}
+\item{\code{costFunc}}{The \code{costFun} object.}
 \item{\code{fitted}}{Whether or not \verb{$fit()} has been run.}
-\item{\code{tsMat}}{Input time series matrix.}
+\item{\code{tsMat}}{Time series matrix.}
 \item{\code{n}}{Number of observations.}
 \item{\code{p}}{Number of features.}
 }
@@ -139,15 +133,16 @@ Invisibly returns a list containing some of the following fields:
 \if{html}{\out{<a id="method-PELT-fit"></a>}}
 \if{latex}{\out{\hypertarget{method-PELT-fit}{}}}
 \subsection{Method \code{fit()}}{
-Takes a time series matrix as input.
+Constructs a \code{PELT} module in \verb{C++}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PELT$fit(tsMat)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PELT$fit(tsMat = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{tsMat}}{Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.}
+\item{\code{tsMat}}{Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
+Default: \code{NULL}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -155,9 +150,7 @@ Takes a time series matrix as input.
 This method does the following:
 \itemize{
 \item Initialises \code{private$.tsMat}, \code{private$.n}, and \code{private$.p}.
-\item Sets \code{private$.fitted} to \code{TRUE}, enabling the use of \verb{$predict()} and \verb{$eval()}.
-\item Initialises a cost module corresponding to \code{tsMat} and the \code{costFunc}
-object, enabling the use of \verb{$eval()}.
+\item Constructs a \code{PELT} module in \verb{C++} and sets \code{private$.fitted} to \code{TRUE}, enabling the use of \verb{$predict()} and \verb{$eval()}.
 }
 }
 
@@ -204,14 +197,14 @@ where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via 
 }
 
 \subsection{Returns}{
-The segment cost
+The segment cost.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PELT-predict"></a>}}
 \if{latex}{\out{\hypertarget{method-PELT-predict}{}}}
 \subsection{Method \code{predict()}}{
-Performs PELT given a linear penalty value.
+Performs \code{PELT} given a linear penalty value.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PELT$predict(pen = 0)}\if{html}{\out{</div>}}
 }
@@ -219,26 +212,26 @@ Performs PELT given a linear penalty value.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{pen}}{Numeric. Penalty per change point. Default: \code{0}.}
+\item{\code{pen}}{Numeric. Penalty per change-point. Default: \code{0}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Performs PELT given a linear penalty value. Temporary end points are saved
+Performs \code{PELT} given a linear penalty value. Temporary end points are saved
 to \code{private$.tmpEndPoints}, allowing users to use \verb{$plot()} without specifying
 end points.
 }
 
 \subsection{Returns}{
-An integer vector of regime end points. By design, the last element is the
-number of observations.
+An integer vector of regime end-points. By design, the last element is the
+number of observations \code{private$.n}.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PELT-plot"></a>}}
 \if{latex}{\out{\hypertarget{method-PELT-plot}{}}}
 \subsection{Method \code{plot()}}{
-Plots change point segmentation
+Plots change-point segmentation
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PELT$plot(
   d = 1L,
@@ -259,7 +252,7 @@ Plots change point segmentation
 \describe{
 \item{\code{d}}{Integer vector. Dimensions to plot. Default: \code{1L}.}
 
-\item{\code{endPts}}{Integer vector. End points; defaults to latest temporary changepoints from \verb{$predict()}.}
+\item{\code{endPts}}{Integer vector. End points. Default: latest temporary changepoints obtained via \verb{$predict()}.}
 
 \item{\code{dimNames}}{Character vector. Feature names matching length of \code{d}. Defaults to \verb{"X1", "X2", ...}.}
 
@@ -280,7 +273,7 @@ Plots change point segmentation
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Plots change point segmentation results. Based on \code{ggplot2}. Multiple plots can easily be
+Plots change-point segmentation results. Based on \code{ggplot2}. Multiple plots can easily be
 horizontally and vertically stacked using \code{patchwork}'s operators \code{/} and \code{|}, respectively.
 }
 

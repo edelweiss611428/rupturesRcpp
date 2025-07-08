@@ -7,7 +7,15 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
+// ========================================================
+//                   Utility: getCumSumCpp
+// ========================================================
+
 arma::mat getCumSumCpp(const arma::mat& X);
+
+// ========================================================
+//                       Cost_L2 class
+// ========================================================
 
 class Cost_L2 : public CostBase {
 
@@ -17,9 +25,13 @@ private:
 
 public:
 
-  Cost_L2(const arma::mat& inputMat);
+  mutable bool warnOnce_;
+  bool keepWarning;
 
+  Cost_L2(const arma::mat& inputMat, bool warnOnce = true);
   double eval(int start, int end) const override;
+  void resetWarning(bool reset) override;
+
 };
 
 
