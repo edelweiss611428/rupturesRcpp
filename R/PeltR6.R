@@ -135,6 +135,10 @@ PELT = R6Class(
         stop("`tsMat` must be a numeric time series matrix!")
       }
 
+      if(any(is.na(numMat))){
+        stop("`tsMat` contains NAs!")
+      }
+
       private$.tsMat = numMat
       private$.n = nrow(numMat)
       private$.p = ncol(numMat)
@@ -273,6 +277,10 @@ PELT = R6Class(
 
         if (!is.numeric(tsMat) | !is.matrix(tsMat)) {
           stop("`tsMat` must be a numeric time series matrix!")
+        }
+
+        if(any(is.na(tsMat))){
+          stop("`tsMat` contains NAs!")
         }
 
         private$.tsMat = tsMat
