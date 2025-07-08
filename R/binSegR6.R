@@ -232,7 +232,7 @@ binSeg = R6Class(
 
         if(printConfig){
 
-          cat(sprintf("pVAR         : %s\n", private$.costFunc$pass()[["pVAR"]]))
+          cat(sprintf("pVAR         : %sL\n", private$.costFunc$pass()[["pVAR"]]))
 
         }
 
