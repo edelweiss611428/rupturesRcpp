@@ -54,7 +54,7 @@ costFunc <- R6::R6Class(
       private$.costFunc = charVal
     },
 
-    #' @field pVAR Active binding. Sets the internal variable \code{params$.pVAR} but should not be called directly.
+    #' @field pVAR Integer. Vector autoregressive order. Can be accessed or modified via `$pVAR`.
     pVAR = function(intVal) {
 
       if (missing(intVal)) {
@@ -69,7 +69,7 @@ costFunc <- R6::R6Class(
 
     },
 
-    #' @field addSmallDiag Active binding. Sets the internal variable \code{params$.addSmallDiag} but should not be called directly.
+    #' @field addSmallDiag Logical. Whether to add a bias value to the diagonal of estimated covariance matrices to stabilise matrix operations. Can be accessed or modified via `$addSmallDiag`.
     addSmallDiag = function(boolVal) {
 
       if (missing(boolVal)) {
@@ -84,7 +84,7 @@ costFunc <- R6::R6Class(
 
     },
 
-    #' @field epsilon Active binding. Sets the internal variable \code{params$.epsilon} but should not be called directly.
+    #' @field epsilon Double. A bias value added to the diagonal of estimated covariance matrices to stabilise matrix operations. Can be accessed or modified via `$epsilon`.
     epsilon = function(doubleVal) {
 
       if (missing(doubleVal)) {
