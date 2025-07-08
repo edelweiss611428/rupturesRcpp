@@ -114,7 +114,7 @@ set.seed(1)
 tsMat = matrix(c(filter(rnorm(100), filter = 0.9, method = "recursive"), 
                  filter(rnorm(100), filter = -0.9, method = "recursive")))
 ```
-![image](https://github.com/user-attachments/assets/85d1658d-4b23-4389-a42d-161012ff3c0f)
+![image](https://github.com/user-attachments/assets/de7a44ef-bc21-4348-b77d-3c05f1ff9c0a)
 
 Here, the most suitable cost function is `"VAR"`. Instead of creating a new `binSeg` object, we will modify the current `binSegObj` as follows: 
 
@@ -147,7 +147,7 @@ binSegObj$predict(pen = 25)
 binSegObj$plot(d = 1L, 
                main = "method: binSeg; costFunc: VAR; pen: 25")
 ```
-![image](https://github.com/user-attachments/assets/6b4740e2-20ad-43df-ab87-9d0899a38d3b)
+![image](https://github.com/user-attachments/assets/37e45eaa-43f0-492b-ba2f-2b3a7ab6c72a)
 
 
 ## Future development
