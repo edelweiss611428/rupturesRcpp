@@ -104,10 +104,10 @@ binSegObj$plot(d = 1:2,
 
 #### Active bindings
 
-An implicit way to change the fields of `binSeg` is through its active bindings. These can be used to extract important fields of a `binSeg` object, but can also be used to modify the object.
+An implicit way to modify the fields of a binSeg object is through its active bindings, which can be used not only to extract key fields but also to update them.
 
 The `R6` class `binSeg` has 4 active bindings, namely `minSize`, `jump`, `costFunc` and `tsMat`. We can modify an existing `binSeg` object by assigning new values to its active bindings. To demonstrate this, we
-consider a new piecewise vector autoregressive example with constant noise variance.
+consider a piecewise vector autoregressive example with constant noise variance.
 
 ```r
 set.seed(1)
