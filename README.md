@@ -51,8 +51,8 @@ An `R6` object of class `costFunc` can be obtained via `costFunc$new()`. As our 
 library("rupturesRcpp")
 SIGMAObj = costFunc$new("SIGMA")
 ```
-Each cost function may have some optional parameters (see `?costFunc` for more details). For `"SIGMA"`, we need to specify `addSmallDiag` and `epsilon`. Here, if `addSmallDiag = TRUE`, a small `epsilon` is added to the diagonal of estimated covariance matrices, which 
-stabilises matrix operations. If any are not specified, the default options will be used.
+Each cost function may have some additional parameters (see `?costFunc` for more details). For `"SIGMA"`, we need to specify `addSmallDiag` and `epsilon`. Here, if `addSmallDiag = TRUE`, a small `epsilon` is added to the diagonal of estimated covariance matrices, which 
+stabilises matrix operations. If not specified, the default options will be used.
 
 #### Segmentation method
 
