@@ -1,17 +1,17 @@
 #' Binary Segmentation (binSeg)
 #'
-#' @description An R6 class implementing binary segmentation for offline change point detection.
+#' @description An `R6` class implementing binary segmentation for offline change-point detection.
 #'
-#' @include createCostFunc.R
+#' @include costFuncR6.R
 #' @docType class
-#' @importFrom R6 R6Class
+#' @importFrom R6 R6Class is.R6
 #' @importFrom ggplot2 aes ggplot geom_rect geom_line scale_fill_identity theme_minimal theme geom_vline labs element_blank element_text facet_wrap
 #' @import patchwork
 #' @importFrom utils hasName
 #' @export
 #'
 #' @details
-#' Binary segmentation is a classic algorithm for change point detection that recursively
+#' Binary segmentation is a classic algorithm for change-point detection that recursively
 #' splits the data at locations that minimise the cost function.
 #'
 #' Currently supports the following cost functions:
@@ -20,40 +20,21 @@
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
 #'
-#' `binSeg` requires  a `costFunc` object, which can be created via `createCostFunc()`.
+#' `binSeg` requires  a `R6` object of class `costFunc`, which can be created via `costFunc$new()`.
 #'
 #'  Basic usage: <https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md>
 #'
-#'  See `PELT$eval()` method for more details on computation of cost.
-#'
-#' @examples
-#'
-#' # 2-regime simulated data example
-#' set.seed(1)
-#' tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
-#'               c(rnorm(100,0), rnorm(100,5,5)))
-#' # Create a `"SIGMA` cost object.
-#' SIGMAObj = createCostFunc(costFunc = "SIGMA")
-#' # Initialise a `binSeg` object
-#' binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = SIGMAObj)
-#' # Input the time series matrix and perform binary segmentation for the maximum number of regimes
-#' binSegObj$fit(tsMat)
-#' # Describe the `binSeg` object
-#' binSegObj$describe()
-#' # Perform binSeg with `pen = 100`
-#' binSegObj$predict(pen = 100)
-#' # Plot the segmentation results
-#' binSegObj$plot(d = 1:2, main = "method: binSeg; costFunc: SIGMA; pen: 100")
+#'  See `$eval()` method for more details on computation of cost.
 #'
 #' @section Methods:
 #' \describe{
 #'   \item{\code{$new()}}{Initialises a `binSeg` object.}
 #'   \item{\code{$describe()}}{Describes the `binSeg` object.}
-#'   \item{\code{$fit()}}{Takes a time series matrix as input and perform `binSeg` for the
-#' maximum number of change points.}
-#'   \item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
-#'   \item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-#'   \item{\code{$clone()}}{Clones the `binSeg` object.}
+#'   \item{\code{$fit()}}{Constructs a `binSeg` module in `C++`.}
+#'   \item{\code{$eval()}}{Evaluate the cost of a segment.}
+#'   \item{\code{$predict()}}{Performs `binSeg` given a linear penalty value.}
+#'   \item{\code{$plot()}}{Plots change-point segmentation in `ggplot` style.}
+#'   \item{\code{$clone()}}{Clones the `R6` object.}
 #' }
 #'
 #' @references
@@ -63,10 +44,6 @@
 #' Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation. arXiv preprint arXiv:2410.08654.
 #'
 #' @author Minh Long Nguyen \email{edelweiss611428@gmail.com}
-#'
-#' @docType class
-#'
-#' @importFrom R6 R6Class
 #' @export
 
 binSeg = R6Class(
@@ -76,14 +53,12 @@ binSeg = R6Class(
 
     .minSize = 1L,
     .jump = 1L,
-    .costFuncObj = createCostFunc(), #L2 cost function
-    .costModule = NULL,
+    .costFunc = costFunc$new("L2"), #L2 cost function
+    .binSegModule = NULL,
     .tsMat = NULL,
     .fitted = FALSE,
     .n = NULL,
     .p = NULL,
-    .bkps = NULL,
-    .cost = NULL,
     .tmpEndPts = NULL, #Temporary end points
     .tmpPen = NULL #Temporary penalty value
 
@@ -91,111 +66,79 @@ binSeg = R6Class(
 
   active = list(
 
-    #' @field minSize Active binding. Sets the internal variable \code{.minSize} but should not be called directly.
+    #' @field minSize Integer. Minimum allowed segment length. Can be accessed or modified via `$minSize`.
     minSize = function(intVal) {
 
+      if(missing(intVal)){
+        return(private$.minSize)
+      }
+
       if(is.null(intVal)){
-        stop("'minSize' must not be NULL!")
+        stop("'minSize' must not be null!")
       }
 
       if (!is.numeric(intVal) | any(intVal < 1) | length(intVal) != 1) {
         stop("'minSize' must be a single positive integer!")
       }
+
       private$.minSize = as.integer(intVal)
     },
 
-    #' @field jump Active binding. Sets the internal variable \code{.jump} but should not be called directly.
+    #' @field jump Integer. Search grid step size. Can be accessed or modified via `$jump`.
     jump = function(intVal) {
 
+      if(missing(intVal)){
+        return(private$.jump)
+      }
+
       if(is.null(intVal)){
-        stop("'jump' must not be NULL!")
+        stop("'jump' must not be null!")
       }
 
       if (!is.numeric(intVal) | any(intVal < 1) | length(intVal) != 1) {
         stop("'jump' must be a single positive integer!")
       }
+
       private$.jump = as.integer(intVal)
     },
 
-    #' @field costFuncObj Active binding. Sets the internal variable \code{.costFuncObj} but should not be called directly.
-    costFuncObj = function(Obj) {
+    #' @field costFunc `R6` object of class `costFunc`. Search grid step size. Can be accessed or modified via `$costFunc`.
+    costFunc = function(costFuncObj) {
 
-      if (!inherits(Obj, "costFunc") | !is.list(Obj)) {
-        stop("`costFuncObj` must be a `costFunc` object! See createCostObj()!")
+      if(missing(costFuncObj)){
+        return(private$.costFunc)
       }
 
-
-      if (!hasName(Obj, "costFunc")) {
-        stop("Missing `costFunc` field in `costFuncObj`!")
+      if (!inherits(costFuncObj, "costFunc") | !is.R6(costFuncObj)) {
+        stop("`costFunc` must be a `R6` object of class `costFunc` - can be created via costFunc$new()!")
       }
 
-      if (!is.character(Obj$costFunc) | length(Obj$costFunc) != 1) {
-        stop("Field `costFunc` of `costFuncObj` must be a single character!")
-
-      } else if(Obj$costFunc == "L2"){
-        #Do nothing
-      } else if(Obj$costFunc == "VAR"){
-
-        if (!hasName(Obj, "pVAR")) {
-          stop("Missing field `pVAR` in `costFuncObj`!")
-        } else {
-
-
-          if(is.null(Obj$pVAR)){
-            stop("Field `pVAR` must not be NULL!")
-          }
-
-          if (!is.numeric(Obj$pVAR) | length(Obj$pVAR) != 1 | any(Obj$pVAR < 1)) {
-            stop("Field `pVAR` of `costFuncObj` must be a single positive integer!")
-
-          }
-        }
-
-      } else if(Obj$costFunc == "SIGMA"){
-
-        if (!hasName(Obj, "addSmallDiag")) {
-          stop("Missing field `addSmallDiag` in `costFuncObj`!")
-
-        } else {
-
-          if(is.null(Obj$addSmallDiag)){
-            stop("Field `addSmallDiag` must not be NULL!")
-          }
-
-          if (!is.logical(Obj$addSmallDiag) | length(Obj$addSmallDiag) != 1L) {
-            stop("Field `addSmallDiag` of 'costFuncObj' must be a single logical value")
-
-          }
-        }
-
-        if (!hasName(Obj, "epsilon")) {
-          stop("Missing field `epsilon` in `costFuncObj`!")
-
-        } else {
-
-          if(is.null(Obj$epsilon)){
-            stop("Field `epsilon` of 'costFuncObj' must not be NULL!")
-          }
-
-          if (!is.numeric(Obj$epsilon) | length(Obj$epsilon) != 1L | any(Obj$epsilon<=0)) {
-            stop("Field `epsilon` of 'costFuncObj' must be a single positive numeric value!")
-
-          }
-        }
-
-      } else {
-        stop("Cost function not supported!")
-      }
-
-      private$.costFuncObj = Obj
+      private$.costFunc = costFuncObj
     },
 
-    #' @field tsMat Active binding. Sets the internal variable \code{.tsMat} but should not be called directly.
+    #' @field tsMat Numeric matrix. Input time series matrix of size \eqn{n \times p}. Can be accessed or modified via `$tsMat`.
+    #' Modifying `tsMat` will automatically trigger `$fit()`.
+    #'
     tsMat = function(numMat) {
-      if (!is.numeric(numMat) | !is.matrix(numMat)) {
-        stop("tsMat must be a numeric time series matrix!")
+
+      if(missing(numMat)){
+        return(private$.tsMat)
       }
+
+      if(is.null(numMat)){
+        stop("`tsMat` must not be null!")
+      }
+
+      if (!is.numeric(numMat) | !is.matrix(numMat)) {
+        stop("`tsMat` must be a numeric time series matrix!")
+      }
+
       private$.tsMat = numMat
+      private$.n = nrow(numMat)
+      private$.p = ncol(numMat)
+
+      self$fit()
+
     }
   ),
 
@@ -205,11 +148,12 @@ binSeg = R6Class(
     #'
     #' @param minSize Integer. Minimum allowed segment length. Default: `1L`.
     #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: `1L`.
-    #' @param costFuncObj List of class `costFunc`. Should be created via `createFuncObj()` to avoid unintended error.
-    #' Default, `createFuncObj("L2")`.
+    #' @param costFunc A `R6` object of class `costFunc`. Should be created via `costFunc$new()` to avoid error.
+    #' Default: `costFunc$new("L2")`.
+    #'
     #' @return Invisibly returns `NULL`.
 
-    initialize = function(minSize, jump, costFuncObj) {
+    initialize = function(minSize, jump, costFunc) {
 
       if(!missing(minSize)){
         self$minSize = minSize
@@ -219,112 +163,145 @@ binSeg = R6Class(
         self$jump = jump
       }
 
-      if(!missing(costFuncObj)){
-        self$costFuncObj = costFuncObj
+      if(!missing(costFunc)){
+        self$costFunc = costFunc
       }
-
-      print("You have created a binSeg object!")
 
       invisible(NULL)
     },
 
     #' @description Describes a `binSeg` object.
     #'
-    #' @return Invisibly returns a list containing some of the following fields:
+    #' @param printConfig Logical. Whether to print object configurations. Default: `FALSE`.
+    #'
+    #' @return Invisibly returns a list storing at least the following fields:
+    #'
     #' \describe{
     #'   \item{\code{minSize}}{Minimum allowed segment length.}
     #'   \item{\code{jump}}{Search grid step size.}
-    #'   \item{\code{costFuncObj}}{The `costFun` object.}
+    #'   \item{\code{costFunc}}{The `costFun` object.}
     #'   \item{\code{fitted}}{Whether or not `$fit()` has been run.}
-    #'   \item{\code{tsMat}}{Input time series matrix.}
+    #'   \item{\code{tsMat}}{Time series matrix.}
     #'   \item{\code{n}}{Number of observations.}
     #'   \item{\code{p}}{Number of features.}
-    #'   \item{\code{bkps}}{Vector of unordered breakpoint positions.}
-    #'   \item{\code{cost}}{From the second element, split costs corresponding to \code{bkps}; first element is total cost without splits.}
     #' }
 
-    describe = function() {
+    describe = function(printConfig = FALSE) {
+
+      if(is.null(printConfig)){
+        stop("`printConfig` is null!")
+      } else{
+        if(!is.logical(printConfig) | length(printConfig) != 1L){
+          stop("`printConfig` must be a single boolean value!")
+        }
+      }
 
       params = list(minSize = private$.minSize,
-                    jump = private$.minSize,
-                    costFuncObj = private$.costFuncObj,
+                    jump = private$.jump,
+                    costFunc = private$.costFunc,
                     fitted = private$.fitted,
                     tsMat = private$.tsMat,
                     n = private$.n,
-                    p = private$.p,
-                    bkps = private$.bkps,
-                    cost = private$.cost)
+                    p = private$.p)
 
-      cat(sprintf("Binary Segmentation (binSeg) \n"))
-      cat(sprintf("minSize      : %sL\n", private$.minSize))
-      cat(sprintf("jump         : %sL\n", private$.jump))
-      cat(sprintf("costFunc     : \"%s\"\n", private$.costFuncObj$costFunc))
+      if(printConfig){
 
-      if(private$.costFuncObj$costFunc == "SIGMA"){
-        cat(sprintf("addSmallDiag : %s\n", private$.costFuncObj$addSmallDiag))
-        cat(sprintf("epsilon      : %s\n", private$.costFuncObj$epsilon))
-        params[["addSmallDiag"]] = private$.costFuncObj$addSmallDiag
-        params[["epsilon"]] = private$.costFuncObj$epsilon
+        cat(sprintf("Binary Segmentation (binSeg) \n"))
+        cat(sprintf("minSize      : %sL\n", private$.minSize))
+        cat(sprintf("jump         : %sL\n", private$.jump))
+        cat(sprintf("costFunc     : \"%s\"\n", private$.costFunc$pass()[["costFunc"]]))
+
       }
 
-      if(private$.costFuncObj$costFunc == "VAR"){
-        cat(sprintf("pVAR         : %s\n", private$.costFuncObj$pVAR))
-        params[["pVAR"]] = private$.costFuncObj$pVAR
+
+      if(private$.costFunc$pass()[["costFunc"]] == "SIGMA"){
+
+        if(printConfig){
+
+          cat(sprintf("addSmallDiag : %s\n", private$.costFunc$pass()[["addSmallDiag"]]))
+          cat(sprintf("epsilon      : %s\n", private$.costFunc$pass()[["epsilon"]]))
+
+        }
+
+        params[["addSmallDiag"]] = private$.costFunc$pass()[["addSmallDiag"]]
+        params[["epsilon"]] = private$.costFunc$pass()[["epsilon"]]
+
       }
 
-      cat(sprintf("fitted       : %s\n", private$.fitted))
-      cat(sprintf("n            : %sL\n", private$.n))
-      cat(sprintf("p            : %sL\n", private$.p))
+      if(private$.costFunc$pass()[["costFunc"]] == "VAR"){
+
+        if(printConfig){
+
+          cat(sprintf("pVAR         : %s\n", private$.costFunc$pass()[["pVAR"]]))
+
+        }
+
+        params[["pVAR"]] = private$.costFunc$pass()[["pVAR"]]
+
+      }
+
+      if(printConfig){
+
+        cat(sprintf("fitted       : %s\n", private$.fitted))
+        cat(sprintf("n            : %sL\n", private$.n))
+        cat(sprintf("p            : %sL\n", private$.p))
+
+      }
 
       invisible(params)
 
     },
 
-    #' @description Takes a time series matrix as input and performs binSeg for the
-    #' maximum number of change points.
+    #' @description Constructs a `binSeg` module in `C++`.
     #'
     #' @param tsMat Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
+    #' Default: `NULL`.
     #'
     #' @return Invisibly returns `NULL`.
     #'
-    #' @details
-    #' This method does the following:
+    #' @details This method does the following:
     #'- Initialises `private$.tsMat`, `private$.n`, and `private$.p`.
-    #'- Sets `private$.fitted` to `TRUE`, enabling the use of `$predict()` and `$eval()`.
-    #'- Initialises a cost module corresponding to `tsMat` and the `costFunc`
-    #'  object, enabling the use of `$eval()`.
-    #'- Performs binSeg for the maximum number of change points, making `$predict()`
-    #'  more efficient.
+    #'- Constructs a `binSeg` module in `C++` and sets `private$.fitted` to `TRUE`, enabling the use of `$predict()` and `$eval()`.
 
+    fit = function(tsMat = NULL) {
 
-    fit = function(tsMat) {
+      # Only assign if explicitly called with `tsMat` argument
 
-      self$tsMat = tsMat
-      private$.n = nrow(tsMat)
-      private$.p = ncol(tsMat)
-      private$.fitted = TRUE
-      detection = binSegCpp(private$.tsMat, private$.minSize, private$.jump,
-                            costFuncObj = private$.costFuncObj)
-      private$.cost = detection$cost
-      private$.bkps = detection$bkps
+      if (!is.null(tsMat)) {
 
-      #The boolean value indicates whether or not to output warnings only once.
+        if (!is.numeric(tsMat) | !is.matrix(tsMat)) {
+          stop("`tsMat` must be a numeric time series matrix!")
+        }
 
-      if(private$.costFuncObj$costFunc == "L2"){
-        private$.costModule = new(rupturesRcpp::Cost_L2, tsMat)
-
-      } else if(private$.costFuncObj$costFunc == "SIGMA"){
-        private$.costModule = new(rupturesRcpp::Cost_SIGMA, tsMat,
-                                  private$.costFuncObj$addSmallDiag, private$.costFuncObj$epsilon, FALSE)
-
-      } else if(private$.costFuncObj$costFunc == "VAR"){
-        private$.costModule = new(rupturesRcpp::Cost_VAR, tsMat,
-                                  private$.costFuncObj$pVAR, FALSE)
-
-      } else {
-        stop("Cost function not supported!")
-
+        private$.tsMat = tsMat
+        private$.n = nrow(tsMat)
+        private$.p = ncol(tsMat)
       }
+
+      if (is.null(private$.tsMat)) {
+        stop("No `tsMat` found! Please provide `tsMat` first!")
+      }
+
+      private$.fitted = TRUE
+
+      if(private$.costFunc$pass()[["costFunc"]] == "L2"){
+        private$.binSegModule = new(binSegCpp_L2, private$.tsMat, private$.minSize, private$.jump)
+
+      } else if(private$.costFunc$pass()[["costFunc"]] == "VAR"){
+        private$.binSegModule = new(binSegCpp_VAR, private$.tsMat, private$.costFunc$pass()[["pVAR"]],
+                                    private$.minSize, private$.jump)
+
+      } else if(private$.costFunc$pass()[["costFunc"]] == "SIGMA"){
+        private$.binSegModule = new(binSegCpp_SIGMA, private$.tsMat,
+                                    private$.costFunc$pass()[["addSmallDiag"]],
+                                    private$.costFunc$pass()[["epsilon"]],
+                                    private$.minSize, private$.jump)
+
+      } else{
+        stop("Cost function not supported!")
+      }
+
+      private$.binSegModule$fit()
 
       invisible(NULL)
     },
@@ -334,7 +311,7 @@ binSeg = R6Class(
     #' @param a Integer. Start index of the segment (exclusive). Must satisfy \code{start < end}.
     #' @param b Integer. End index of the segment (inclusive).
     #'
-    #' @return The segment cost
+    #' @return The segment cost.
     #'
     #' @details
     #' The segment cost is evaluated as follows:
@@ -376,52 +353,54 @@ binSeg = R6Class(
 
       a = as.integer(a)
       b = as.integer(b)
+
       if(a >= b){
         stop("a must be smaller than b!")
       }
 
-      return(private$.costModule$eval(a, b))
+      return(private$.binSegModule$eval(a, b))
 
     },
 
-    #' @description Performs binSeg given a linear penalty value.
+    #' @description Performs `binSeg` given a linear penalty value.
     #'
-    #' @param pen Numeric. Penalty per change point. Default: `0`.
+    #' @param pen Numeric. Penalty per change-point. Default: `0`.
     #'
-    #' @return An integer vector of regime end points. By design, the last element is the
-    #' number of observations.
+    #' @return An integer vector of regime end-points. By design, the last element is the
+    #' number of observations `private$.n`.
     #'
-    #' @details Performs binSeg given a linear penalty value. Temporary end points are saved
+    #' @details Performs `binSeg` given a linear penalty value. Temporary end points are saved
     #' to `private$.tmpEndPoints`, allowing users to use `$plot()` without specifying
     #' end points.
 
     predict = function(pen = 0){
 
       if(!private$.fitted){
-        stop("$fit() must be run before $predict()!")
+        stop("`$fit()` must be run before `$predict()`!")
       }
 
       if(is.null(pen)){
-        stop("pen must not be NULL!")
+        stop("`pen` must not be null!")
       }
 
       if(!is.numeric(pen) | length(pen)!= 1 |  any(pen < 0)){
-        stop("pen must be a single non-negative numeric value!")
+        stop("`pen` must be a single non-negative value!")
       }
 
-      endPts = c(sort(binSegPredCpp(private$.bkps, private$.cost, pen)), private$.n)
+      endPts = sort(c(private$.binSegModule$predict(pen), private$.n))
 
       private$.tmpEndPts = endPts
       private$.tmpPen = pen
 
       return(endPts)
+
     },
 
 
-    #' @description Plots change point segmentation
+    #' @description Plots change-point segmentation
     #'
     #' @param d Integer vector. Dimensions to plot. Default: `1L`.
-    #' @param endPts Integer vector. End points; defaults to latest temporary changepoints from `$predict()`.
+    #' @param endPts Integer vector. End points. Default: latest temporary changepoints obtained via `$predict()`.
     #' @param dimNames Character vector. Feature names matching length of `d`. Defaults to `"X1", "X2", ...`.
     #' @param main Character. Main title. Defaults to `"binSeg: d = ..."`.
     #' @param xlab Character. X-axis label. Default: `"Time"`.
@@ -431,7 +410,7 @@ binSeg = R6Class(
     #' @param bgAlpha Numeric. Background transparency. Default: `0.5`.
     #' @param ncol Integer. Number of columns in facet layout. Default: `1L`.
     #'
-    #' @details Plots change point segmentation results. Based on `ggplot2`. Multiple plots can easily be
+    #' @details Plots change-point segmentation results. Based on `ggplot2`. Multiple plots can easily be
     #' horizontally and vertically stacked using `patchwork`'s operators `/` and `|`, respectively.
     #'
     #' @return An object of classes `gg` and `ggplot`.
@@ -448,7 +427,7 @@ binSeg = R6Class(
 
       } else {
         if(!is.character(main) | length(main )!= 1L){
-          stop("main must be a single character!")
+          stop("`main` must be a single character!")
         }
       }
 
@@ -457,46 +436,49 @@ binSeg = R6Class(
 
       } else {
         if(!is.character(xlab) | length(xlab)!= 1L){
-          stop("xlab must be a single character!")
+          stop("`xlab` must be a single character!")
         }
       }
 
       if(missing(endPts)){
-        message("endPts is missing. Proceed to use the temporary endPts!")
+        message("`endPts` is missing. Proceed to use the temporary `endPts`!")
 
         if(is.null(private$.tmpEndPts)){
-          stop("Temporary endPts is NULL. Must run $predict() to obtain this!")
+          stop("Temporary `endPts` is null. Must run `$predict()` to initialise this!")
+        } else{
+          endPts = private$.tmpEndPts
         }
+
       } else{
         if(!is.numeric(endPts)){
-          stop("endPts must be a numeric/integer vector specifying endpoints! Could be obtained via $predict().")
+          stop("`endPts` must be an integer vector specifying endpoints! Could be obtained via `$predict()`.")
         } else{
           endPts = as.integer(sort(endPts))
 
           if(min(endPts) < 1){
-            stop("min(endPts) >= 1!")
+            stop("`min(endPts)` must not be less than 1!")
           }
 
           if(max(endPts) != private$.n){
-            stop("By construction, max(endPts) must be n! Can use $predict() to obtain endPts.")
+            stop("By construction, `max(endPts)` must be `n`! Can use `$predict()` to obtain `endPts`.")
           }
 
           if(length(unique(endPts)) != length(endPts)){
-            stop("as.integer(endPts) contains duplicated elements!")
+            stop("`as.integer(endPts)` contains duplicated elements!")
           }
         }
       }
 
       if (!is.numeric(d)) {
-        stop("d must be a numeric/integer vector specifying dimensions! e.g., 1, or c(1,2).")
+        stop("`d` must be a numeric/integer vector specifying dimensions! e.g., `1`, or `c(1,2)`.")
       }
 
       if(missing(dimNames)){
-        message("dimNames is missing. Proceed to use the default dimNames! e.g., paste0('X', d)).")
+        message("`dimNames` is missing. Proceed to use the default `dimNames`! e.g., `paste0('X', d))`.")
         dimNames = paste0("X", d)
       } else {
         if (!is.character(dimNames)) {
-          stop("dimNames must be a character vector specifying feature names!")
+          stop("`dimNames` must be a character vector specifying feature names!")
           if(length(dimNames) != length(d)){
             stop("length(dimNames) != length(d)!")
           }
@@ -507,8 +489,6 @@ binSeg = R6Class(
       if(any(d < 1) | any(d > private$.p)){
         stop("Dimensions must be between [1,p]!")
       }
-
-      endPts = private$.tmpEndPts
 
       # Build long-format dataframe for all selected dimensions
       tsList <- lapply(seq_along(d), function(i) {

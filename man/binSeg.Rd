@@ -5,10 +5,10 @@
 \alias{binSeg}
 \title{Binary Segmentation (binSeg)}
 \description{
-An R6 class implementing binary segmentation for offline change point detection.
+An \code{R6} class implementing binary segmentation for offline change-point detection.
 }
 \details{
-Binary segmentation is a classic algorithm for change point detection that recursively
+Binary segmentation is a classic algorithm for change-point detection that recursively
 splits the data at locations that minimise the cost function.
 
 Currently supports the following cost functions:
@@ -18,45 +18,25 @@ Currently supports the following cost functions:
 \item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant noise variance}
 }
 
-\code{binSeg} requires  a \code{costFunc} object, which can be created via \code{createCostFunc()}.
+\code{binSeg} requires  a \code{R6} object of class \code{costFunc}, which can be created via \code{costFunc$new()}.
 
 Basic usage: \url{https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md}
 
-See \code{PELT$eval()} method for more details on computation of cost.
+See \verb{$eval()} method for more details on computation of cost.
 }
 \section{Methods}{
 
 \describe{
 \item{\code{$new()}}{Initialises a \code{binSeg} object.}
 \item{\code{$describe()}}{Describes the \code{binSeg} object.}
-\item{\code{$fit()}}{Takes a time series matrix as input and perform \code{binSeg} for the
-maximum number of change points.}
-\item{\code{$predict()}}{Performs binSeg given a linear penalty value.}
-\item{\code{$plot()}}{Plots change point segmentation in ggplot style.}
-\item{\code{$clone()}}{Clones the \code{binSeg} object.}
+\item{\code{$fit()}}{Constructs a \code{binSeg} module in \verb{C++}.}
+\item{\code{$eval()}}{Evaluate the cost of a segment.}
+\item{\code{$predict()}}{Performs \code{binSeg} given a linear penalty value.}
+\item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
+\item{\code{$clone()}}{Clones the \code{R6} object.}
 }
 }
 
-\examples{
-
-# 2-regime simulated data example
-set.seed(1)
-tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
-              c(rnorm(100,0), rnorm(100,5,5)))
-# Create a `"SIGMA` cost object.
-SIGMAObj = createCostFunc(costFunc = "SIGMA")
-# Initialise a `binSeg` object
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFuncObj = SIGMAObj)
-# Input the time series matrix and perform binary segmentation for the maximum number of regimes
-binSegObj$fit(tsMat)
-# Describe the `binSeg` object
-binSegObj$describe()
-# Perform binSeg with `pen = 100`
-binSegObj$predict(pen = 100)
-# Plot the segmentation results
-binSegObj$plot(d = 1:2, main = "method: binSeg; costFunc: SIGMA; pen: 100")
-
-}
 \references{
 Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
 Signal Processing, 167, 107299.
@@ -69,13 +49,14 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{minSize}}{Active binding. Sets the internal variable \code{.minSize} but should not be called directly.}
+\item{\code{minSize}}{Integer. Minimum allowed segment length. Can be accessed or modified via \verb{$minSize}.}
 
-\item{\code{jump}}{Active binding. Sets the internal variable \code{.jump} but should not be called directly.}
+\item{\code{jump}}{Integer. Search grid step size. Can be accessed or modified via \verb{$jump}.}
 
-\item{\code{costFuncObj}}{Active binding. Sets the internal variable \code{.costFuncObj} but should not be called directly.}
+\item{\code{costFunc}}{\code{R6} object of class \code{costFunc}. Search grid step size. Can be accessed or modified via \verb{$costFunc}.}
 
-\item{\code{tsMat}}{Active binding. Sets the internal variable \code{.tsMat} but should not be called directly.}
+\item{\code{tsMat}}{Numeric matrix. Input time series matrix of size \eqn{n \times p}. Can be accessed or modified via \verb{$tsMat}.
+Modifying \code{tsMat} will automatically trigger \verb{$fit()}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -97,7 +78,7 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \subsection{Method \code{new()}}{
 Initialises a \code{binSeg} object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{binSeg$new(minSize, jump, costFuncObj)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$new(minSize, jump, costFunc)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -107,8 +88,8 @@ Initialises a \code{binSeg} object.
 
 \item{\code{jump}}{Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: \code{1L}.}
 
-\item{\code{costFuncObj}}{List of class \code{costFunc}. Should be created via \code{createFuncObj()} to avoid unintended error.
-Default, \code{createFuncObj("L2")}.}
+\item{\code{costFunc}}{A \code{R6} object of class \code{costFunc}. Should be created via \code{costFunc$new()} to avoid error.
+Default: \code{costFunc$new("L2")}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -122,21 +103,27 @@ Invisibly returns \code{NULL}.
 \subsection{Method \code{describe()}}{
 Describes a \code{binSeg} object.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{binSeg$describe()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$describe(printConfig = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{printConfig}}{Logical. Whether to print object configurations. Default: \code{FALSE}.}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
-Invisibly returns a list containing some of the following fields:
+Invisibly returns a list storing at least the following fields:
+
 \describe{
 \item{\code{minSize}}{Minimum allowed segment length.}
 \item{\code{jump}}{Search grid step size.}
-\item{\code{costFuncObj}}{The \code{costFun} object.}
+\item{\code{costFunc}}{The \code{costFun} object.}
 \item{\code{fitted}}{Whether or not \verb{$fit()} has been run.}
-\item{\code{tsMat}}{Input time series matrix.}
+\item{\code{tsMat}}{Time series matrix.}
 \item{\code{n}}{Number of observations.}
 \item{\code{p}}{Number of features.}
-\item{\code{bkps}}{Vector of unordered breakpoint positions.}
-\item{\code{cost}}{From the second element, split costs corresponding to \code{bkps}; first element is total cost without splits.}
 }
 }
 }
@@ -144,16 +131,16 @@ Invisibly returns a list containing some of the following fields:
 \if{html}{\out{<a id="method-binSeg-fit"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-fit}{}}}
 \subsection{Method \code{fit()}}{
-Takes a time series matrix as input and performs binSeg for the
-maximum number of change points.
+Constructs a \code{binSeg} module in \verb{C++}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{binSeg$fit(tsMat)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$fit(tsMat = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{tsMat}}{Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.}
+\item{\code{tsMat}}{Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
+Default: \code{NULL}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -161,11 +148,7 @@ maximum number of change points.
 This method does the following:
 \itemize{
 \item Initialises \code{private$.tsMat}, \code{private$.n}, and \code{private$.p}.
-\item Sets \code{private$.fitted} to \code{TRUE}, enabling the use of \verb{$predict()} and \verb{$eval()}.
-\item Initialises a cost module corresponding to \code{tsMat} and the \code{costFunc}
-object, enabling the use of \verb{$eval()}.
-\item Performs binSeg for the maximum number of change points, making \verb{$predict()}
-more efficient.
+\item Constructs a \code{binSeg} module in \verb{C++} and sets \code{private$.fitted} to \code{TRUE}, enabling the use of \verb{$predict()} and \verb{$eval()}.
 }
 }
 
@@ -212,14 +195,14 @@ where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via 
 }
 
 \subsection{Returns}{
-The segment cost
+The segment cost.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-predict"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-predict}{}}}
 \subsection{Method \code{predict()}}{
-Performs binSeg given a linear penalty value.
+Performs \code{binSeg} given a linear penalty value.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{binSeg$predict(pen = 0)}\if{html}{\out{</div>}}
 }
@@ -227,26 +210,26 @@ Performs binSeg given a linear penalty value.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{pen}}{Numeric. Penalty per change point. Default: \code{0}.}
+\item{\code{pen}}{Numeric. Penalty per change-point. Default: \code{0}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Performs binSeg given a linear penalty value. Temporary end points are saved
+Performs \code{binSeg} given a linear penalty value. Temporary end points are saved
 to \code{private$.tmpEndPoints}, allowing users to use \verb{$plot()} without specifying
 end points.
 }
 
 \subsection{Returns}{
-An integer vector of regime end points. By design, the last element is the
-number of observations.
+An integer vector of regime end-points. By design, the last element is the
+number of observations \code{private$.n}.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-binSeg-plot"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-plot}{}}}
 \subsection{Method \code{plot()}}{
-Plots change point segmentation
+Plots change-point segmentation
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{binSeg$plot(
   d = 1L,
@@ -267,7 +250,7 @@ Plots change point segmentation
 \describe{
 \item{\code{d}}{Integer vector. Dimensions to plot. Default: \code{1L}.}
 
-\item{\code{endPts}}{Integer vector. End points; defaults to latest temporary changepoints from \verb{$predict()}.}
+\item{\code{endPts}}{Integer vector. End points. Default: latest temporary changepoints obtained via \verb{$predict()}.}
 
 \item{\code{dimNames}}{Character vector. Feature names matching length of \code{d}. Defaults to \verb{"X1", "X2", ...}.}
 
@@ -288,7 +271,7 @@ Plots change point segmentation
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Plots change point segmentation results. Based on \code{ggplot2}. Multiple plots can easily be
+Plots change-point segmentation results. Based on \code{ggplot2}. Multiple plots can easily be
 horizontally and vertically stacked using \code{patchwork}'s operators \code{/} and \code{|}, respectively.
 }
 
