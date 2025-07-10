@@ -7,7 +7,7 @@
 #'
 #' Currently supports the following cost functions:
 #'
-#' - `"L2"`: for (independent) piecewise Gaussian process with **constant variance**
+#' - `"L1"` and `"L2"` for (independent) piecewise Gaussian process with **constant variance**
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
 #'
@@ -36,14 +36,14 @@ costFunc <- R6::R6Class(
 
   active = list(
 
-    #' @field costFunc Active binding. Sets the internal variable \code{.costFunc} but should not be called directly.
+    #' @field costFunc Character. Cost function. Can be accessed or modified via `$costFunc`.
     costFunc = function(charVal) {
 
       if (missing(charVal)) {
         return(private$.costFunc)
       }
 
-      if(!charVal %in% c("L2", "SIGMA", "VAR")){
+      if(!charVal %in% c("L1", "L2", "SIGMA", "VAR")){
         stop("Cost function not supported!")
       }
 
@@ -52,6 +52,23 @@ costFunc <- R6::R6Class(
       }
 
       private$.costFunc = charVal
+    },
+
+    #' @field coorWise Logical. If `TRUE` coordinate-wise median is computed. Otherwise, geometric median is computed via
+    #' the Weiszfeld algorithm. Can be accessed or modified via `$coorWise`.
+    #'
+    coorWise = function(boolVal) {
+
+      if (missing(boolVal)) {
+        return(private$.params[["coorWise"]])
+      }
+
+      if (!is.logical(boolVal) | length(boolVal) != 1L) {
+        stop("`coorWise` must be a single boolean value!")
+
+      }
+      private$.params[["coorWise"]] = boolVal
+
     },
 
     #' @field pVAR Integer. Vector autoregressive order. Can be accessed or modified via `$pVAR`.
@@ -110,6 +127,12 @@ costFunc <- R6::R6Class(
     #' @param ... Optional named parameters required by specific cost functions. \cr
     #' If any required parameters are missing or null, default values will be used.
     #'
+    #' #' For \code{"L1"}, supported parameters are:
+    #' \describe{
+    #'   \item{`coorWise`}{Logical. If \code{TRUE}, coordinate-wise median is computed. If \code{FALSE}, geometric median is computed via the
+    #'   Weiszfeld algorithm. Default: `TRUE`.}
+    #' }
+    #'
     #' For \code{"SIGMA"}, supported parameters are:
     #' \describe{
     #'   \item{`addSmallDiag`}{Logical. If \code{TRUE}, add a small value to the diagonal of estimated covariance matrices
@@ -130,6 +153,17 @@ costFunc <- R6::R6Class(
       }
 
       args = list(...)
+
+      if (private$.costFunc == "L1") {
+
+        if (hasName(args, "coorWise") & !is.null(args$coorWise)) {
+          self$coorWise = args$coorWise
+
+        } else {
+          self$coorWise = TRUE
+
+        }
+      }
 
       if (private$.costFunc == "VAR") {
 
@@ -168,6 +202,10 @@ costFunc <- R6::R6Class(
 
       if(private$.costFunc == "L2"){
         return(list(costFunc = "L2"))
+
+      } else if (private$.costFunc == "L1"){
+        return(list(costFunc = "L1",
+                    coorWise = private$.params[["coorWise"]]))
 
       } else if(private$.costFunc == "VAR"){
         return(list(costFunc = "VAR",
