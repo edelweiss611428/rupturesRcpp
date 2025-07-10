@@ -8,14 +8,35 @@
 An \code{R6} class specifying a cost function
 }
 \details{
-Creates an instance of \code{costFunc} \code{R6} class, used in initialisation of change-point detection modules.
-
-Currently supports the following cost functions:
+Creates an instance of \code{costFunc} \code{R6} class, used in initialisation of change-point detection modules. Currently
+supports the following cost functions:
 \itemize{
-\item \code{"L2"}: for (independent) piecewise Gaussian process with \strong{constant variance}
-\item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
-\item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant noise variance}
+\item \strong{"L1"} and \strong{"L2"} for (independent) piecewise Gaussian process with \strong{constant variance}
 }
+
+\deqn{c_{L_1}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \tilde{y}_{(a+1)...b} \|_1}
+where \eqn{\tilde{y}_{(a+1)...b}} is the coordinate-wise median of the segment. If \eqn{a \ge b - 1}, return 0.
+
+\deqn{c_{L_2}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)...b} \|_2^2}
+where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a \ge b - 1}, return 0. \code{"L2"}
+is faster  but less robust to contamination than \code{"L1"}.
+\itemize{
+\item \strong{"SIGMA"} for (independent) piecewise Gaussian process with \strong{varying variance}
+}
+
+\deqn{c_{\sum}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
+the empirical covariance matrix of the segment without Bessel's correction. Here, if \code{addSmallDiag = TRUE}, a small
+bias \code{epsilon} is added to the diagonal of estimated covariance matrices to improve numerical stability. \cr
+\cr
+By default, \code{addSmallDiag = TRUE} and \code{epsilon = 1e-6}. In case \code{addSmallDiag = TRUE}, if the computed determinant of covariance matrix is either 0 (singular)
+or smaller than \code{p*log(epsilon)} - the lower bound, return \code{(b - a)*p*log(epsilon)}, otherwise, output an error message.
+\itemize{
+\item \strong{"VAR"} for piecewise Gaussian vector-regressive process with \strong{constant noise variance}
+}
+
+\deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
+where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
+\eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where \code{n} is the time series length), return 0.
 }
 \section{Methods}{
 
