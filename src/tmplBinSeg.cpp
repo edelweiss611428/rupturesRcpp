@@ -5,7 +5,6 @@
 #include "L2.h"
 #include "SIGMA.h"
 #include "L1_cwMed.h"
-#include "ogkSIGMA.h"
 #include "baseClass.h"
 
 using namespace Rcpp;
