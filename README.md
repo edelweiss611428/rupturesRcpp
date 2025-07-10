@@ -105,7 +105,7 @@ binSegObj$plot(d = 1:2,
 
 #### Active bindings
 
-An implicit way to modify the fields of a binSeg object is through its active bindings, which can be used not only to extract key fields but also to update them.
+An implicit way to modify or set the fields of a `binSeg` object is through its active bindings, which can be used not only to extract key fields but also to update them.
 
 The `R6` class `binSeg` has 4 active bindings, namely `minSize`, `jump`, `costFunc` and `tsMat`. We can modify an existing `binSeg` object by assigning new values to its active bindings. To demonstrate this, we
 consider a piecewise vector autoregressive example with constant noise variance.
@@ -124,7 +124,7 @@ VARObj = costFunc$new("VAR")
 binSegObj$tsMat = tsMat
 binSegObj$costFunc = VARObj
 ```
-Modifying `tsMat` will automatically trigger `$fit()`. 
+Modifying `tsMat` (or any bindings) will automatically trigger `$fit()`. 
 
 ```r
 binSegObj$describe(printConfig = TRUE)
