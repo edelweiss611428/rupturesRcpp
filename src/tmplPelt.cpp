@@ -2,6 +2,7 @@
 #include "VAR.h"
 #include "L2.h"
 #include "SIGMA.h"
+#include "L1_cwMed.h"
 #include "baseClass.h"
 
 using namespace Rcpp;
@@ -154,9 +155,19 @@ public:
 };
 
 
+
+// ========================================================
+//         L1 class based on coordinate-wise median
+// ========================================================
+
+static void L1_cwMedian() {
+  // intentionally empty
+}
+
+
 template<>
-PELTCppTmpl<Cost_VAR>::PELTCppTmpl(const arma::mat& tsMat, int pVAR, int minSize_, int jump_)
-  : costModule(tsMat, pVAR, true), minSize(minSize_), jump(jump_){
+PELTCppTmpl<Cost_L1_cwMed>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, int jump_)
+  : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
   if(nSamples < 2*minSize){
@@ -166,11 +177,30 @@ PELTCppTmpl<Cost_VAR>::PELTCppTmpl(const arma::mat& tsMat, int pVAR, int minSize
   if(nSamples <= jump){
     Rcpp::stop("Number of observations <= jump!");
   }
+
 }
+
+RCPP_EXPOSED_CLASS(PELTCpp_L1_cwMed)
+  RCPP_MODULE(PELTCpp_L1_cwMed_module) {
+    Rcpp::class_<PELTCppTmpl<Cost_L1_cwMed>>("PELTCpp_L1_cwMed")
+    .constructor<arma::mat, int, int>()       // tsMat, minSize, jump
+    .method("predict", &PELTCppTmpl<Cost_L1_cwMed>::predict)
+    .method("eval", &PELTCppTmpl<Cost_L1_cwMed>::eval);
+  }
+
+
+// ========================================================
+//                        L2 class
+// ========================================================
+
+static void L2() {
+  // intentionally empty
+}
+
 
 template<>
 PELTCppTmpl<Cost_L2>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, int jump_)
-  : costModule(tsMat), minSize(minSize_), jump(jump_){
+  : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
   if(nSamples < 2*minSize){
@@ -183,9 +213,28 @@ PELTCppTmpl<Cost_L2>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, int jump
 
 }
 
+RCPP_EXPOSED_CLASS(PELTCpp_L2)
+  RCPP_MODULE(PELTCpp_L2_module) {
+    Rcpp::class_<PELTCppTmpl<Cost_L2>>("PELTCpp_L2")
+    .constructor<arma::mat, int, int>()       // tsMat, minSize, jump
+    .method("predict", &PELTCppTmpl<Cost_L2>::predict)
+    .method("eval", &PELTCppTmpl<Cost_L2>::eval);
+  }
+
+
+
+// ========================================================
+//                        VAR class
+// ========================================================
+
+static void VAR() {
+  // intentionally empty
+}
+
+
 template<>
-PELTCppTmpl<Cost_SIGMA>::PELTCppTmpl(const arma::mat& tsMat, bool addSmallDiag, double epsilon, int minSize_, int jump_)
-  : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
+PELTCppTmpl<Cost_VAR>::PELTCppTmpl(const arma::mat& tsMat, int pVAR, int minSize_, int jump_)
+  : costModule(tsMat, pVAR, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
   if(nSamples < 2*minSize){
@@ -202,23 +251,41 @@ PELTCppTmpl<Cost_SIGMA>::PELTCppTmpl(const arma::mat& tsMat, bool addSmallDiag, 
 RCPP_EXPOSED_CLASS(PELTCpp_VAR)
   RCPP_MODULE(PELTCpp_VAR_module) {
     Rcpp::class_<PELTCppTmpl<Cost_VAR>>("PELTCpp_VAR")
-    .constructor<arma::mat, int, int, int>()  // mat, pVAR, minSize, jump
+    .constructor<arma::mat, int, int, int>()  // tsMat, pVAR, minSize, jump
     .method("predict", &PELTCppTmpl<Cost_VAR>::predict)
     .method("eval", &PELTCppTmpl<Cost_VAR>::eval);
   }
 
-RCPP_EXPOSED_CLASS(PELTCpp_L2)
-  RCPP_MODULE(PELTCpp_L2_module) {
-    Rcpp::class_<PELTCppTmpl<Cost_L2>>("PELTCpp_L2")
-    .constructor<arma::mat, int, int>()       // mat, minSize, jump
-    .method("predict", &PELTCppTmpl<Cost_L2>::predict)
-    .method("eval", &PELTCppTmpl<Cost_L2>::eval);
+
+
+// ========================================================
+//                       SIGMA class
+// ========================================================
+
+static void SIGMA() {
+  // intentionally empty
+}
+
+
+template<>
+PELTCppTmpl<Cost_SIGMA>::PELTCppTmpl(const arma::mat& tsMat, bool addSmallDiag, double epsilon, int minSize_, int jump_)
+  : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
+  nSamples = costModule.nr;
+
+  if(nSamples < 2*minSize){
+    Rcpp::stop("Number of observations < 2*minSize!");
   }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations <= jump!");
+  }
+
+}
 
 RCPP_EXPOSED_CLASS(PELTCpp_SIGMA)
   RCPP_MODULE(PELTCpp_SIGMA_module) {
     Rcpp::class_<PELTCppTmpl<Cost_SIGMA>>("PELTCpp_SIGMA")
-    .constructor<arma::mat, bool, double, int, int>()  // mat, addSmallDiag, epsilon, minSize, jump
+    .constructor<arma::mat, bool, double, int, int>()  // tsMat, addSmallDiag, epsilon, minSize, jump
     .method("predict", &PELTCppTmpl<Cost_SIGMA>::predict)
     .method("eval", &PELTCppTmpl<Cost_SIGMA>::eval);
   }

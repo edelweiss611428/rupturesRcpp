@@ -4,6 +4,8 @@
 #include "VAR.h"
 #include "L2.h"
 #include "SIGMA.h"
+#include "L1_cwMed.h"
+#include "ogkSIGMA.h"
 #include "baseClass.h"
 
 using namespace Rcpp;
@@ -155,7 +157,7 @@ public:
   // For VAR: constructor with (mat, pVAR, minSize, jump)
   binSegCppTmpl(const arma::mat& tsMat, int pVAR, int minSize_, int jump_);
 
-  // For L2: constructor with (mat, minSize, jump)
+  // For L1, L2: constructor with (mat, minSize, jump)
   binSegCppTmpl(const arma::mat& tsMat, int minSize_, int jump_);
 
   // For SIGMA: constructor with (mat, addSmallDiag, epsilon, minSize, jump)
@@ -209,8 +211,8 @@ public:
       cost[idx] = cost[idx-1] - heap.top().gain;
     }
 
-    bkpsVec = changePoints;
-    costVec = cost;
+    bkpsVec = changePoints[Range(0,nRegimes-2)];
+    costVec = cost[Range(0,nRegimes-1)];
 
     costModule.resetWarning(false);
 
@@ -252,9 +254,19 @@ public:
 };
 
 
+
+// ========================================================
+//            L1 class based on piecewise median
+// ========================================================
+
+static void L1_cwMedian() {
+  // intentionally empty
+}
+
+
 template<>
-binSegCppTmpl<Cost_VAR>::binSegCppTmpl(const arma::mat& tsMat, int pVAR, int minSize_, int jump_)
-  : costModule(tsMat, pVAR, true), minSize(minSize_), jump(jump_){
+binSegCppTmpl<Cost_L1_cwMed>::binSegCppTmpl(const arma::mat& tsMat, int minSize_, int jump_)
+  : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
   if(nSamples < 2*minSize){
@@ -266,10 +278,29 @@ binSegCppTmpl<Cost_VAR>::binSegCppTmpl(const arma::mat& tsMat, int pVAR, int min
   }
 
 }
+
+RCPP_EXPOSED_CLASS(binSegCpp_L1_cwMed)
+  RCPP_MODULE(binSegCpp_L1_cwMed_module) {
+    Rcpp::class_<binSegCppTmpl<Cost_L1_cwMed>>("binSegCpp_L1_cwMed")
+    .constructor<arma::mat, int, int>()       // mat, minSize, jump
+    .method("fit", &binSegCppTmpl<Cost_L1_cwMed>::fit)
+    .method("predict", &binSegCppTmpl<Cost_L1_cwMed>::predict)
+    .method("eval", &binSegCppTmpl<Cost_L1_cwMed>::eval);
+  }
+
+
+// ========================================================
+//                        L2 class
+// ========================================================
+
+static void L2() {
+  // intentionally empty
+}
+
 
 template<>
 binSegCppTmpl<Cost_L2>::binSegCppTmpl(const arma::mat& tsMat, int minSize_, int jump_)
-  : costModule(tsMat), minSize(minSize_), jump(jump_) {
+  : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
   if(nSamples < 2*minSize){
@@ -282,9 +313,29 @@ binSegCppTmpl<Cost_L2>::binSegCppTmpl(const arma::mat& tsMat, int minSize_, int 
 
 }
 
+RCPP_EXPOSED_CLASS(binSegCpp_L2)
+  RCPP_MODULE(binSegCpp_L2_module) {
+    Rcpp::class_<binSegCppTmpl<Cost_L2>>("binSegCpp_L2")
+    .constructor<arma::mat, int, int>()       // mat, minSize, jump
+    .method("fit", &binSegCppTmpl<Cost_L2>::fit)
+    .method("predict", &binSegCppTmpl<Cost_L2>::predict)
+    .method("eval", &binSegCppTmpl<Cost_L2>::eval);
+  }
+
+
+
+// ========================================================
+//                        VAR class
+// ========================================================
+
+static void VAR() {
+  // intentionally empty
+}
+
+
 template<>
-binSegCppTmpl<Cost_SIGMA>::binSegCppTmpl(const arma::mat& tsMat, bool addSmallDiag, double epsilon, int minSize_, int jump_)
-  : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
+binSegCppTmpl<Cost_VAR>::binSegCppTmpl(const arma::mat& tsMat, int pVAR, int minSize_, int jump_)
+  : costModule(tsMat, pVAR, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
   if(nSamples < 2*minSize){
@@ -307,14 +358,31 @@ RCPP_EXPOSED_CLASS(binSegCpp_VAR)
     .method("eval", &binSegCppTmpl<Cost_VAR>::eval);
   }
 
-RCPP_EXPOSED_CLASS(binSegCpp_L2)
-  RCPP_MODULE(binSegCpp_L2_module) {
-    Rcpp::class_<binSegCppTmpl<Cost_L2>>("binSegCpp_L2")
-    .constructor<arma::mat, int, int>()       // mat, minSize, jump
-    .method("fit", &binSegCppTmpl<Cost_L2>::fit)
-    .method("predict", &binSegCppTmpl<Cost_L2>::predict)
-    .method("eval", &binSegCppTmpl<Cost_L2>::eval);
+
+
+// ========================================================
+//                       SIGMA class
+// ========================================================
+
+static void SIGMA() {
+  // intentionally empty
+}
+
+
+template<>
+binSegCppTmpl<Cost_SIGMA>::binSegCppTmpl(const arma::mat& tsMat, bool addSmallDiag, double epsilon, int minSize_, int jump_)
+  : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
+  nSamples = costModule.nr;
+
+  if(nSamples < 2*minSize){
+    Rcpp::stop("Number of observations < 2*minSize!");
   }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations <= jump!");
+  }
+
+}
 
 RCPP_EXPOSED_CLASS(binSegCpp_SIGMA)
   RCPP_MODULE(binSegCpp_SIGMA_module) {
@@ -324,3 +392,4 @@ RCPP_EXPOSED_CLASS(binSegCpp_SIGMA)
     .method("predict", &binSegCppTmpl<Cost_SIGMA>::predict)
     .method("eval", &binSegCppTmpl<Cost_SIGMA>::eval);
   }
+
