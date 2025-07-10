@@ -20,6 +20,7 @@ RcppExport SEXP _rcpp_module_boot_binSegCpp_L1_cwMed_module();
 RcppExport SEXP _rcpp_module_boot_binSegCpp_L2_module();
 RcppExport SEXP _rcpp_module_boot_binSegCpp_VAR_module();
 RcppExport SEXP _rcpp_module_boot_binSegCpp_SIGMA_module();
+RcppExport SEXP _rcpp_module_boot_binSegCpp_ogkSIGMA_module();
 RcppExport SEXP _rcpp_module_boot_PELTCpp_L1_cwMed_module();
 RcppExport SEXP _rcpp_module_boot_PELTCpp_L2_module();
 RcppExport SEXP _rcpp_module_boot_PELTCpp_VAR_module();
@@ -34,6 +35,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rcpp_module_boot_binSegCpp_L2_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_L2_module, 0},
     {"_rcpp_module_boot_binSegCpp_VAR_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_VAR_module, 0},
     {"_rcpp_module_boot_binSegCpp_SIGMA_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_SIGMA_module, 0},
+    {"_rcpp_module_boot_binSegCpp_ogkSIGMA_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_ogkSIGMA_module, 0},
     {"_rcpp_module_boot_PELTCpp_L1_cwMed_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_L1_cwMed_module, 0},
     {"_rcpp_module_boot_PELTCpp_L2_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_L2_module, 0},
     {"_rcpp_module_boot_PELTCpp_VAR_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_VAR_module, 0},
