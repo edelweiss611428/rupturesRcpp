@@ -53,7 +53,7 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{costFunc}}{Active binding. Sets the internal variable \code{.costFunc} but should not be called directly.}
+\item{\code{costFunc}}{Character. Cost function. Can be accessed or modified via \verb{$costFunc}.}
 
 \item{\code{pVAR}}{Integer. Vector autoregressive order. Can be accessed or modified via \verb{$pVAR}.}
 
@@ -88,6 +88,8 @@ and \code{"SIGMA"}. Default: \code{L2}.}
 
 \item{\code{...}}{Optional named parameters required by specific cost functions. \cr
 If any required parameters are missing or null, default values will be used.
+
+For \code{"L1"} and \code{"L2"}, there is no extra parameter.
 
 For \code{"SIGMA"}, supported parameters are:
 \describe{

@@ -56,14 +56,14 @@ costFunc <- R6::R6Class(
 
   active = list(
 
-    #' @field costFunc Active binding. Sets the internal variable \code{.costFunc} but should not be called directly.
+    #' @field costFunc Character. Cost function. Can be accessed or modified via `$costFunc`.
     costFunc = function(charVal) {
 
       if (missing(charVal)) {
         return(private$.costFunc)
       }
 
-      if(!charVal %in% c("L2", "SIGMA", "VAR")){
+      if(!charVal %in% c("L1", "L2", "SIGMA", "VAR")){
         stop("Cost function not supported!")
       }
 
@@ -130,6 +130,8 @@ costFunc <- R6::R6Class(
     #' @param ... Optional named parameters required by specific cost functions. \cr
     #' If any required parameters are missing or null, default values will be used.
     #'
+    #' For \code{"L1"} and \code{"L2"}, there is no extra parameter.
+    #'
     #' For \code{"SIGMA"}, supported parameters are:
     #' \describe{
     #'   \item{`addSmallDiag`}{Logical. If \code{TRUE}, add a small value to the diagonal of estimated covariance matrices
@@ -188,6 +190,9 @@ costFunc <- R6::R6Class(
 
       if(private$.costFunc == "L2"){
         return(list(costFunc = "L2"))
+
+      } else if (private$.costFunc == "L1"){
+        return(list(costFunc = "L1"))
 
       } else if(private$.costFunc == "VAR"){
         return(list(costFunc = "VAR",
