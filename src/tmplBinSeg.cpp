@@ -392,4 +392,3 @@ RCPP_EXPOSED_CLASS(binSegCpp_SIGMA)
     .method("predict", &binSegCppTmpl<Cost_SIGMA>::predict)
     .method("eval", &binSegCppTmpl<Cost_SIGMA>::eval);
   }
-

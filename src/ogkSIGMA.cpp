@@ -23,7 +23,6 @@ inline double biVarGK(const arma::vec& x, const arma::vec& y) {
   return (pow(MADxy(0), 2) - pow(MADxy(1), 2)) / 4.0;
 }
 
-// [[Rcpp::export]]
 arma::mat covMatGK(const arma::mat& X) {
   int p = X.n_cols;
   arma::mat covMat(p, p, arma::fill::zeros);
