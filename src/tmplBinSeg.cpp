@@ -392,3 +392,38 @@ RCPP_EXPOSED_CLASS(binSegCpp_SIGMA)
     .method("predict", &binSegCppTmpl<Cost_SIGMA>::predict)
     .method("eval", &binSegCppTmpl<Cost_SIGMA>::eval);
   }
+
+
+
+// ========================================================
+//                      ogkSIGMA class
+// ========================================================
+
+static void ogkSIGMA() {
+  // intentionally empty
+}
+
+
+template<>
+binSegCppTmpl<Cost_ogkSIGMA>::binSegCppTmpl(const arma::mat& tsMat, int minSize_, int jump_)
+  : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
+  nSamples = costModule.nr;
+
+  if(nSamples < 2*minSize){
+    Rcpp::stop("Number of observations < 2*minSize!");
+  }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations <= jump!");
+  }
+
+}
+
+RCPP_EXPOSED_CLASS(binSegCpp_ogkSIGMA)
+  RCPP_MODULE(binSegCpp_ogkSIGMA_module) {
+    Rcpp::class_<binSegCppTmpl<Cost_ogkSIGMA>>("binSegCpp_ogkSIGMA")
+    .constructor<arma::mat, int, int>()  // mat, minSize, jump
+    .method("fit", &binSegCppTmpl<Cost_ogkSIGMA>::fit)
+    .method("predict", &binSegCppTmpl<Cost_ogkSIGMA>::predict)
+    .method("eval", &binSegCppTmpl<Cost_ogkSIGMA>::eval);
+  }
