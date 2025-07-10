@@ -17,7 +17,7 @@
 #'
 #' Currently supports the following cost functions:
 #'
-#' - `"L2"`: for (independent) piecewise Gaussian process with **constant variance**
+#' - `"L1"` and `"L2"` for (independent) piecewise Gaussian process with **constant variance**
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
 #'
@@ -84,6 +84,13 @@ PELT = R6Class(
       }
 
       private$.minSize = as.integer(intVal)
+
+      # If time series data exists, refit the model
+      if (!is.null(private$.tsMat)) {
+        message("`costFunc` has been updated. Re-fitting the model.")
+        self$fit()
+      }
+
     },
 
     #' @field jump Integer. Search grid step size. Can be accessed or modified via `$jump`.
@@ -102,6 +109,13 @@ PELT = R6Class(
       }
 
       private$.jump = as.integer(intVal)
+
+      # If time series data exists, refit the model
+      if (!is.null(private$.tsMat)) {
+        message("`costFunc` has been updated. Re-fitting the model.")
+        self$fit()
+      }
+
     },
 
     #' @field costFunc `R6` object of class `costFunc`. Search grid step size. Can be accessed or modified via `$costFunc`.
@@ -116,6 +130,12 @@ PELT = R6Class(
       }
 
       private$.costFunc = costFuncObj
+
+      # If time series data exists, refit the model
+      if (!is.null(private$.tsMat)) {
+        message("`costFunc` has been updated. Re-fitting the model.")
+        self$fit()
+      }
     },
 
     #' @field tsMat Numeric matrix. Input time series matrix of size \eqn{n \times p}. Can be accessed or modified via `$tsMat`.
@@ -307,6 +327,10 @@ PELT = R6Class(
                                   private$.costFunc$pass()[["epsilon"]],
                                   private$.minSize, private$.jump)
 
+      } else if(private$.costFunc$pass()[["costFunc"]] == "L1"){
+
+        private$.PELTModule = new(PELTCpp_L1_cwMed, private$.tsMat, private$.minSize, private$.jump)
+
       } else{
         stop("Cost function not supported!")
       }
@@ -323,6 +347,10 @@ PELT = R6Class(
     #'
     #' @details
     #' The segment cost is evaluated as follows:
+    #`
+    #' - **L1 cost function**:
+    #' \deqn{c_{L_1}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \tilde{y}_{(a+1)...b} \|_1}
+    #' where \eqn{\tilde{y}_{(a+1)...b}} is the coordinate-wise median of the segment. If \eqn{a \ge b - 1}, return 0.
     #'
     #' - **L2 cost function**:
     #' \deqn{c_{L_2}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)...b} \|_2^2}
@@ -340,6 +368,7 @@ PELT = R6Class(
     #' \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
     #' where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
     #' \eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where `n` is the time series length), return 0.
+    #'
     #'
     eval = function(a, b){
 
