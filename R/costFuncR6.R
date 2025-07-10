@@ -54,23 +54,6 @@ costFunc <- R6::R6Class(
       private$.costFunc = charVal
     },
 
-    #' @field coorWise Logical. If `TRUE` coordinate-wise median is computed. Otherwise, geometric median is computed via
-    #' the Weiszfeld algorithm. Can be accessed or modified via `$coorWise`.
-    #'
-    coorWise = function(boolVal) {
-
-      if (missing(boolVal)) {
-        return(private$.params[["coorWise"]])
-      }
-
-      if (!is.logical(boolVal) | length(boolVal) != 1L) {
-        stop("`coorWise` must be a single boolean value!")
-
-      }
-      private$.params[["coorWise"]] = boolVal
-
-    },
-
     #' @field pVAR Integer. Vector autoregressive order. Can be accessed or modified via `$pVAR`.
     pVAR = function(intVal) {
 
@@ -127,11 +110,7 @@ costFunc <- R6::R6Class(
     #' @param ... Optional named parameters required by specific cost functions. \cr
     #' If any required parameters are missing or null, default values will be used.
     #'
-    #' #' For \code{"L1"}, supported parameters are:
-    #' \describe{
-    #'   \item{`coorWise`}{Logical. If \code{TRUE}, coordinate-wise median is computed. If \code{FALSE}, geometric median is computed via the
-    #'   Weiszfeld algorithm. Default: `TRUE`.}
-    #' }
+    #' For \code{"L1"} and \code{"L2"}, there is no extra parameter.
     #'
     #' For \code{"SIGMA"}, supported parameters are:
     #' \describe{
@@ -153,17 +132,6 @@ costFunc <- R6::R6Class(
       }
 
       args = list(...)
-
-      if (private$.costFunc == "L1") {
-
-        if (hasName(args, "coorWise") & !is.null(args$coorWise)) {
-          self$coorWise = args$coorWise
-
-        } else {
-          self$coorWise = TRUE
-
-        }
-      }
 
       if (private$.costFunc == "VAR") {
 
@@ -204,8 +172,7 @@ costFunc <- R6::R6Class(
         return(list(costFunc = "L2"))
 
       } else if (private$.costFunc == "L1"){
-        return(list(costFunc = "L1",
-                    coorWise = private$.params[["coorWise"]]))
+        return(list(costFunc = "L1"))
 
       } else if(private$.costFunc == "VAR"){
         return(list(costFunc = "VAR",

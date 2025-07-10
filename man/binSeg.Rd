@@ -179,8 +179,7 @@ The segment cost is evaluated as follows:
 \itemize{
 \item \strong{L1 cost function}:
 \deqn{c_{L_1}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \tilde{y}_{(a+1)...b} \|_1}
-where \eqn{\tilde{y}_{(a+1)...b}} is the median of the segment (either coordinate-wise or
-geometric). If \eqn{a \ge b - 1}, return 0.
+where \eqn{\tilde{y}_{(a+1)...b}} is the coordinate-wise median of the segment. If \eqn{a \ge b - 1}, return 0.
 \item \strong{L2 cost function}:
 \deqn{c_{L_2}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)...b} \|_2^2}
 where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a \ge b - 1}, return 0.

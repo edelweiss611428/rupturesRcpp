@@ -34,9 +34,6 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \describe{
 \item{\code{costFunc}}{Character. Cost function. Can be accessed or modified via \verb{$costFunc}.}
 
-\item{\code{coorWise}}{Logical. If \code{TRUE} coordinate-wise median is computed. Otherwise, geometric median is computed via
-the Weiszfeld algorithm. Can be accessed or modified via \verb{$coorWise}.}
-
 \item{\code{pVAR}}{Integer. Vector autoregressive order. Can be accessed or modified via \verb{$pVAR}.}
 
 \item{\code{addSmallDiag}}{Logical. Whether to add a bias value to the diagonal of estimated covariance matrices to stabilise matrix operations. Can be accessed or modified via \verb{$addSmallDiag}.}
@@ -71,11 +68,7 @@ and \code{"SIGMA"}. Default: \code{L2}.}
 \item{\code{...}}{Optional named parameters required by specific cost functions. \cr
 If any required parameters are missing or null, default values will be used.
 
-#' For \code{"L1"}, supported parameters are:
-\describe{
-\item{\code{coorWise}}{Logical. If \code{TRUE}, coordinate-wise median is computed. If \code{FALSE}, geometric median is computed via the
-Weiszfeld algorithm. Default: \code{TRUE}.}
-}
+For \code{"L1"} and \code{"L2"}, there is no extra parameter.
 
 For \code{"SIGMA"}, supported parameters are:
 \describe{
