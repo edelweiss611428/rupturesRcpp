@@ -31,7 +31,7 @@
 #'   \item{\code{$new()}}{Initialises a `binSeg` object.}
 #'   \item{\code{$describe()}}{Describes the `binSeg` object.}
 #'   \item{\code{$fit()}}{Constructs a `binSeg` module in `C++`.}
-#'   \item{\code{$eval()}}{Evaluate the cost of a segment.}
+#'   \item{\code{$eval()}}{Evaluates the cost of a segment.}
 #'   \item{\code{$predict()}}{Performs `binSeg` given a linear penalty value.}
 #'   \item{\code{$plot()}}{Plots change-point segmentation in `ggplot` style.}
 #'   \item{\code{$clone()}}{Clones the `R6` object.}
