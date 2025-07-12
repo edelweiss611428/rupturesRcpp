@@ -43,11 +43,18 @@ public:
   double lbDet; //lower bound for the determinant
 
 
+  // Constructor
   Cost_SIGMA(const arma::mat& inputMat,
              bool addSmallDiag = true, double epsilon = 1e-6, bool warnOnce = true);
 
+  // Evaluate cost on interval (start, end]
   double eval(int start, int end) const override;
+
+  // Reset warning behavior
   void resetWarning(bool reset) override;
+
+  // Destructor (use default)
+  virtual ~Cost_SIGMA() = default;
 };
 
 
