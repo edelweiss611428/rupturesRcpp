@@ -73,11 +73,11 @@ detectionObj = PELT$new(minSize = 1L, jump = 1L, costFunc = costFuncObj)
 
 All segmentation objects support the following interface:
 
-- `$describe()`: Views the (current) configurations of the object.
+- `$describe(printConfig)`: Views the (current) configurations of the object.
 - `$fit(tsMat)`: Constructs a `C++` detection module corresponding to the current configurations.
 - `$predict(pen)`: Performs change-point detection given a linear penalty value.
 - `$eval(a,b)`: Evaluates the cost of a segment (a,b].
-- `$plot(d, endPts)`: Plots change-point segmentation in `ggplot` style.
+- `$plot(d, endPts,...)`: Plots change-point segmentation in `ggplot` style.
 
 Active bindings (like `minSize` or `tsMat`) can be modified post-creation, automatically re-triggering the fitting process if necessary.
 
