@@ -7,6 +7,7 @@ NULL
   Rcpp::loadModule("Cost_L2_module", TRUE)
   Rcpp::loadModule("Cost_VAR_module", TRUE)
   Rcpp::loadModule("Cost_SIGMA_module", TRUE)
+  Rcpp::loadModule("Cost_L1_cwMed_module", TRUE)
 
   #Pelt
   Rcpp::loadModule("PELTCpp_L1_cwMed_module", TRUE)
