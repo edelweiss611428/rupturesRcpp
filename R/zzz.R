@@ -20,6 +20,12 @@ NULL
   Rcpp::loadModule("binSegCpp_VAR_module", TRUE)
   Rcpp::loadModule("binSegCpp_SIGMA_module", TRUE)
 
+  #Window
+  Rcpp::loadModule("windowCpp_L1_cwMed_module", TRUE)
+  Rcpp::loadModule("windowCpp_L2_module", TRUE)
+  Rcpp::loadModule("windowCpp_VAR_module", TRUE)
+  Rcpp::loadModule("windowCpp_SIGMA_module", TRUE)
+
 }
 
 .onAttach <- function(libname, pkgname) {
