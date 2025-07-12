@@ -3,7 +3,7 @@
 \docType{class}
 \name{PELT}
 \alias{PELT}
-\title{Pruned Exact Linear Time (PELT)}
+\title{Pruned Exact Linear Time (\code{PELT})}
 \description{
 An \code{R6} class implementing the PELT algorithm for offline change-point detection.
 }

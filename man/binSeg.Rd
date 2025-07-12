@@ -3,7 +3,7 @@
 \docType{class}
 \name{binSeg}
 \alias{binSeg}
-\title{Binary Segmentation (binSeg)}
+\title{Binary Segmentation (\code{binSeg})}
 \description{
 An \code{R6} class implementing binary segmentation for offline change-point detection.
 }

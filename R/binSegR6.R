@@ -1,4 +1,4 @@
-#' Binary Segmentation (binSeg)
+#' Binary Segmentation (`binSeg`)
 #'
 #' @description An `R6` class implementing binary segmentation for offline change-point detection.
 #'

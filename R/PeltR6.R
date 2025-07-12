@@ -1,4 +1,4 @@
-#' Pruned Exact Linear Time (PELT)
+#' Pruned Exact Linear Time (`PELT`)
 #'
 #' @description An `R6` class implementing the PELT algorithm for offline change-point detection.
 #'
