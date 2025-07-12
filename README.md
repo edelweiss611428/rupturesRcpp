@@ -34,7 +34,7 @@ To perform change point detection, `rupturesRcpp` requires three "ingredients": 
 
 ### `costFunc` objects
 
-A cost object can be created by initialising a `R6` object of class `costFunc`, which specifies a supported cost function  (e.g., `"L2"`)  and its parameters. 
+A cost function can be specified by initialising a `R6` object of class `costFunc`, which specifies a supported cost function  (e.g., `"L2"`)  and its parameters. 
 
 ```r
 library("rupturesRcpp")
@@ -74,7 +74,7 @@ The `R6` detection classes share a consistent object-oriented interface with sim
 - `$describe()`: Describes the `PELT` object.
 - `$fit()`: Constructs a `C++` `PELT` module corresponding to the specified parameters/active binding.
 - `$predict()`: Performs change-point detection given a linear penalty value.
-- `$eval()`: Evaluate the cost of a segment.
+- `$eval()`: Evaluates the cost of a segment.
 - `$plot()`: Plots change-point segmentation in `ggplot` style.
 - `$clone()`: Clones the `PELT` object.
 
@@ -87,7 +87,7 @@ to `25L`, we can simply use the `$` operator:
 detectionObj$minSize = 25L.
 ```
 
-This will modifies the value of`private$.minSize` to `25L`. We can also use the `$` operator - `detectionObj$minSize` - to extract `minSize`.
+This modifies the value of `private$.minSize` to `25L`. We can also use the `$` operator - `detectionObj$minSize` - to extract `minSize`.
 
 Whenever an active binding is set or modified, internal diagnostics or re-fitting may be triggered automatically to ensure consistency. For example,
 if a `C++` object has been created for `minSize = 1L`, modifying `minSize` will automatically trigger `self$fit()`.
@@ -129,7 +129,7 @@ Then, we construct a `C++` module for `binSeg` via the `$fit()` method, which re
 ```r
 binSegObj$fit(tsMat) 
 ```
-To view the configurations of the `binSeg` object, we can use the `$describe()` method. This method also invisibly returns a list containing several fields of the `binSeg` object for further extraction.
+To view the configurations of the `binSeg` object, we can use the `$describe()` method. This method also invisibly returns a list of internal fields for further inspection or extraction.
 ```r
 binSegObj$describe(printConfig = TRUE) 
 ```
@@ -166,8 +166,7 @@ binSegObj$plot(d = 1:2,
 
 #### Active bindings
 
-An implicit way to modify or set the fields of a `binSeg` object is through its active bindings. We can modify an existing `binSeg` object by assigning new values to its active bindings instead of creating a new object. 
-To demonstrate this, we consider a piecewise vector autoregressive example with constant noise variance.
+An implicit way to modify or set the fields of a `binSeg` object is through its active bindings. We can modify an existing `binSeg` object by assigning new values to its active bindings instead of creating a new object. To demonstrate this, we consider a piecewise vector autoregressive example with constant noise variance.
 
 ```r
 set.seed(1)
