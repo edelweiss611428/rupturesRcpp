@@ -30,11 +30,17 @@ install_github("edelweiss611428/rupturesRcpp")
 
 ## Basic usage
 
-To perform change point detection, `rupturesRcpp` requires three "ingredients": **cost function**, **segmentation method**, and **linear penalty threshold**. 
+To detect change-points using `rupturesRcpp` you need three main components:
 
-### `costFunc` objects
+- **Cost function**(`costFunc`)
+- **Segmentation method**(`binSeg`, `Window`, `PELT`)
+- **Linear penalty threshold**
 
-A cost function can be specified by initialising a `R6` object of class `costFunc`, which specifies a supported cost function  (e.g., `"L2"`)  and its parameters. 
+Each `component` is implemented using an R6-based object-oriented design for clarity and flexibility.
+
+### Cost functions
+
+Create a `costFunc` object by specifying the desired (supported) cost function and optional parameters:
 
 ```r
 library("rupturesRcpp")
@@ -49,12 +55,9 @@ The following table shows the list of supported cost functions.
 | `"SIGMA"`         | Log-determinant of empirical covariance; models varying variance.                                | `costFunc`, `addSmallDiag`, `epsilon`    | `multi`             |
 | `"VAR"`           | Residual error from vector autoregression with constant noise.                                   | `costFunc`, `pVAR`                       | `multi`             |
 
-By default, `costFunc$new()` creates a `"L2"` cost object. If cost-specific parameters are not specified, the default options will be used. See `?rupturesRcpp::costFunc` for more details.
-
 ### Segmentation methods
 
-After initialising a cost object, we can specify a change-point detection object. Supported methods include `binSeg` for binary segmentation, `PELT` for pruned exact linear time, and `Window`
-for window slicing. These have been implemented in `R6` classes (see the table below for more details). 
+After initialising a `costFunc` object, create a segmentation object such as `binSeg`, `Window`, or `PELT`.
 
 | **R6 Class**     | **Method**                | **Description**                                                                | **Parameters/active bindings**                 |
 |------------------|---------------------------|--------------------------------------------------------------------------------|------------------------------------------------|
@@ -66,32 +69,16 @@ A `PELT` object, for example, can be initialised as follows:
 ```r
 detectionObj = PELT$new(minSize = 1L, jump = 1L, costFunc = costFuncObj)
 ```
-If method-specific parameters are not provided, default values will be used—except for `tsMat`, which is not required at initialisation and can be set later.
 
-The `R6` detection classes share a consistent object-oriented interface with similar methods. For example, the `PELT` class provides the following methods:
+All segmentation objects support the following interface:
 
-- `$new()`: Initialises a `PELT` object.
-- `$describe()`: Describes the `PELT` object.
-- `$fit()`: Constructs a `C++` `PELT` module corresponding to the specified parameters/active binding.
-- `$predict()`: Performs change-point detection given a linear penalty value.
-- `$eval()`: Evaluates the cost of a segment.
-- `$plot()`: Plots change-point segmentation in `ggplot` style.
-- `$clone()`: Clones the `PELT` object.
+- `$describe()`: Views the (current) configurations of the object.
+- `$fit(tsMat)`: Constructs a `C++` detection module corresponding to the current configurations.
+- `$predict(pen)`: Performs change-point detection given a linear penalty value.
+- `$eval(a,b)`: Evaluates the cost of a segment (a,b].
+- `$plot(d, endPts)`: Plots change-point segmentation in `ggplot` style.
 
-The `$fit()` method must be called before using `$predict()` or `$eval()`, as it initialises the underlying `C++` module for efficient change-point detection.
-
-Class-specific parameters/active bindings can be modified after initialisation via assignment operator. For example, to modify the `minSize` field in the `PELT` object
-to `25L`, we can simply use the `$` operator:
-
-```r
-detectionObj$minSize = 25L
-```
-
-This modifies the value of `private$.minSize` to `25L`. We can also use the `$` operator - `detectionObj$minSize` - to extract `minSize`.
-
-Whenever an active binding is set or modified, internal diagnostics or re-fitting may be triggered automatically to ensure consistency. For example,
-if a `C++` object has been created for `minSize = 1L`, modifying `minSize` will automatically trigger `self$fit()`.
-
+Active bindings (like `minSize` or `tsMat`) can be modified post-creation, automatically re-triggering the fitting process if necessary.
 
 ## Simulated data examples
   
@@ -111,24 +98,12 @@ As our example involves regimes with varying variance, a suitable `costFunc` opt
 
 ```r
 SIGMAObj = costFunc$new("SIGMA", addSmallDiag = TRUE, epsilon = 1e-6)
-```
-For `"SIGMA"`, we need to specify `addSmallDiag` and `epsilon`. If `addSmallDiag = TRUE`, a small `epsilon` is added to the diagonal of estimated covariance matrices, which stabilises matrix operations. 
-
-### Initialising a `binSeg` object
-
-As the detection classes' interfaces are similar, it is sufficient to demonstrate the usage of `binSeg` only.
-
-A `binSeg` object can be initialised as follows:
-
-```r
 binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = SIGMAObj) 
-```
-Then, we construct a `C++` module for `binSeg` via the `$fit()` method, which requires a `tsMat`. Once `binSeg` is fitted, we will be able to use `$predict()` and `$eval()`.  
-
-```r
 binSegObj$fit(tsMat) 
 ```
-To view the configurations of the `binSeg` object, we can use the `$describe()` method. This method also invisibly returns a list of internal fields for further inspection or extraction.
+
+Once `binSeg` is fitted, we will be able to use `$predict()` and `$eval()`. To view the configurations of the `binSeg` object, we can use `$describe()`. 
+
 ```r
 binSegObj$describe(printConfig = TRUE) 
 ```
@@ -146,7 +121,9 @@ p            : 2L
 
 ### Linear penalty
 
-To obtain an estimated segmentation, we can use the `$predict()` method and specify a non-negative penalty value `pen`. This returns a sorted integer vector of end-points, which includes the number of observations by design. The parameter `pen` should be properly tuned. Here, we set `pen = 100`.
+To obtain an estimated segmentation, we can use the `$predict()` method and specify a non-negative penalty value `pen`, which should be properly tuned. This returns a sorted integer vector of end-points, which includes the number of observations by design. 
+
+Here, we set `pen = 100`.
 
 ```r
 binSegObj$predict(pen = 100)
@@ -155,7 +132,7 @@ binSegObj$predict(pen = 100)
 [1] 100 200
 </pre>
 
-After running `$predict()`, the segmentation output is temporarily saved to the `binSeg` object, allowing users to plot the segmentation results via the `$plot()` method, based on `ggplot2::facet_wrap`. Users can also use the layout operators `|` and `/` from `patchwork` to stack plots.
+After running `$predict()`, the segmentation output is temporarily saved to the `binSeg` object, allowing users to use the `$plot()` method without specifying `endPts`.
 
 ```r
 binSegObj$plot(d = 1:2, 
@@ -165,7 +142,7 @@ binSegObj$plot(d = 1:2,
 
 ### Active bindings
 
-An implicit way to modify or set the fields of a `binSeg` object is through its active bindings. We can modify an existing `binSeg` object by assigning new values to its active bindings instead of creating a new object. To demonstrate this, we consider a piecewise vector autoregressive example with constant noise variance.
+You can also modify a `binSeg` object's fields through its active bindings. To demonstrate this, we consider a piecewise vector autoregressive example with constant noise variance.
 
 ```r
 set.seed(1)
@@ -174,7 +151,7 @@ tsMat = matrix(c(filter(rnorm(100), filter = 0.9, method = "recursive"),
 ```
 ![image](https://github.com/user-attachments/assets/de7a44ef-bc21-4348-b77d-3c05f1ff9c0a)
 
-Here, the most suitable cost function is `"VAR"`. Instead of creating a new `binSeg` object, we will modify the current `binSegObj` as follows: 
+Here, the most suitable cost function is `"VAR"`. Instead of creating a new `binSeg` object, we will modify the current `binSegObj` as follows:
 
 ```r
 VARObj = costFunc$new("VAR")
