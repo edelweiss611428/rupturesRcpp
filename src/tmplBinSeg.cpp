@@ -268,12 +268,20 @@ binSegCppTmpl<Cost_L1_cwMed>::binSegCppTmpl(const arma::mat& tsMat, int minSize_
   : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
   }
 
 }
@@ -302,12 +310,20 @@ binSegCppTmpl<Cost_L2>::binSegCppTmpl(const arma::mat& tsMat, int minSize_, int 
   : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
   }
 
 }
@@ -337,12 +353,20 @@ binSegCppTmpl<Cost_VAR>::binSegCppTmpl(const arma::mat& tsMat, int pVAR, int min
   : costModule(tsMat, pVAR, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
   }
 
 }
@@ -373,12 +397,20 @@ binSegCppTmpl<Cost_SIGMA>::binSegCppTmpl(const arma::mat& tsMat, bool addSmallDi
   : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
   }
 
 }

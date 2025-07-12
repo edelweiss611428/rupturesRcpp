@@ -170,12 +170,20 @@ PELTCppTmpl<Cost_L1_cwMed>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, in
   : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
   }
 
 }
@@ -203,12 +211,20 @@ PELTCppTmpl<Cost_L2>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, int jump
   : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
   }
 
 }
@@ -237,12 +253,20 @@ PELTCppTmpl<Cost_VAR>::PELTCppTmpl(const arma::mat& tsMat, int pVAR, int minSize
   : costModule(tsMat, pVAR, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
   }
 
 }
@@ -272,12 +296,20 @@ PELTCppTmpl<Cost_SIGMA>::PELTCppTmpl(const arma::mat& tsMat, bool addSmallDiag, 
   : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
   }
 
 }
