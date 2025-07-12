@@ -93,9 +93,9 @@ Whenever an active binding is set or modified, internal diagnostics or re-fittin
 if a `C++` object has been created for `minSize = 1L`, modifying `minSize` will automatically trigger `self$fit()`.
 
 
-### Simulated data example
+## Simulated data examples
   
-To demonstrate the package usage, we consider a simple 2d time series with two piecewise Gaussian regimes and varying variance.
+To demonstrate the package usage, we first consider a simple 2d time series with two piecewise Gaussian regimes and varying variance.
 
 ```r
 set.seed(1)
@@ -104,9 +104,8 @@ tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
 ```
 ![image](https://github.com/user-attachments/assets/73687865-b52e-4a6a-b8fd-5cf700a9be7a)
 
-### Segmentation
 
-#### Creating a `costFunc` object
+### Creating a `costFunc` object
 
 As our example involves regimes with varying variance, a suitable `costFunc` option is `"SIGMA"`. 
 
@@ -115,7 +114,7 @@ SIGMAObj = costFunc$new("SIGMA", addSmallDiag = TRUE, epsilon = 1e-6)
 ```
 For `"SIGMA"`, we need to specify `addSmallDiag` and `epsilon`. If `addSmallDiag = TRUE`, a small `epsilon` is added to the diagonal of estimated covariance matrices, which stabilises matrix operations. 
 
-#### Initialising a `binSeg` object
+### Initialising a `binSeg` object
 
 As the detection classes' interfaces are similar, it is sufficient to demonstrate the usage of `binSeg` only.
 
@@ -145,7 +144,7 @@ n            : 200L
 p            : 2L
 </pre>
 
-#### Linear penalty
+### Linear penalty
 
 To obtain an estimated segmentation, we can use the `$predict()` method and specify a non-negative penalty value `pen`. This returns a sorted integer vector of end-points, which includes the number of observations by design. The parameter `pen` should be properly tuned. Here, we set `pen = 100`.
 
@@ -164,7 +163,7 @@ binSegObj$plot(d = 1:2,
 ```
 ![image](https://github.com/user-attachments/assets/d5d31c3d-ced1-4667-8de5-e9ad0cdc84ec)
 
-#### Active bindings
+### Active bindings
 
 An implicit way to modify or set the fields of a `binSeg` object is through its active bindings. We can modify an existing `binSeg` object by assigning new values to its active bindings instead of creating a new object. To demonstrate this, we consider a piecewise vector autoregressive example with constant noise variance.
 
