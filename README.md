@@ -1,5 +1,5 @@
 # Welcome to rupturesRcpp
-
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/edelweiss611428/rupturesRcpp/graphs/commit-activity)
 ## Description
 
 <p align="justify"> The R package provides an efficient, object-oriented R6 interface for offline change point detection, implemented in C++ for high performance. This was created as part of the Google Summer of Code 2025 program. </p>
@@ -34,7 +34,7 @@ To perform change point detection, `rupturesRcpp` requires three "ingredients": 
 
 ### `costFunc` objects
 
-A cost object can be created by initialising a `R6` object of class `costFunc`, which specifies a supported cost function  (e.g., `"L2"`)  and its parameters. 
+A cost function can be specified by initialising a `R6` object of class `costFunc`, which specifies a supported cost function  (e.g., `"L2"`)  and its parameters. 
 
 ```r
 library("rupturesRcpp")
@@ -74,7 +74,7 @@ The `R6` detection classes share a consistent object-oriented interface with sim
 - `$describe()`: Describes the `PELT` object.
 - `$fit()`: Constructs a `C++` `PELT` module corresponding to the specified parameters/active binding.
 - `$predict()`: Performs change-point detection given a linear penalty value.
-- `$eval()`: Evaluate the cost of a segment.
+- `$eval()`: Evaluates the cost of a segment.
 - `$plot()`: Plots change-point segmentation in `ggplot` style.
 - `$clone()`: Clones the `PELT` object.
 
@@ -84,18 +84,18 @@ Class-specific parameters/active bindings can be modified after initialisation v
 to `25L`, we can simply use the `$` operator:
 
 ```r
-detectionObj$minSize = 25L.
+detectionObj$minSize = 25L
 ```
 
-This will modifies the value of`private$.minSize` to `25L`. We can also use the `$` operator - `detectionObj$minSize` - to extract `minSize`.
+This modifies the value of `private$.minSize` to `25L`. We can also use the `$` operator - `detectionObj$minSize` - to extract `minSize`.
 
 Whenever an active binding is set or modified, internal diagnostics or re-fitting may be triggered automatically to ensure consistency. For example,
 if a `C++` object has been created for `minSize = 1L`, modifying `minSize` will automatically trigger `self$fit()`.
 
 
-### Simulated data example
+## Simulated data examples
   
-To demonstrate the package usage, we consider a simple 2d time series with two piecewise Gaussian regimes and varying variance.
+To demonstrate the package usage, we first consider a simple 2d time series with two piecewise Gaussian regimes and varying variance.
 
 ```r
 set.seed(1)
@@ -104,9 +104,8 @@ tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
 ```
 ![image](https://github.com/user-attachments/assets/73687865-b52e-4a6a-b8fd-5cf700a9be7a)
 
-### Segmentation
 
-#### Creating a `costFunc` object
+### Creating a `costFunc` object
 
 As our example involves regimes with varying variance, a suitable `costFunc` option is `"SIGMA"`. 
 
@@ -115,7 +114,7 @@ SIGMAObj = costFunc$new("SIGMA", addSmallDiag = TRUE, epsilon = 1e-6)
 ```
 For `"SIGMA"`, we need to specify `addSmallDiag` and `epsilon`. If `addSmallDiag = TRUE`, a small `epsilon` is added to the diagonal of estimated covariance matrices, which stabilises matrix operations. 
 
-#### Initialising a `binSeg` object
+### Initialising a `binSeg` object
 
 As the detection classes' interfaces are similar, it is sufficient to demonstrate the usage of `binSeg` only.
 
@@ -129,7 +128,7 @@ Then, we construct a `C++` module for `binSeg` via the `$fit()` method, which re
 ```r
 binSegObj$fit(tsMat) 
 ```
-To view the configurations of the `binSeg` object, we can use the `$describe()` method. This method also invisibly returns a list containing several fields of the `binSeg` object for further extraction.
+To view the configurations of the `binSeg` object, we can use the `$describe()` method. This method also invisibly returns a list of internal fields for further inspection or extraction.
 ```r
 binSegObj$describe(printConfig = TRUE) 
 ```
@@ -145,7 +144,7 @@ n            : 200L
 p            : 2L
 </pre>
 
-#### Linear penalty
+### Linear penalty
 
 To obtain an estimated segmentation, we can use the `$predict()` method and specify a non-negative penalty value `pen`. This returns a sorted integer vector of end-points, which includes the number of observations by design. The parameter `pen` should be properly tuned. Here, we set `pen = 100`.
 
@@ -164,10 +163,9 @@ binSegObj$plot(d = 1:2,
 ```
 ![image](https://github.com/user-attachments/assets/d5d31c3d-ced1-4667-8de5-e9ad0cdc84ec)
 
-#### Active bindings
+### Active bindings
 
-An implicit way to modify or set the fields of a `binSeg` object is through its active bindings. We can modify an existing `binSeg` object by assigning new values to its active bindings instead of creating a new object. 
-To demonstrate this, we consider a piecewise vector autoregressive example with constant noise variance.
+An implicit way to modify or set the fields of a `binSeg` object is through its active bindings. We can modify an existing `binSeg` object by assigning new values to its active bindings instead of creating a new object. To demonstrate this, we consider a piecewise vector autoregressive example with constant noise variance.
 
 ```r
 set.seed(1)
