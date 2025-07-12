@@ -84,7 +84,7 @@ Class-specific parameters/active bindings can be modified after initialisation v
 to `25L`, we can simply use the `$` operator:
 
 ```r
-detectionObj$minSize = 25L.
+detectionObj$minSize = 25L
 ```
 
 This modifies the value of `private$.minSize` to `25L`. We can also use the `$` operator - `detectionObj$minSize` - to extract `minSize`.
