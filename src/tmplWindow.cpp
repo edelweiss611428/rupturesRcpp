@@ -229,7 +229,7 @@ windowCppTmpl<Cost_L1_cwMed>::windowCppTmpl(const arma::mat& tsMat, int minSize_
   }
 
   if(nSamples <= 2*h){
-    Rcpp::stop("Number of observations must be larger than `2*h`!");
+    Rcpp::stop("Number of observations must be larger than `2*radius`!");
   }
 
   if(h < 1){
@@ -237,7 +237,7 @@ windowCppTmpl<Cost_L1_cwMed>::windowCppTmpl(const arma::mat& tsMat, int minSize_
   }
 
   if(2*h <= minSize){
-    Rcpp::warning("Diameter `h*2` should be at least `minSize`");
+    Rcpp::warning("Diameter should be at least `minSize`");
   }
 
 }
@@ -245,7 +245,7 @@ windowCppTmpl<Cost_L1_cwMed>::windowCppTmpl(const arma::mat& tsMat, int minSize_
 RCPP_EXPOSED_CLASS(windowCpp_L1_cwMed)
   RCPP_MODULE(windowCpp_L1_cwMed_module) {
     Rcpp::class_<windowCppTmpl<Cost_L1_cwMed>>("windowCpp_L1_cwMed")
-    .constructor<arma::mat, int, int, int>()       // mat, minSize, jump
+    .constructor<arma::mat, int, int, int>()       // mat, minSize, jump, h
     .method("fit", &windowCppTmpl<Cost_L1_cwMed>::fit)
     .method("predict", &windowCppTmpl<Cost_L1_cwMed>::predict)
     .method("eval", &windowCppTmpl<Cost_L1_cwMed>::eval);
@@ -283,7 +283,7 @@ windowCppTmpl<Cost_L2>::windowCppTmpl(const arma::mat& tsMat, int minSize_, int 
   }
 
   if(nSamples <= 2*h){
-    Rcpp::stop("Number of observations must be larger than `2*h`!");
+    Rcpp::stop("Number of observations must be larger than `2*radius`!");
   }
 
   if(h < 1){
@@ -291,16 +291,15 @@ windowCppTmpl<Cost_L2>::windowCppTmpl(const arma::mat& tsMat, int minSize_, int 
   }
 
   if(2*h <= minSize){
-    Rcpp::warning("Diameter `h*2` should be at least `minSize`");
+    Rcpp::warning("Diameter should be at least `minSize`");
   }
-
 
 }
 
 RCPP_EXPOSED_CLASS(windowCpp_L2)
   RCPP_MODULE(windowCpp_L2_module) {
     Rcpp::class_<windowCppTmpl<Cost_L2>>("windowCpp_L2")
-    .constructor<arma::mat, int, int, int>()       // mat, minSize, jump
+    .constructor<arma::mat, int, int, int>()       // mat, minSize, jump, h
     .method("fit", &windowCppTmpl<Cost_L2>::fit)
     .method("predict", &windowCppTmpl<Cost_L2>::predict)
     .method("eval", &windowCppTmpl<Cost_L2>::eval);
@@ -339,7 +338,7 @@ windowCppTmpl<Cost_VAR>::windowCppTmpl(const arma::mat& tsMat, int pVAR, int min
   }
 
   if(nSamples <= 2*h){
-    Rcpp::stop("Number of observations must be larger than `2*h`!");
+    Rcpp::stop("Number of observations must be larger than `2*radius`!");
   }
 
   if(h < 1){
@@ -347,8 +346,9 @@ windowCppTmpl<Cost_VAR>::windowCppTmpl(const arma::mat& tsMat, int pVAR, int min
   }
 
   if(2*h <= minSize){
-    Rcpp::warning("Diameter `h*2` should be at least `minSize`");
+    Rcpp::warning("Diameter should be at least `minSize`");
   }
+
 
 }
 
@@ -356,7 +356,7 @@ windowCppTmpl<Cost_VAR>::windowCppTmpl(const arma::mat& tsMat, int pVAR, int min
 RCPP_EXPOSED_CLASS(windowCpp_VAR)
   RCPP_MODULE(windowCpp_VAR_module) {
     Rcpp::class_<windowCppTmpl<Cost_VAR>>("windowCpp_VAR")
-    .constructor<arma::mat, int, int, int, int>()  // mat, pVAR, minSize, jump
+    .constructor<arma::mat, int, int, int, int>()  // mat, pVAR, minSize, jump, h
     .method("fit", &windowCppTmpl<Cost_VAR>::fit)
     .method("predict", &windowCppTmpl<Cost_VAR>::predict)
     .method("eval", &windowCppTmpl<Cost_VAR>::eval);
@@ -396,7 +396,7 @@ windowCppTmpl<Cost_SIGMA>::windowCppTmpl(const arma::mat& tsMat, bool addSmallDi
   }
 
   if(nSamples <= 2*h){
-    Rcpp::stop("Number of observations must be larger than `2*h`!");
+    Rcpp::stop("Number of observations must be larger than `2*radius`!");
   }
 
   if(h < 1){
@@ -404,7 +404,7 @@ windowCppTmpl<Cost_SIGMA>::windowCppTmpl(const arma::mat& tsMat, bool addSmallDi
   }
 
   if(2*h <= minSize){
-    Rcpp::warning("Diameter `h*2` should be at least `minSize`");
+    Rcpp::warning("Diameter should be at least `minSize`");
   }
 
 
@@ -413,7 +413,7 @@ windowCppTmpl<Cost_SIGMA>::windowCppTmpl(const arma::mat& tsMat, bool addSmallDi
 RCPP_EXPOSED_CLASS(windowCpp_SIGMA)
   RCPP_MODULE(windowCpp_SIGMA_module) {
     Rcpp::class_<windowCppTmpl<Cost_SIGMA>>("windowCpp_SIGMA")
-    .constructor<arma::mat, bool, double, int, int, int>()  // mat, addSmallDiag, epsilon, minSize, jump
+    .constructor<arma::mat, bool, double, int, int, int>()  // mat, addSmallDiag, epsilon, minSize, jump, h
     .method("fit", &windowCppTmpl<Cost_SIGMA>::fit)
     .method("predict", &windowCppTmpl<Cost_SIGMA>::predict)
     .method("eval", &windowCppTmpl<Cost_SIGMA>::eval);
