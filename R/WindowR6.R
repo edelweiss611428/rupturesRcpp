@@ -1,6 +1,6 @@
-#' Pruned Exact Linear Time (`PELT`)
+#' Window Slicing (`Window`)
 #'
-#' @description An `R6` class implementing the PELT algorithm for offline change-point detection.
+#' @description An `R6` class implementing window slicing for offline change-point detection.
 #'
 #' @include costFuncR6.R
 #' @docType class
@@ -11,9 +11,7 @@
 #' @export
 #'
 #' @details
-#' PELT (Pruned Exact Linear Time) is an efficient algorithm for change point detection
-#' that prunes the search space to achieve optimal segmentation in linear time under
-#' certain conditions.
+#' Window slicing is a scalable, linear-time change-point detection algorithm that selects breakpoints based on local gains computed over sliding windows.
 #'
 #' Currently supports the following cost functions:
 #'
@@ -21,7 +19,7 @@
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
 #'
-#' `PELT` requires  a `R6` object of class `costFunc`, which can be created via `costFunc$new()`.
+#' `Window` requires  a `R6` object of class `costFunc`, which can be created via `costFunc$new()`.
 #'
 #'  Basic usage: <https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md>
 #'
@@ -29,11 +27,11 @@
 #'
 #' @section Methods:
 #' \describe{
-#'   \item{\code{$new()}}{Initialises a `PELT` object.}
-#'   \item{\code{$describe()}}{Describes the `PELT` object.}
-#'   \item{\code{$fit()}}{Constructs a `PELT` module in `C++`.}
+#'   \item{\code{$new()}}{Initialises a `Window` object.}
+#'   \item{\code{$describe()}}{Describes the `Window` object.}
+#'   \item{\code{$fit()}}{Constructs a `Window` module in `C++`.}
 #'   \item{\code{$eval()}}{Evaluate the cost of a segment.}
-#'   \item{\code{$predict()}}{Performs `PELT` given a linear penalty value.}
+#'   \item{\code{$predict()}}{Performs `Window` given a linear penalty value.}
 #'   \item{\code{$plot()}}{Plots change-point segmentation in `ggplot` style.}
 #'   \item{\code{$clone()}}{Clones the `R6` object.}
 #' }
@@ -41,22 +39,19 @@
 #' @references
 #' Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
 #' Signal Processing, 167, 107299.
-#'
-#' Killick, R., Fearnhead, P., & Eckley, I. A. (2012). Optimal detection of change points with a linear computational cost.
-#' Journal of the American Statistical Association, 107(500), 1590-1598.
-#'
 #' @author Minh Long Nguyen \email{edelweiss611428@gmail.com}
 #' @export
 
-PELT = R6Class(
-  "PELT",
+Window = R6Class(
+  "Window",
 
   private = list(
 
     .minSize = 1L,
     .jump = 1L,
+    .radius = 25L,
     .costFunc = costFunc$new("L2"), #L2 cost function
-    .PELTModule = NULL,
+    .windowModule = NULL,
     .tsMat = NULL,
     .fitted = FALSE,
     .n = NULL,
@@ -92,6 +87,32 @@ PELT = R6Class(
       }
 
     },
+
+    #' @field radius Integer. Window radius. Can be accessed or modified via `$radius`.
+    radius = function(intVal) {
+
+      if(missing(intVal)){
+        return(private$.radius)
+      }
+
+      if(is.null(intVal)){
+        stop("'radius' must not be null!")
+      }
+
+      if (!is.numeric(intVal) | any(intVal < 1) | length(intVal) != 1) {
+        stop("'radius' must be a single positive integer!")
+      }
+
+      private$.radius = as.integer(intVal)
+
+      # If time series data exists, refit the model
+      if (!is.null(private$.tsMat)) {
+        message("`costFunc` has been updated. Re-fitting the model.")
+        self$fit()
+      }
+
+    },
+
 
     #' @field jump Integer. Search grid step size. Can be accessed or modified via `$jump`.
     jump = function(intVal) {
@@ -132,6 +153,7 @@ PELT = R6Class(
       private$.costFunc = costFuncObj
 
       # If time series data exists, refit the model
+
       if (!is.null(private$.tsMat)) {
         message("`costFunc` has been updated. Re-fitting the model.")
         self$fit()
@@ -170,16 +192,17 @@ PELT = R6Class(
 
   public = list(
 
-    #' @description Initialises a `PELT` object.
+    #' @description Initialises a `Window` object.
     #'
     #' @param minSize Integer. Minimum allowed segment length. Default: `1L`.
     #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: `1L`.
+    #' @param radius Integer. Radius of each sliding window. Default: `1L`.
     #' @param costFunc A `R6` object of class `costFunc`. Should be created via `costFunc$new()` to avoid error.
     #' Default: `costFunc$new("L2")`.
     #'
     #' @return Invisibly returns `NULL`.
 
-    initialize = function(minSize, jump, costFunc) {
+    initialize = function(minSize, jump, radius, costFunc) {
 
       if(!missing(minSize)){
         self$minSize = minSize
@@ -189,6 +212,10 @@ PELT = R6Class(
         self$jump = jump
       }
 
+      if(!missing(radius)){
+        self$radius = radius
+      }
+
       if(!missing(costFunc)){
         self$costFunc = costFunc
       }
@@ -196,7 +223,7 @@ PELT = R6Class(
       invisible(NULL)
     },
 
-    #' @description Describes a `PELT` object.
+    #' @description Describes a `Window` object.
     #'
     #' @param printConfig Logical. Whether to print object configurations. Default: `FALSE`.
     #'
@@ -205,6 +232,7 @@ PELT = R6Class(
     #' \describe{
     #'   \item{\code{minSize}}{Minimum allowed segment length.}
     #'   \item{\code{jump}}{Search grid step size.}
+    #'   \item{\code{radius}}{Radius of each sliding window.}
     #'   \item{\code{costFunc}}{The `costFun` object.}
     #'   \item{\code{fitted}}{Whether or not `$fit()` has been run.}
     #'   \item{\code{tsMat}}{Time series matrix.}
@@ -224,6 +252,7 @@ PELT = R6Class(
 
       params = list(minSize = private$.minSize,
                     jump = private$.jump,
+                    radius = private$.radius,
                     costFunc = private$.costFunc,
                     fitted = private$.fitted,
                     tsMat = private$.tsMat,
@@ -232,9 +261,10 @@ PELT = R6Class(
 
       if(printConfig){
 
-        cat(sprintf("Pruned Exact Linear Time (PELT) \n"))
+        cat(sprintf("Window Slicing (Window) \n"))
         cat(sprintf("minSize      : %sL\n", private$.minSize))
         cat(sprintf("jump         : %sL\n", private$.jump))
+        cat(sprintf("radius       : %sL\n", private$.radius))
         cat(sprintf("costFunc     : \"%s\"\n", private$.costFunc$pass()[["costFunc"]]))
 
       }
@@ -278,7 +308,7 @@ PELT = R6Class(
 
     },
 
-    #' @description Constructs a `PELT` module in `C++`.
+    #' @description Constructs a `Window` module in `C++`.
     #'
     #' @param tsMat Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
     #' Default: `NULL`.
@@ -287,7 +317,7 @@ PELT = R6Class(
     #'
     #' @details This method does the following:
     #'- Initialises `private$.tsMat`, `private$.n`, and `private$.p`.
-    #'- Constructs a `PELT` module in `C++` and sets `private$.fitted` to `TRUE`, enabling the use of `$predict()` and `$eval()`.
+    #'- Constructs a `Window` module in `C++` and sets `private$.fitted` to `TRUE`, enabling the use of `$predict()` and `$eval()`.
 
     fit = function(tsMat = NULL) {
 
@@ -315,25 +345,29 @@ PELT = R6Class(
       private$.fitted = TRUE
 
       if(private$.costFunc$pass()[["costFunc"]] == "L2"){
-        private$.PELTModule = new(PELTCpp_L2, private$.tsMat, private$.minSize, private$.jump)
+        private$.windowModule = new(windowCpp_L2, private$.tsMat, private$.minSize, private$.jump,
+                                    private$.radius)
 
       } else if(private$.costFunc$pass()[["costFunc"]] == "VAR"){
-        private$.PELTModule = new(PELTCpp_VAR, private$.tsMat, private$.costFunc$pass()[["pVAR"]],
-                                  private$.minSize, private$.jump)
+        private$.windowModule = new(windowCpp_VAR, private$.tsMat, private$.costFunc$pass()[["pVAR"]],
+                                    private$.minSize, private$.jump, private$.radius)
 
       } else if(private$.costFunc$pass()[["costFunc"]] == "SIGMA"){
-        private$.PELTModule = new(PELTCpp_SIGMA, private$.tsMat,
-                                  private$.costFunc$pass()[["addSmallDiag"]],
-                                  private$.costFunc$pass()[["epsilon"]],
-                                  private$.minSize, private$.jump)
+        private$.windowModule = new(windowCpp_SIGMA, private$.tsMat,
+                                    private$.costFunc$pass()[["addSmallDiag"]],
+                                    private$.costFunc$pass()[["epsilon"]],
+                                    private$.minSize, private$.jump, private$.radius)
 
       } else if(private$.costFunc$pass()[["costFunc"]] == "L1"){
 
-        private$.PELTModule = new(PELTCpp_L1_cwMed, private$.tsMat, private$.minSize, private$.jump)
+        private$.windowModule = new(windowCpp_L1_cwMed, private$.tsMat,
+                                    private$.minSize, private$.jump, private$.radius)
 
       } else{
         stop("Cost function not supported!")
       }
+
+      private$.windowModule$fit()
 
       invisible(NULL)
     },
@@ -347,7 +381,7 @@ PELT = R6Class(
     #'
     #' @details
     #' The segment cost is evaluated as follows:
-    #`
+    #'
     #' - **L1 cost function**:
     #' \deqn{c_{L_1}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \tilde{y}_{(a+1)...b} \|_1}
     #' where \eqn{\tilde{y}_{(a+1)...b}} is the coordinate-wise median of the segment. If \eqn{a \ge b - 1}, return 0.
@@ -368,7 +402,6 @@ PELT = R6Class(
     #' \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
     #' where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
     #' \eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where `n` is the time series length), return 0.
-    #'
     #'
     eval = function(a, b){
 
@@ -395,18 +428,18 @@ PELT = R6Class(
         stop("a must be smaller than b!")
       }
 
-      return(private$.PELTModule$eval(a, b))
+      return(private$.windowModule$eval(a, b))
 
     },
 
-    #' @description Performs `PELT` given a linear penalty value.
+    #' @description Performs `Window` given a linear penalty value.
     #'
     #' @param pen Numeric. Penalty per change-point. Default: `0`.
     #'
     #' @return An integer vector of regime end-points. By design, the last element is the
     #' number of observations `private$.n`.
     #'
-    #' @details Performs `PELT` given a linear penalty value. Temporary end points are saved
+    #' @details Performs `Window` given a linear penalty value. Temporary end points are saved
     #' to `private$.tmpEndPoints`, allowing users to use `$plot()` without specifying
     #' end points.
 
@@ -423,8 +456,8 @@ PELT = R6Class(
       if(!is.numeric(pen) | length(pen)!= 1 |  any(pen < 0)){
         stop("`pen` must be a single non-negative value!")
       }
-      #By default, readPath creates a sorted vector of end-points, ended in private$.n.
-      endPts = c(private$.PELTModule$predict(pen))
+
+      endPts = sort(private$.windowModule$predict(pen))
 
       private$.tmpEndPts = endPts
       private$.tmpPen = pen
@@ -439,7 +472,7 @@ PELT = R6Class(
     #' @param d Integer vector. Dimensions to plot. Default: `1L`.
     #' @param endPts Integer vector. End points. Default: latest temporary changepoints obtained via `$predict()`.
     #' @param dimNames Character vector. Feature names matching length of `d`. Defaults to `"X1", "X2", ...`.
-    #' @param main Character. Main title. Defaults to `"PELT: d = ..."`.
+    #' @param main Character. Main title. Defaults to `"Window: d = ..."`.
     #' @param xlab Character. X-axis label. Default: `"Time"`.
     #' @param tsWidth Numeric. Line width for time series and segments. Default: `0.25`.
     #' @param tsCol Character. Time series color. Default: `"#5B9BD5"`.
@@ -460,7 +493,7 @@ PELT = R6Class(
 
 
       if(missing(main)){
-        main = paste0("PELT: ", title_text = paste0("d = (", toString(d), ")"))
+        main = paste0("Window: ", title_text = paste0("d = (", toString(d), ")"))
 
       } else {
         if(!is.character(main) | length(main )!= 1L){
