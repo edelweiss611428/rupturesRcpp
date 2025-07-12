@@ -48,7 +48,7 @@ costFuncObj = costFunc$new(costFunc = "L2")
 ```
 The following table shows the list of supported cost functions.
 
-| **Cost functions**| **Description**                                                                                  | **Parameters/active bindings**           | **Dimension**       |
+| **Cost function** | **Description**                                                                                  | **Parameters/active bindings**           | **Dimension**       |
 |-------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|---------------------|
 | `"L1"`            | Sum of `L1` distances to the segment-wise median; robust to outliers.                            | `costFunc`                               | `multi`             |
 | `"L2"`            | Sum of squared `L2` distances to the segment-wise mean; faster but less robust than `L1`.        | `costFunc`                               | `multi`             |
