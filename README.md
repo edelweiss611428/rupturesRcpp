@@ -30,7 +30,7 @@ install_github("edelweiss611428/rupturesRcpp")
 
 ## Basic usage
 
-To detect change-points using `rupturesRcpp` you need three main "ingredients":
+To detect change-points using `rupturesRcpp` you need three main components:
 
 - **Cost function**(`costFunc`)
 - **Segmentation method**(`binSeg`, `Window`, `PELT`)
@@ -142,7 +142,7 @@ binSegObj$plot(d = 1:2,
 
 ### Active bindings
 
-An implicit way to modify the fields of a `binSeg` object is through its active bindings. To demonstrate this, we consider a piecewise vector autoregressive example with constant noise variance.
+You can also modify a `binSeg` object's fields through its active bindings. To demonstrate this, we consider a piecewise vector autoregressive example with constant noise variance.
 
 ```r
 set.seed(1)
