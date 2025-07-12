@@ -44,7 +44,7 @@ Create a `costFunc` object by specifying the desired (supported) cost function a
 
 ```r
 library("rupturesRcpp")
-costFuncObj = costFunc$new(costFunc = "L2")
+costFuncObj = costFunc$new("L2")
 ```
 The following table shows the list of supported cost functions.
 
