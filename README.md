@@ -48,12 +48,13 @@ costFuncObj = costFunc$new(costFunc = "L2")
 ```
 The following table shows the list of supported cost functions.
 
-| **Cost functions**| **Description**                                                                                  | **Parameters/active bindings**           | **Dimension**       |
-|-------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|---------------------|
-| `"L1"`            | Sum of L1 distances to the segment-wise median; robust to outliers.                              | `costFunc`                               | `multi`             |
-| `"L2"`            | Sum of squared L2 distances to the segment-wise mean; faster but less robust than L1.            | `costFunc`                               | `multi`             |
-| `"SIGMA"`         | Log-determinant of empirical covariance; models varying variance.                                | `costFunc`, `addSmallDiag`, `epsilon`    | `multi`             |
-| `"VAR"`           | Residual error from vector autoregression with constant noise.                                   | `costFunc`, `pVAR`                       | `multi`             |
+| **Cost function** | **Description**                                                                                  | **Parameters/active bindings**           | **Dimension** | **Time complexity** |
+|-------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|----------------|----------------------|
+| `"L1"`            | Sum of `L1` distances to the segment-wise median; robust to outliers.                            | `costFunc`                               | `multi`        | O(n)                 |
+| `"L2"`            | Sum of squared `L2` distances to the segment-wise mean; faster but less robust than `L1`.        | `costFunc`                               | `multi`        | O(1)                 |
+| `"SIGMA"`         | Log-determinant of empirical covariance; models varying variance.                                | `costFunc`, `addSmallDiag`, `epsilon`    | `multi`        | O(1)                 |
+| `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | O(1)                 |
+
 
 ### Segmentation methods
 
@@ -81,7 +82,9 @@ All segmentation objects support the following interface:
 Active bindings (like `minSize` or `tsMat`) can be modified post-creation, automatically re-triggering the fitting process if necessary.
 
 ## Simulated data examples
-  
+
+### 2-regime SIGMA example via binary segmentation
+
 To demonstrate the package usage, we first consider a simple 2d time series with two piecewise Gaussian regimes and varying variance.
 
 ```r
@@ -92,9 +95,7 @@ tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
 ![image](https://github.com/user-attachments/assets/73687865-b52e-4a6a-b8fd-5cf700a9be7a)
 
 
-### Creating a `costFunc` object
-
-As our example involves regimes with varying variance, a suitable `costFunc` option is `"SIGMA"`. 
+As our example involves regimes with varying variance, a suitable `costFunc` option is `"SIGMA"`.  Since the segmentation objects' interfaces are similar, it is sufficient to demonstrate the usage of `binSeg` only.
 
 ```r
 SIGMAObj = costFunc$new("SIGMA", addSmallDiag = TRUE, epsilon = 1e-6)
@@ -102,7 +103,7 @@ binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = SIGMAObj)
 binSegObj$fit(tsMat) 
 ```
 
-Once `binSeg` is fitted, we will be able to use `$predict()` and `$eval()`. To view the configurations of the `binSeg` object, we can use `$describe()`. 
+Once fitted, `$predict()` and `$eval()` can be used. To view the configurations of the `binSeg` object, we can use `$describe()`. 
 
 ```r
 binSegObj$describe(printConfig = TRUE) 
@@ -119,9 +120,7 @@ n            : 200L
 p            : 2L
 </pre>
 
-### Linear penalty
-
-To obtain an estimated segmentation, we can use the `$predict()` method and specify a non-negative penalty value `pen`, which should be properly tuned. This returns a sorted integer vector of end-points, which includes the number of observations by design. 
+To obtain an estimated segmentation, we can use the `$predict()` method and specify a non-negative penalty value `pen`, which should be properly tuned. This returns a sorted integer vector of end-points, including the number of observations by design. 
 
 Here, we set `pen = 100`.
 
@@ -140,7 +139,7 @@ binSegObj$plot(d = 1:2,
 ```
 ![image](https://github.com/user-attachments/assets/d5d31c3d-ced1-4667-8de5-e9ad0cdc84ec)
 
-### Active bindings
+### 2-regime VAR example: Modifying a `binSeg` object through its active bindings
 
 You can also modify a `binSeg` object's fields through its active bindings. To demonstrate this, we consider a piecewise vector autoregressive example with constant noise variance.
 
@@ -188,7 +187,8 @@ binSegObj$plot(d = 1L,
 ## Future development
 
 - Provide additional cost functions (e.g., `"Poisson"`, `"Linear-L1"`, and `"Linear-L2"`). 
-- Implement other change-point detection classes (e.g., `Opt` and `Dynp`).  
+- Implement other change-point detection classes (e.g., `Opt` and `Dynp`).
+- Enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility.
 
 ## References
 
