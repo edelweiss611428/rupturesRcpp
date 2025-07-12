@@ -99,16 +99,10 @@ As our example involves regimes with varying variance, a suitable `costFunc` opt
 ```r
 SIGMAObj = costFunc$new("SIGMA", addSmallDiag = TRUE, epsilon = 1e-6)
 binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = SIGMAObj) 
-```
-Then, we construct a `C++` module for `binSeg` via the `$fit()` method, which requires a `tsMat`. 
-
-```r
 binSegObj$fit(tsMat) 
 ```
 
-Once `binSeg` is fitted, we will be able to use `$predict()` and `$eval()`. 
- 
-To view the configurations of the `binSeg` object, we can use the `$describe()` method. 
+Once `binSeg` is fitted, we will be able to use `$predict()` and `$eval()`. To view the configurations of the `binSeg` object, we can use `$describe()`. 
 
 ```r
 binSegObj$describe(printConfig = TRUE) 
@@ -127,7 +121,9 @@ p            : 2L
 
 ### Linear penalty
 
-To obtain an estimated segmentation, we can use the `$predict()` method and specify a non-negative penalty value `pen`, which should be properly tuned. This returns a sorted integer vector of end-points, which includes the number of observations by design. Here, we set `pen = 100`.
+To obtain an estimated segmentation, we can use the `$predict()` method and specify a non-negative penalty value `pen`, which should be properly tuned. This returns a sorted integer vector of end-points, which includes the number of observations by design. 
+
+Here, we set `pen = 100`.
 
 ```r
 binSegObj$predict(pen = 100)
