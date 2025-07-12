@@ -18,6 +18,17 @@
 +------------------------------------------------------------+
 </pre>
 
+
+### Methods
+
+| **Class**        | **Method**                | **Description**                                                                | **Parameters**                     |
+|------------------|---------------------------|--------------------------------------------------------------------------------|----------------------------------------|
+| `binSeg`         | Binary Segmentation       | Recursively splits the signal at points that minimise the cost.                | `minSize`, `jump`, `costFunc`          |
+| `Window`         | Window Slicing            | Detects change-points using local gains over sliding windows.                  | `minSize`, `jump`, `radius`, `costFunc`|
+| `PELT`           | Pruned Exact Linear Time  | Optimal segmentation with pruning for linear-time performance.                 | `minSize`, `jump`, `costFunc`          |
+
+
+
 ## Installation
 
 To install the newest version of the package, use the following R code: 
