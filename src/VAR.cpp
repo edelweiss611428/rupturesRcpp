@@ -23,7 +23,7 @@ Cost_VAR::Cost_VAR(const arma::mat& inputMat, int pVAR, bool warnOnce){
   }
 
   if (nr - p < J){
-    stop("Not enough observations to fit VAR(p)");
+    Rcpp::stop("The full dataset contains not enough observations to fit VAR(p)!");
   }
 
   Z.set_size(nr-p, J);
