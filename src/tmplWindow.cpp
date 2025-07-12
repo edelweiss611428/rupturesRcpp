@@ -60,10 +60,14 @@ public:
   int minSize;
   int jump;
   int nSamples;
+  int h;
+
   arma::uvec candidates;
   arma::vec gains;
-  arma::uvec localMaxima;
-  int h;
+  int nMaxima;
+
+  arma::uvec sortedPeaks;
+  arma::vec cumGains;
 
   // Declare generic constructors (empty here)
   // The actual definitions will be specialized outside.
@@ -100,7 +104,35 @@ public:
     }
 
     int k = std::max(std::max(h*2, 2 * minSize) / (2 * jump), 1);
-    localMaxima = findLocalMaxima(gains, candidates, k);
+    arma::uvec localMaxima = findLocalMaxima(gains, candidates, k);
+    nMaxima = localMaxima.n_elem;
+
+    // No local maximum
+    if (nMaxima == 0) {
+      Rcpp::warning("There is no valid breakpoint!");
+    }
+
+    // Extract local maxima
+
+    arma::uvec validPeaks(nMaxima);
+    arma::vec validGains(nMaxima);
+
+    for (int i = 0; i < nMaxima; ++i) {
+      arma::uvec match = arma::find(candidates == localMaxima[i]);
+      validPeaks[i] = match[0];
+    }
+
+    for (int i = 0; i < nMaxima; ++i) {
+      validGains[i] = gains[validPeaks[i]];
+    }
+
+    // Sorted peaks/gains
+    arma::uvec sortedIdx = arma::sort_index(validGains, "descend");
+    sortedPeaks = localMaxima.elem(sortedIdx);
+    arma::vec sortedGains = validGains.elem(sortedIdx);
+
+    // Cummulative gains
+    cumGains = arma::cumsum(sortedGains);
 
   }
 
@@ -112,42 +144,19 @@ public:
       Rcpp::stop("Penalty must be non-negative!");
     }
 
-    int nMaxima = localMaxima.n_elem;
-
-    // Special case: no local maxima → return only the final index
+    // No local maximum
     if (nMaxima == 0) {
       return Rcpp::IntegerVector::create(nSamples);
     }
 
-    // 1. Map localMaxima positions to their indices in `candidates`
-    arma::uvec validPeaks(nMaxima);
-    for (int i = 0; i < nMaxima; ++i) {
-      arma::uvec match = arma::find(candidates == localMaxima[i]);
-      validPeaks[i] = match[0];
-    }
-
-    // 2. Extract gains at these positions
-    arma::vec validGains(nMaxima);
-    for (int i = 0; i < nMaxima; ++i) {
-      validGains[i] = gains[validPeaks[i]];
-    }
-
-    // 3. Sort by descending gain
-    arma::uvec sortedIdx = arma::sort_index(validGains, "descend");
-    arma::uvec sortedPeaks = localMaxima.elem(sortedIdx);
-    arma::vec sortedGains = validGains.elem(sortedIdx);
-
-    // 4. Compute cumulative sums of gains
-    arma::vec cumGains = arma::cumsum(sortedGains);
-
-    // 5. Create penalty vector: 1, 2, ..., nMaxima
+    // penalties vector
     arma::vec penalties = arma::regspace(1, nMaxima) * penalty;
 
-    // Compute penalized gains vector
+    // Penalised cummulative gains
 
-    arma::vec penGains = cumGains - penalties;
+    arma::vec penCumGains = cumGains - penalties;
     arma::uword bestK;
-    penGains.max(bestK);
+    penCumGains.max(bestK);
 
     std::vector<int> selectedBkps;
     for (arma::uword i = 0; i <= bestK; ++i) {
@@ -203,12 +212,32 @@ windowCppTmpl<Cost_L1_cwMed>::windowCppTmpl(const arma::mat& tsMat, int minSize_
   : costModule(tsMat, true), minSize(minSize_), jump(jump_), h(h_) {
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+  if(nSamples <= 2*h){
+    Rcpp::stop("Number of observations must be larger than `2*h`!");
+  }
+
+  if(h < 1){
+    Rcpp::stop("Radius must be at least 1!");
+  }
+
+  if(2*h <= minSize){
+    Rcpp::warning("Diameter `h*2` should be at least `minSize`");
   }
 
 }
@@ -237,13 +266,34 @@ windowCppTmpl<Cost_L2>::windowCppTmpl(const arma::mat& tsMat, int minSize_, int 
   : costModule(tsMat, true), minSize(minSize_), jump(jump_), h(h_) {
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
   }
+
+  if(nSamples <= 2*h){
+    Rcpp::stop("Number of observations must be larger than `2*h`!");
+  }
+
+  if(h < 1){
+    Rcpp::stop("Radius must be at least 1!");
+  }
+
+  if(2*h <= minSize){
+    Rcpp::warning("Diameter `h*2` should be at least `minSize`");
+  }
+
 
 }
 
@@ -272,12 +322,32 @@ windowCppTmpl<Cost_VAR>::windowCppTmpl(const arma::mat& tsMat, int pVAR, int min
   : costModule(tsMat, pVAR, true), minSize(minSize_), jump(jump_), h(h_){
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+  if(nSamples <= 2*h){
+    Rcpp::stop("Number of observations must be larger than `2*h`!");
+  }
+
+  if(h < 1){
+    Rcpp::stop("Radius must be at least 1!");
+  }
+
+  if(2*h <= minSize){
+    Rcpp::warning("Diameter `h*2` should be at least `minSize`");
   }
 
 }
@@ -309,13 +379,34 @@ windowCppTmpl<Cost_SIGMA>::windowCppTmpl(const arma::mat& tsMat, bool addSmallDi
   : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_), h(h_){
   nSamples = costModule.nr;
 
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations < 2*minSize!");
+    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
   }
 
   if(nSamples <= jump){
-    Rcpp::stop("Number of observations <= jump!");
+    Rcpp::stop("Number of observations must be larger than `jump`!");
   }
+
+  if(nSamples <= 2*h){
+    Rcpp::stop("Number of observations must be larger than `2*h`!");
+  }
+
+  if(h < 1){
+    Rcpp::stop("Radius must be at least 1!");
+  }
+
+  if(2*h <= minSize){
+    Rcpp::warning("Diameter `h*2` should be at least `minSize`");
+  }
+
 
 }
 
