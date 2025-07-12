@@ -457,7 +457,7 @@ Window = R6Class(
         stop("`pen` must be a single non-negative value!")
       }
 
-      endPts = sort(c(private$.windowModule$predict(pen), private$.n))
+      endPts = sort(private$.windowModule$predict(pen))
 
       private$.tmpEndPts = endPts
       private$.tmpPen = pen
