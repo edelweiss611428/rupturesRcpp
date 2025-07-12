@@ -92,9 +92,7 @@ tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
 ![image](https://github.com/user-attachments/assets/73687865-b52e-4a6a-b8fd-5cf700a9be7a)
 
 
-### Creating a `costFunc` object
-
-As our example involves regimes with varying variance, a suitable `costFunc` option is `"SIGMA"`. 
+As our example involves regimes with varying variance, a suitable `costFunc` option is `"SIGMA"`.  Since the segmentation objects' interfaces are similar, it is sufficient to demonstrate the usage of `binSeg` only.
 
 ```r
 SIGMAObj = costFunc$new("SIGMA", addSmallDiag = TRUE, epsilon = 1e-6)
