@@ -49,7 +49,7 @@ Window = R6Class(
 
     .minSize = 1L,
     .jump = 1L,
-    .radius = 1L,
+    .radius = 25L,
     .costFunc = costFunc$new("L2"), #L2 cost function
     .windowModule = NULL,
     .tsMat = NULL,
@@ -88,7 +88,7 @@ Window = R6Class(
 
     },
 
-    #' @field radius Integer. Search grid step size. Can be accessed or modified via `$radius`.
+    #' @field radius Integer. Window radius. Can be accessed or modified via `$radius`.
     radius = function(intVal) {
 
       if(missing(intVal)){

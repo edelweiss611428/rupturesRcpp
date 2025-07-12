@@ -48,7 +48,7 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \describe{
 \item{\code{minSize}}{Integer. Minimum allowed segment length. Can be accessed or modified via \verb{$minSize}.}
 
-\item{\code{radius}}{Integer. Search grid step size. Can be accessed or modified via \verb{$radius}.}
+\item{\code{radius}}{Integer. Window radius. Can be accessed or modified via \verb{$radius}.}
 
 \item{\code{jump}}{Integer. Search grid step size. Can be accessed or modified via \verb{$jump}.}
 
