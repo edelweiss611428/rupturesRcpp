@@ -28,10 +28,18 @@ public:
   mutable bool warnOnce_;
   bool keepWarning;
 
+  // Constructor
   Cost_VAR(const arma::mat& inputMat, int pVAR = 1, bool warnOnce = true);
 
+  // Evaluate cost on interval (start, end]
   double eval(int start, int end) const override;
+
+  // Reset warning behavior
   void resetWarning(bool reset) override;
+
+  // Destructor (use default)
+  virtual ~Cost_VAR() = default;
+
 };
 
 

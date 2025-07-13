@@ -17,6 +17,7 @@ Currently supports the following cost functions:
 \item \code{"L1"} and \code{"L2"} for (independent) piecewise Gaussian process with \strong{constant variance}
 \item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
 \item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant noise variance}
+\item \code{"LinearL2"}: for piecewise linear regression process with \strong{constant noise variance}
 }
 
 \code{PELT} requires  a \code{R6} object of class \code{costFunc}, which can be created via \code{costFunc$new()}.
@@ -31,7 +32,7 @@ See \verb{$eval()} method for more details on computation of cost.
 \item{\code{$new()}}{Initialises a \code{PELT} object.}
 \item{\code{$describe()}}{Describes the \code{PELT} object.}
 \item{\code{$fit()}}{Constructs a \code{PELT} module in \verb{C++}.}
-\item{\code{$eval()}}{Evaluate the cost of a segment.}
+\item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$predict()}}{Performs \code{PELT} given a linear penalty value.}
 \item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
@@ -51,14 +52,20 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{minSize}}{Integer. Minimum allowed segment length. Can be accessed or modified via \verb{$minSize}.}
+\item{\code{minSize}}{Integer. Minimum allowed segment length. Can be accessed or modified via \verb{$minSize}.
+Modifying \code{minSize} will automatically trigger \verb{$fit()}.}
 
-\item{\code{jump}}{Integer. Search grid step size. Can be accessed or modified via \verb{$jump}.}
+\item{\code{jump}}{Integer. Search grid step size. Can be accessed or modified via \verb{$jump}.
+Modifying \code{jump} will automatically trigger \verb{$fit()}.}
 
-\item{\code{costFunc}}{\code{R6} object of class \code{costFunc}. Search grid step size. Can be accessed or modified via \verb{$costFunc}.}
+\item{\code{costFunc}}{\code{R6} object of class \code{costFunc}. Search grid step size. Can be accessed or modified via \verb{$costFunc}.
+Modifying \code{costFunc} will automatically trigger \verb{$fit()}.}
 
 \item{\code{tsMat}}{Numeric matrix. Input time series matrix of size \eqn{n \times p}. Can be accessed or modified via \verb{$tsMat}.
 Modifying \code{tsMat} will automatically trigger \verb{$fit()}.}
+
+\item{\code{covariates}}{Numeric matrix. Input time series matrix having a similar number of observations as \code{tsMat}. Can be accessed or modified via \verb{$covariates}.
+Modifying \code{covariates} will automatically trigger \verb{$fit()}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -124,6 +131,7 @@ Invisibly returns a list storing at least the following fields:
 \item{\code{costFunc}}{The \code{costFun} object.}
 \item{\code{fitted}}{Whether or not \verb{$fit()} has been run.}
 \item{\code{tsMat}}{Time series matrix.}
+\item{\code{covariates}}{Covariate matrix (if exists).}
 \item{\code{n}}{Number of observations.}
 \item{\code{p}}{Number of features.}
 }
@@ -135,14 +143,20 @@ Invisibly returns a list storing at least the following fields:
 \subsection{Method \code{fit()}}{
 Constructs a \code{PELT} module in \verb{C++}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PELT$fit(tsMat = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PELT$fit(tsMat = NULL, covariates = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{tsMat}}{Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
-Default: \code{NULL}.}
+If \code{tsMat = NULL}, the function will use the previously assigned \code{tsMat} (e.g., set via the active binding \verb{$tsMat}
+or from a prior \verb{$fit(tsMat)}). Default: \code{NULL}.}
+
+\item{\code{covariates}}{Numeric matrix. A time series matrix having a similar number of observations as \code{tsMat}.
+Required for models involving both dependent and independent variables.
+If \code{covariates = NULL} and no prior covariates were set (i.e., \verb{$covariates} is still \code{NULL}),
+the model is force-fitted with only an intercept. Default: \code{NULL}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -197,6 +211,10 @@ or smaller than \code{p*log(epsilon)} - the lower bound, return \code{(b - a)*p*
 where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
 \eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where \code{n} is the time series length), return 0.
 }
+
+\strong{"LinearL2"} for piecewise linear regression process with \strong{constant noise variance}
+\deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
+points needed for OLS, return 0.
 }
 
 \subsection{Returns}{

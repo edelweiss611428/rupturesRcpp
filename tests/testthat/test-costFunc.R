@@ -1,5 +1,5 @@
 #test-costFunc.R
-
+set.seed(12345)
 test_that("Test for error", {
 
   expect_error(costFunc$new("Sydney"), regexp = "not supported")
@@ -67,6 +67,21 @@ test_that("Correct params (SIGMA)", {
   expect_equal(SIGMAobj$addSmallDiag, F)
   expect_equal(SIGMAobj$epsilon, 1e-5)
   expect_null(SIGMAobj$pVAR)
+
+})
+
+
+test_that("Correct params (LinearL2)", {
+
+  LinearL2obj = costFunc$new("LinearL2") #default
+  expect_equal(LinearL2obj$costFunc, "LinearL2")
+  expect_equal(LinearL2obj$intercept, T)
+  expect_null(LinearL2obj$VAR)
+
+  LinearL2obj = costFunc$new("LinearL2", intercept = FALSE)
+  expect_equal(LinearL2obj$costFunc, "LinearL2")
+  expect_equal(LinearL2obj$intercept, F)
+  expect_null(LinearL2obj$pVAR)
 
 })
 

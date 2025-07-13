@@ -23,7 +23,7 @@ Cost_VAR::Cost_VAR(const arma::mat& inputMat, int pVAR, bool warnOnce){
   }
 
   if (nr - p < J){
-    stop("Not enough observations to fit VAR(p)");
+    Rcpp::stop("The full dataset contains not enough observations to fit VAR(p)!");
   }
 
   Z.set_size(nr-p, J);
@@ -96,7 +96,7 @@ double Cost_VAR::eval(int start, int end) const {
   double trace_Syy = arma::trace(Syy);
   double trace_BtH = arma::trace(B.t() * H);
 
-  return trace_Syy - trace_BtH;
+  return std::max(0.0, trace_Syy - trace_BtH);
 
 }
 

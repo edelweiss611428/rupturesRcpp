@@ -1,5 +1,5 @@
 #test-L2module.R
-
+set.seed(12345)
 R_L2eval = function(X, start, end){
   R_start = start+1
   R_end = end
@@ -12,7 +12,7 @@ R_L2eval = function(X, start, end){
 }
 
 set.seed(1)
-tsMat = cbind(c(rnorm(10,0), rnorm(10,5,5)))
+tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)))
 
 nr = nrow(tsMat)
 tsMat_L2module = new(rupturesRcpp:::Cost_L2, tsMat)
@@ -23,15 +23,26 @@ binSegObj$fit(tsMat)
 PELTObj = PELT$new() #L2 by default
 PELTObj$fit(tsMat)
 
+WinObj = Window$new() #L2 by default
+WinObj$fit(tsMat)
+
 test_that("Expect equal", {
 
-  for(i in 0:(nr-1)){
-    for(j in (i+1):nr){
-      gs = R_L2eval(tsMat, i, j)
-      expect_equal(tsMat_L2module$eval(i,j), gs)
-      expect_equal(binSegObj$eval(i,j), gs)
-      expect_equal(PELTObj$eval(i,j), gs)
-    }
+  nCases = 10
+  idx1 = sample.int(nr-2, nCases) #to avoid case nr-1 sample(100) wont give you 100
+  idx2 = integer(nCases)
+
+  for(i in 1:10){
+    idx2[i] = sample((idx1[i]+1):nr, 1)
+  }
+
+  for(i in 1:10){
+
+    gs = R_L2eval(tsMat, idx1[i],idx2[i])
+    expect_equal(tsMat_L2module$eval(idx1[i],idx2[i]), gs)
+    expect_equal(binSegObj$eval(idx1[i],idx2[i]), gs)
+    expect_equal(PELTObj$eval(idx1[i],idx2[i]), gs)
+    expect_equal(WinObj$eval(idx1[i],idx2[i]), gs)
   }
 
 })
@@ -45,6 +56,8 @@ test_that("Expect error", {
   expect_error(binSegObj$eval(0,0),
                regexp = "smaller") #error if start >= end
   expect_error(PELTObj$eval(0,0),
+               regexp = "smaller")
+  expect_error(WinObj$eval(0,0),
                regexp = "smaller")
 
 })

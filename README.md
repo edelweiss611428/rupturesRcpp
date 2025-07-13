@@ -28,7 +28,7 @@ library(devtools)
 install_github("edelweiss611428/rupturesRcpp") 
 ```
 
-## Basic usage
+## Getting started
 
 To detect change-points using `rupturesRcpp` you need three main components:
 
@@ -54,32 +54,42 @@ The following table shows the list of supported cost functions.
 | `"L2"`            | Sum of squared `L2` distances to the segment-wise mean; faster but less robust than `L1`.        | `costFunc`                               | `multi`        | O(1)                 |
 | `"SIGMA"`         | Log-determinant of empirical covariance; models varying mean&variance.                           | `costFunc`, `addSmallDiag`, `epsilon`    | `multi`        | O(1)                 |
 | `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | O(1)                 |
-
+| `"LinearL2"`      | Sum of squared residuals from a linear regression model with constant noise variance.            | `costFunc`, `intercept`                  | `multi`        | O(1)                 |
 
 ### Segmentation methods
 
 After initialising a `costFunc` object, create a segmentation object such as `binSeg`, `Window`, or `PELT`.
 
-| **R6 Class**     | **Method**                | **Description**                                                                | **Parameters/active bindings**                 |
-|------------------|---------------------------|--------------------------------------------------------------------------------|------------------------------------------------|
-| `binSeg`         | Binary Segmentation       | Recursively splits the signal at points that minimise the cost.                | `minSize`, `jump`, `costFunc`, `tsMat`         |
-| `Window`         | Window Slicing            | Detects change-points using local gains over sliding windows.                  | `minSize`, `jump`, `radius`, `costFunc`,`tsMat`|
-| `PELT`           | Pruned Exact Linear Time  | Optimal segmentation with pruning for linear-time performance.                 | `minSize`, `jump`, `costFunc`, `tsMat`         |
+| **R6 Class**     | **Method**                | **Description**                                                                | **Parameters/active bindings**                                |
+|------------------|---------------------------|--------------------------------------------------------------------------------|---------------------------------------------------------------|
+| `binSeg`         | Binary Segmentation       | Recursively splits the signal at points that minimise the cost.                | `minSize`, `jump`, `costFunc`, `tsMat`, `covariates`          |
+| `Window`         | Window Slicing            | Detects change-points using local gains over sliding windows.                  | `minSize`, `jump`, `radius`, `costFunc`,`tsMat`, `covariates` |
+| `PELT`           | Pruned Exact Linear Time  | Optimal segmentation with pruning for linear-time performance.                 | `minSize`, `jump`, `costFunc`, `tsMat`, `covariates`          |
+
+The `covariates` argument is optional and only required for models involving both dependent and independent variables (e.g., `"LinearL2"`). If not provided, the model is force-fitted using only 
+an intercept term (i.e., a column of ones).
 
 A `PELT` object, for example, can be initialised as follows:
 ```r
 detectionObj = PELT$new(minSize = 1L, jump = 1L, costFunc = costFuncObj)
 ```
 
-All segmentation objects support the following interface:
+All segmentation objects implement the following methods:
 
 - `$describe(printConfig)`: Views the (current) configurations of the object.
-- `$fit(tsMat)`: Constructs a `C++` detection module corresponding to the current configurations.
+- `$fit(tsMat, covariates)`: Constructs a `C++` detection module corresponding to the current configurations.
 - `$predict(pen)`: Performs change-point detection given a linear penalty value.
 - `$eval(a,b)`: Evaluates the cost of a segment (a,b].
 - `$plot(d, endPts,...)`: Plots change-point segmentation in `ggplot` style.
 
-Active bindings (like `minSize` or `tsMat`) can be modified post-creation, automatically re-triggering the fitting process if necessary.
+Active bindings (such as `minSize` or `tsMat`) can be modified at any time—either before or after the object is created via the `$` operator. 
+For consistency, if the object has already been fitted, modifying any active bindings will automatically re-trigger the fitting process.
+
+```r
+detectionObj$minSize = 2L #Before fitting
+detectionObj$fit(a_time_series_matrix) #Fitted
+detectionObj$minSize = 1L #After fitting - automatically re-trigger `$fit()`
+```
 
 ## Simulated data examples
 
@@ -189,6 +199,7 @@ binSegObj$plot(d = 1L,
 - Provide additional cost functions (e.g., `"Poisson"`, `"Linear-L1"`, and `"Linear-L2"`). 
 - Implement other offline change-point detection classes (e.g., `Opt` and `Dynp`).
 - Enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility.
+- Provide instructions for future contributors.
 - (Tentative) Implement online change-point detection classes.
 
 ## References

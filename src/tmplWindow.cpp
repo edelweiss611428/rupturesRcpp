@@ -5,6 +5,7 @@
 #include "L2.h"
 #include "SIGMA.h"
 #include "L1_cwMed.h"
+#include "LinearL2.h"
 #include "baseClass.h"
 
 using namespace Rcpp;
@@ -72,14 +73,17 @@ public:
   // Declare generic constructors (empty here)
   // The actual definitions will be specialized outside.
 
-  // For VAR: constructor with (mat, pVAR, minSize, jump)
+  // For VAR: constructor with (tsMat, pVAR, minSize, jump, radius)
   windowCppTmpl(const arma::mat& tsMat, int pVAR, int minSize_, int jump_, int h_);
 
-  // For L1, L2: constructor with (mat, minSize, jump)
+  // For L1, L2: constructor with (tsMat, minSize, jump, radius)
   windowCppTmpl(const arma::mat& tsMat, int minSize_, int jump_, int h_);
 
-  // For SIGMA: constructor with (mat, addSmallDiag, epsilon, minSize, jump)
+  // For SIGMA: constructor with (tsMat, addSmallDiag, epsilon, minSize, jump, radius)
   windowCppTmpl(const arma::mat& tsMat, bool addSmallDiag, double epsilon, int minSize_, int jump_, int h_);
+
+  // For LinearL2: constructor with (tsMat, covariates, intercept, minSize, jump, radius)
+  windowCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_, int minSize_, int jump_, int h_);
 
   //.fit() method
   void fit(){
@@ -221,7 +225,7 @@ windowCppTmpl<Cost_L1_cwMed>::windowCppTmpl(const arma::mat& tsMat, int minSize_
   }
 
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
+    Rcpp::stop("Number of observations must be at least `2*minSize`!");
   }
 
   if(nSamples <= jump){
@@ -275,7 +279,7 @@ windowCppTmpl<Cost_L2>::windowCppTmpl(const arma::mat& tsMat, int minSize_, int 
   }
 
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
+    Rcpp::stop("Number of observations must be at least `2*minSize`!");
   }
 
   if(nSamples <= jump){
@@ -330,7 +334,7 @@ windowCppTmpl<Cost_VAR>::windowCppTmpl(const arma::mat& tsMat, int pVAR, int min
   }
 
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
+    Rcpp::stop("Number of observations must be at least `2*minSize`!");
   }
 
   if(nSamples <= jump){
@@ -388,7 +392,7 @@ windowCppTmpl<Cost_SIGMA>::windowCppTmpl(const arma::mat& tsMat, bool addSmallDi
   }
 
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
+    Rcpp::stop("Number of observations must be at least `2*minSize`!");
   }
 
   if(nSamples <= jump){
@@ -417,4 +421,63 @@ RCPP_EXPOSED_CLASS(windowCpp_SIGMA)
     .method("fit", &windowCppTmpl<Cost_SIGMA>::fit)
     .method("predict", &windowCppTmpl<Cost_SIGMA>::predict)
     .method("eval", &windowCppTmpl<Cost_SIGMA>::eval);
+  }
+
+
+
+// ========================================================
+//                     LinearL2 class
+// ========================================================
+
+static void LinearL2() {
+  // intentionally empty
+}
+
+
+template<>
+windowCppTmpl<Cost_LinearL2>::windowCppTmpl(const arma::mat& tsMat,  const arma::mat& covariates,
+                                            bool intercept_, int minSize_, int jump_, int h_)
+  : costModule(tsMat, covariates, intercept_, true), minSize(minSize_), jump(jump_), h(h_){
+  nSamples = costModule.nr;
+
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
+  if(nSamples < 2*minSize){
+    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+  if(nSamples <= 2*h){
+    Rcpp::stop("Number of observations must be larger than `2*radius`!");
+  }
+
+  if(h < 1){
+    Rcpp::stop("Radius must be at least 1!");
+  }
+
+  if(2*h <= minSize){
+    Rcpp::warning("Diameter should be at least `minSize`");
+  }
+
+
+}
+
+// For LinearL2: constructor with (tsMat, covariates, intercept, minSize, jump, h)
+
+RCPP_EXPOSED_CLASS(windowCpp_LinearL2)
+  RCPP_MODULE(windowCpp_LinearL2_module) {
+    Rcpp::class_<windowCppTmpl<Cost_LinearL2>>("windowCpp_LinearL2")
+    .constructor<arma::mat, arma::mat, bool, int, int, int>()  // mat, covariates, intercept, minSize, jump, h
+    .method("fit", &windowCppTmpl<Cost_LinearL2>::fit)
+    .method("predict", &windowCppTmpl<Cost_LinearL2>::predict)
+    .method("eval", &windowCppTmpl<Cost_LinearL2>::eval);
   }

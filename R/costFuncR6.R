@@ -6,17 +6,16 @@
 #' Creates an instance of `costFunc` `R6` class, used in initialisation of change-point detection modules. Currently
 #' supports the following cost functions:
 #'
-#' - **"L1"** and **"L2"** for (independent) piecewise Gaussian process with **constant variance**
 #'
-#'  \deqn{c_{L_1}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \tilde{y}_{(a+1)...b} \|_1}
+#' - **L1 cost function**:
+#' \deqn{c_{L_1}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \tilde{y}_{(a+1)...b} \|_1}
 #' where \eqn{\tilde{y}_{(a+1)...b}} is the coordinate-wise median of the segment. If \eqn{a \ge b - 1}, return 0.
 #'
+#' - **L2 cost function**:
 #' \deqn{c_{L_2}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)...b} \|_2^2}
-#' where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a \ge b - 1}, return 0. `"L2"`
-#' is faster  but less robust to contamination than `"L1"`.
+#' where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a \ge b - 1}, return 0.
 #'
-#' - **"SIGMA"** for (independent) piecewise Gaussian process with **varying variance**
-#'
+#' - **SIGMA cost function**:
 #' \deqn{c_{\sum}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
 #' the empirical covariance matrix of the segment without Bessel's correction. Here, if `addSmallDiag = TRUE`, a small
 #' bias `epsilon` is added to the diagonal of estimated covariance matrices to improve numerical stability. \cr
@@ -24,11 +23,14 @@
 #' By default, `addSmallDiag = TRUE` and `epsilon = 1e-6`. In case `addSmallDiag = TRUE`, if the computed determinant of covariance matrix is either 0 (singular)
 #' or smaller than `p*log(epsilon)` - the lower bound, return `(b - a)*p*log(epsilon)`, otherwise, output an error message.
 #'
-#' - **"VAR"** for piecewise Gaussian vector-regressive process with **constant noise variance**
-#'
+#' - **VAR(r) cost function**:
 #' \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
 #' where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
 #' \eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where `n` is the time series length), return 0.
+#'
+#' - **"LinearL2"** for piecewise linear regression process with **constant noise variance**
+#' \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
+#' points needed for OLS, return 0.
 #'
 #'
 #' @section Methods:
@@ -63,7 +65,7 @@ costFunc <- R6::R6Class(
         return(private$.costFunc)
       }
 
-      if(!charVal %in% c("L1", "L2", "SIGMA", "VAR")){
+      if(!charVal %in% c("L1", "L2", "SIGMA", "VAR", "LinearL2")){
         stop("Cost function not supported!")
       }
 
@@ -117,6 +119,21 @@ costFunc <- R6::R6Class(
       }
       private$.params[["epsilon"]] = doubleVal
 
+    },
+
+    #' @field intercept Logical. Whether to include the intercept in regression problems. Can be accessed or modified via `$intercept`.
+    intercept = function(boolVal) {
+
+      if (missing(boolVal)) {
+        return(private$.params[["intercept"]])
+      }
+
+      if (!is.logical(boolVal) | length(boolVal) != 1L) {
+        stop("`intercept` must be a single boolean value!")
+
+      }
+      private$.params[["intercept"]] = boolVal
+
     }
 
   ),
@@ -143,6 +160,11 @@ costFunc <- R6::R6Class(
     #' For \code{"VAR"}, \code{pVAR} is required:
     #' \describe{
     #'   \item{`pVAR`}{Integer. Vector autoregressive order. Must be a positive integer. Default: `1L`.}
+    #' }
+    #'
+    #' For \code{"LinearL2"}, \code{intercept} is required:
+    #' \describe{
+    #'   \item{`intercept`}{Logical. Whether to include the intercept in regression problems. Default: `TRUE`.}
     #' }
 
     initialize = function(costFunc, ...) {
@@ -182,6 +204,18 @@ costFunc <- R6::R6Class(
 
         }
       }
+
+      if (private$.costFunc == "LinearL2") {
+
+        self$intercept= if (hasName(args, "intercept") & !is.null(args$intercept)) {
+          args$intercept
+
+        } else {
+          TRUE
+
+        }
+      }
+
     },
 
     #' @description Returns a list of configuration parameters to initialise `detection` modules.
@@ -202,6 +236,10 @@ costFunc <- R6::R6Class(
         return(list(costFunc = "SIGMA",
                     addSmallDiag = private$.params[["addSmallDiag"]],
                     epsilon = private$.params[["epsilon"]]))
+
+      } else if(private$.costFunc == "LinearL2"){
+        return(list(costFunc = "LinearL2",
+                    intercept = private$.params[["intercept"]]))
 
       }
     }
