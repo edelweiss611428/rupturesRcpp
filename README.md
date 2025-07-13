@@ -199,6 +199,7 @@ binSegObj$plot(d = 1L,
 - Provide additional cost functions (e.g., `"Poisson"`, `"Linear-L1"`, and `"Linear-L2"`). 
 - Implement other offline change-point detection classes (e.g., `Opt` and `Dynp`).
 - Enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility.
+- Improve `$plot()` method for models involving both dependent and independent variables.
 - Provide instructions for future contributors.
 - (Tentative) Implement online change-point detection classes.
 
