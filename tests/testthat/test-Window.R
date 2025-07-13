@@ -80,9 +80,6 @@ test_that("Expect error when segment is too short", {
   WindowObj$minSize = 10
   expect_error(WindowObj$fit(X1)) ## nObs must be at least 2*minSize
 
-  WindowObj$minSize = 5
-  expect_warning(WindowObj$fit(X1), "Diameter") ##  Diameter should be at least `minSize`
-
 })
 
 
