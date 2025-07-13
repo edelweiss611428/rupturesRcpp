@@ -147,6 +147,7 @@ After running `$predict()`, the segmentation output is temporarily saved to the 
 binSegObj$plot(d = 1:2, 
                main = "method: binSeg; costFunc: SIGMA; pen: 100")
 ```
+<img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/f8750edf-13d8-4363-b158-9beb744bef0b" />
 
 
 ### 2-regime VAR example: Modifying a `binSeg` object through its active bindings
