@@ -208,22 +208,9 @@ binSegObj$plot(d = 1L,
 
 ## Contributing
 
-Contributions, big or small,  
-We welcome gladly, one and all.  
-Found a bug or feature request?  
-Open an issue, make it clear.
+We welcome all contributions, whether big or small. If you encounter a bug or have a feature suggestion, please open an issue to let us know. 
 
-Fork the repo, dive right in,  
-Fix or build — let’s all win.  
-For changes big, please say first,  
-Discuss with us, quench the thirst.
-
-Submit a pull, share your part,  
-Together we build with heart.  
-Thank you kindly, friend and peer,  
-Your help makes this project clear!
-
-*— Crafted with help from ChatGPT*
+Feel free to fork the repository and make your changes. For significant updates, it’s best to discuss them with us first. When your changes are ready, submit a pull request. Thank you for helping us improve this project!
 
 ## License
 
