@@ -3,6 +3,7 @@
 #include "L2.h"
 #include "SIGMA.h"
 #include "L1_cwMed.h"
+#include "LinearL2.h"
 #include "baseClass.h"
 
 using namespace Rcpp;
@@ -55,6 +56,11 @@ public:
 
   // For SIGMA: constructor with (mat, addSmallDiag, epsilon, minSize, jump)
   PELTCppTmpl(const arma::mat& tsMat, bool addSmallDiag, double epsilon, int minSize_, int jump_);
+
+
+  // For LinearL2: constructor with (tsMat, covariates, intercept, minSize, jump)
+  PELTCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_, int minSize_, int jump_);
+
 
   // The predict() method as before...
   std::vector<int> predict(double penalty) {
@@ -179,7 +185,7 @@ PELTCppTmpl<Cost_L1_cwMed>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, in
   }
 
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
+    Rcpp::stop("Number of observations must be at least `2*minSize`!");
   }
 
   if(nSamples <= jump){
@@ -220,7 +226,7 @@ PELTCppTmpl<Cost_L2>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, int jump
   }
 
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
+    Rcpp::stop("Number of observations must be at least `2*minSize`!");
   }
 
   if(nSamples <= jump){
@@ -262,7 +268,7 @@ PELTCppTmpl<Cost_VAR>::PELTCppTmpl(const arma::mat& tsMat, int pVAR, int minSize
   }
 
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
+    Rcpp::stop("Number of observations must be at least `2*minSize`!");
   }
 
   if(nSamples <= jump){
@@ -305,7 +311,7 @@ PELTCppTmpl<Cost_SIGMA>::PELTCppTmpl(const arma::mat& tsMat, bool addSmallDiag, 
   }
 
   if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least than `2*minSize`!");
+    Rcpp::stop("Number of observations must be at least `2*minSize`!");
   }
 
   if(nSamples <= jump){
@@ -320,4 +326,49 @@ RCPP_EXPOSED_CLASS(PELTCpp_SIGMA)
     .constructor<arma::mat, bool, double, int, int>()  // tsMat, addSmallDiag, epsilon, minSize, jump
     .method("predict", &PELTCppTmpl<Cost_SIGMA>::predict)
     .method("eval", &PELTCppTmpl<Cost_SIGMA>::eval);
+  }
+
+
+
+// ========================================================
+//                     LinearL2 class
+// ========================================================
+
+static void LinearL2() {
+  // intentionally empty
+}
+
+
+template<>
+PELTCppTmpl<Cost_LinearL2>::PELTCppTmpl(const arma::mat& tsMat,  const arma::mat& covariates,
+                                            bool intercept_, int minSize_, int jump_)
+  : costModule(tsMat, covariates, intercept_, true), minSize(minSize_), jump(jump_){
+  nSamples = costModule.nr;
+
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
+  if(nSamples < 2*minSize){
+    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+}
+
+// For LinearL2: constructor with (tsMat, covariates, intercept, minSize, jump, h)
+
+RCPP_EXPOSED_CLASS(PELTCpp_LinearL2)
+  RCPP_MODULE(PELTCpp_LinearL2_module) {
+    Rcpp::class_<PELTCppTmpl<Cost_LinearL2>>("PELTCpp_LinearL2")
+    .constructor<arma::mat, arma::mat, bool, int, int>()  // mat, covariates, intercept, minSize, jump
+    .method("predict", &PELTCppTmpl<Cost_LinearL2>::predict)
+    .method("eval", &PELTCppTmpl<Cost_LinearL2>::eval);
   }
