@@ -2,4 +2,3 @@
 ^\.Rproj\.user$
 ^\.github$
 ^LICENSE\.md$
-^tests/testthat/test-Python.*
