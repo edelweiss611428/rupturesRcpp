@@ -27,6 +27,7 @@ NULL
   Rcpp::loadModule("windowCpp_L2_module", TRUE)
   Rcpp::loadModule("windowCpp_VAR_module", TRUE)
   Rcpp::loadModule("windowCpp_SIGMA_module", TRUE)
+  Rcpp::loadModule("windowCpp_LinearL2_module", TRUE)
 
 }
 
