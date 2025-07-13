@@ -20,6 +20,7 @@
 #' - `"L1"` and `"L2"` for (independent) piecewise Gaussian process with **constant variance**
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
+#' - `"LinearL2"`: for piecewise linear regression process with **constant noise variance**
 #'
 #' `PELT` requires  a `R6` object of class `costFunc`, which can be created via `costFunc$new()`.
 #'
@@ -58,6 +59,7 @@ PELT = R6Class(
     .costFunc = costFunc$new("L2"), #L2 cost function
     .PELTModule = NULL,
     .tsMat = NULL,
+    .covariates = NULL,
     .fitted = FALSE,
     .n = NULL,
     .p = NULL,
@@ -69,6 +71,7 @@ PELT = R6Class(
   active = list(
 
     #' @field minSize Integer. Minimum allowed segment length. Can be accessed or modified via `$minSize`.
+    #' Modifying `minSize` will automatically trigger `$fit()`.
     minSize = function(intVal) {
 
       if(missing(intVal)){
@@ -86,14 +89,16 @@ PELT = R6Class(
       private$.minSize = as.integer(intVal)
 
       # If time series data exists, refit the model
-      if (!is.null(private$.tsMat)) {
+      if (!is.null(private$.tsMat) & private$.fitted) {
         message("`costFunc` has been updated. Re-fitting the model.")
         self$fit()
       }
 
     },
 
+
     #' @field jump Integer. Search grid step size. Can be accessed or modified via `$jump`.
+    #' Modifying `jump` will automatically trigger `$fit()`.
     jump = function(intVal) {
 
       if(missing(intVal)){
@@ -111,7 +116,7 @@ PELT = R6Class(
       private$.jump = as.integer(intVal)
 
       # If time series data exists, refit the model
-      if (!is.null(private$.tsMat)) {
+      if (!is.null(private$.tsMat) & private$.fitted) {
         message("`costFunc` has been updated. Re-fitting the model.")
         self$fit()
       }
@@ -119,6 +124,7 @@ PELT = R6Class(
     },
 
     #' @field costFunc `R6` object of class `costFunc`. Search grid step size. Can be accessed or modified via `$costFunc`.
+    #' Modifying `costFunc` will automatically trigger `$fit()`.
     costFunc = function(costFuncObj) {
 
       if(missing(costFuncObj)){
@@ -132,7 +138,8 @@ PELT = R6Class(
       private$.costFunc = costFuncObj
 
       # If time series data exists, refit the model
-      if (!is.null(private$.tsMat)) {
+
+      if (!is.null(private$.tsMat) & private$.fitted) {
         message("`costFunc` has been updated. Re-fitting the model.")
         self$fit()
       }
@@ -163,9 +170,44 @@ PELT = R6Class(
       private$.n = nrow(numMat)
       private$.p = ncol(numMat)
 
-      self$fit()
+      if (private$.fitted) {
+        self$fit()
+      }
+
+    },
+
+    #' @field covariates Numeric matrix. Input time series matrix having a similar number of observations as `tsMat`. Can be accessed or modified via `$covariates`.
+    #' Modifying `covariates` will automatically trigger `$fit()`.
+    #'
+    covariates = function(numMat) {
+
+      if(missing(numMat)){
+        return(private$.covariates)
+      }
+
+      if(is.null(numMat)){
+        stop("`covariates` must not be null!")
+      }
+
+      if (!is.numeric(numMat) | !is.matrix(numMat)) {
+        stop("`covariates` must be a numeric time series matrix!")
+      }
+
+      if(any(is.na(numMat))){
+        stop("`covariates` contains NAs!")
+      }
+
+      private$.covariates = numMat
+
+      if(private$.costFunc$pass()[["costFunc"]] %in% c("LinearL2")){
+        if (!is.null(private$.tsMat) & private$.fitted) {
+          self$fit()
+        }
+      }
 
     }
+
+
   ),
 
   public = list(
@@ -208,6 +250,7 @@ PELT = R6Class(
     #'   \item{\code{costFunc}}{The `costFun` object.}
     #'   \item{\code{fitted}}{Whether or not `$fit()` has been run.}
     #'   \item{\code{tsMat}}{Time series matrix.}
+    #'   \item{\code{covariates}}{Covariate matrix (if exists).}
     #'   \item{\code{n}}{Number of observations.}
     #'   \item{\code{p}}{Number of features.}
     #' }
@@ -227,6 +270,7 @@ PELT = R6Class(
                     costFunc = private$.costFunc,
                     fitted = private$.fitted,
                     tsMat = private$.tsMat,
+                    covariates = private$.covariates,
                     n = private$.n,
                     p = private$.p)
 
@@ -266,6 +310,18 @@ PELT = R6Class(
 
       }
 
+      if(private$.costFunc$pass()[["costFunc"]] == "LinearL2"){
+
+        if(printConfig){
+
+          cat(sprintf("intercept    : %sL\n", private$.costFunc$pass()[["intercept"]]))
+
+        }
+
+        params[["intercept"]] = private$.costFunc$pass()[["intercept"]]
+
+      }
+
       if(printConfig){
 
         cat(sprintf("fitted       : %s\n", private$.fitted))
@@ -282,6 +338,10 @@ PELT = R6Class(
     #'
     #' @param tsMat Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
     #' Default: `NULL`.
+    #' @param covariates Numeric matrix. A time series matrix having a similar number of observations as `tsMat`.
+    #' Required for models involving both dependent and independent variables.
+    #' If `covariates = NULL` and no prior covariates were set (i.e., `$covariates` is still `NULL`),
+    #' the model is force-fitted with only an intercept. Default: `NULL`.
     #'
     #' @return Invisibly returns `NULL`.
     #'
@@ -289,9 +349,10 @@ PELT = R6Class(
     #'- Initialises `private$.tsMat`, `private$.n`, and `private$.p`.
     #'- Constructs a `PELT` module in `C++` and sets `private$.fitted` to `TRUE`, enabling the use of `$predict()` and `$eval()`.
 
-    fit = function(tsMat = NULL) {
+    fit = function(tsMat = NULL, covariates = NULL) {
 
       # Only assign if explicitly called with `tsMat` argument
+
 
       if (!is.null(tsMat)) {
 
@@ -306,13 +367,61 @@ PELT = R6Class(
         private$.tsMat = tsMat
         private$.n = nrow(tsMat)
         private$.p = ncol(tsMat)
+      } else{
+
+        if (is.null(private$.tsMat)) {
+          stop("No `tsMat` found! Please provide a `tsMat`!")
+        } #else not null because `private$.tsMat` is set via active binding
+
       }
 
-      if (is.null(private$.tsMat)) {
-        stop("No `tsMat` found! Please provide `tsMat` first!")
+      if(private$.costFunc$pass()[["costFunc"]] %in% c("LinearL2")){
+
+        if(!is.null(covariates)){
+
+          if (!is.numeric(covariates) | !is.matrix(covariates)) {
+            stop("`covariates` must be a numeric time series matrix!")
+          }
+
+          if(any(is.na(covariates))){
+            stop("`covariates` contains NAs!")
+          }
+
+          if(nrow(covariates) != private$.n){
+            stop("Numbers of observations in `covariates` and `tsMat` do not match!")
+          }
+
+          private$.covariates = covariates
+
+        } else{ #if covariates is null
+
+          if(is.null(private$.covariates)){
+            warning("No `covariates` found! Force-fitting with only an intercept!")
+
+            if(private$.costFunc$pass()[["costFunc"]] == "LinearL2"){
+
+              private$.PELTModule = new(PELTCpp_LinearL2, private$.tsMat, matrix(1, nrow = private$.n, ncol = 1),
+                                        FALSE, #no intercept
+                                        private$.minSize, private$.jump)
+
+            }
+
+            private$.fitted = TRUE
+            private$.PELTModule$fit()
+
+            return(invisible(NULL))
+
+
+          } else{
+
+            if(nrow(private$.covariates) != private$.n){
+              stop("Numbers of observations in `covariates` and `tsMat` do not match!")
+            }
+
+          }
+        }
       }
 
-      private$.fitted = TRUE
 
       if(private$.costFunc$pass()[["costFunc"]] == "L2"){
         private$.PELTModule = new(PELTCpp_L2, private$.tsMat, private$.minSize, private$.jump)
@@ -329,11 +438,20 @@ PELT = R6Class(
 
       } else if(private$.costFunc$pass()[["costFunc"]] == "L1"){
 
-        private$.PELTModule = new(PELTCpp_L1_cwMed, private$.tsMat, private$.minSize, private$.jump)
+        private$.PELTModule = new(PELTCpp_L1_cwMed, private$.tsMat,
+                                  private$.minSize, private$.jump)
+
+      } else if(private$.costFunc$pass()[["costFunc"]] == "LinearL2"){
+
+        private$.PELTModule = new(PELTCpp_LinearL2, private$.tsMat, private$.covariates,
+                                  private$.costFunc$pass()[["intercept"]],
+                                  private$.minSize, private$.jump)
 
       } else{
         stop("Cost function not supported!")
       }
+
+      private$.fitted = TRUE
 
       invisible(NULL)
     },
@@ -369,6 +487,9 @@ PELT = R6Class(
     #' where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
     #' \eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where `n` is the time series length), return 0.
     #'
+    #' **"LinearL2"** for piecewise linear regression process with **constant noise variance**
+    #' \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
+    #' points needed for OLS, return 0.
     #'
     eval = function(a, b){
 
@@ -460,7 +581,7 @@ PELT = R6Class(
 
 
       if(missing(main)){
-        main = paste0("PELT: ", title_text = paste0("d = (", toString(d), ")"))
+        main = paste0("PELT: ", paste0("d = (", toString(d), ")"))
 
       } else {
         if(!is.character(main) | length(main )!= 1L){
@@ -516,9 +637,9 @@ PELT = R6Class(
       } else {
         if (!is.character(dimNames)) {
           stop("`dimNames` must be a character vector specifying feature names!")
-          if(length(dimNames) != length(d)){
-            stop("length(dimNames) != length(d)!")
-          }
+        }
+        if(length(dimNames) != length(d)){
+          stop("length(dimNames) != length(d)!")
         }
       }
 
