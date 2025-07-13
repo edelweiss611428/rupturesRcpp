@@ -3,12 +3,12 @@
 \docType{class}
 \name{Window}
 \alias{Window}
-\title{Window Slicing (\code{Window})}
+\title{Slicing Window (\code{Window})}
 \description{
-An \code{R6} class implementing window slicing for offline change-point detection.
+An \code{R6} class implementing slicing window for offline change-point detection.
 }
 \details{
-Window slicing is a scalable, linear-time change-point detection algorithm that selects breakpoints based on local gains computed over sliding windows.
+Slicing window is a scalable, linear-time change-point detection algorithm that selects breakpoints based on local gains computed over sliding windows.
 
 Currently supports the following cost functions:
 \itemize{
