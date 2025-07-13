@@ -212,7 +212,7 @@ We welcome all contributions, whether big or small. If you encounter a bug or ha
 
 Feel free to fork the repository and make your changes. For significant updates, it’s best to discuss them with us first. When your changes are ready, submit a pull request.
 
-Thanks for helping us improve the project!
+Thanks for helping us improve this project!
 
 ## License
 
