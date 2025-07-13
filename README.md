@@ -206,6 +206,30 @@ binSegObj$plot(d = 1L,
 - (Tentative) Develop a `R6` class for `penalty` methods (could be non-linear).
 - (Tentative) Implement online change-point detection classes.
 
+## Contributing
+
+Contributions, big or small,  
+We welcome gladly, one and all.  
+Found a bug or feature request?  
+Open an issue, make it clear.
+
+Fork the repo, dive right in,  
+Fix or build — let’s all win.  
+For changes big, please say first,  
+Discuss with us, quench the thirst.
+
+Submit a pull, share your part,  
+Together we build with heart.  
+Thank you kindly, friend and peer,  
+Your help makes this project clear!
+
+*— Crafted with help from ChatGPT*
+
+## License
+
+This project is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) License. See the [LICENSE](LICENSE) file for details.
+
+
 ## References
 
 - Hocking, T. D. (2024). *Finite Sample Complexity Analysis of Binary Segmentation*. arXiv preprint arXiv:2410.08654. [https://arxiv.org/abs/2410.08654](https://arxiv.org/abs/2410.08654)
