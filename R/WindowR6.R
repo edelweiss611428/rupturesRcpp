@@ -1,6 +1,6 @@
-#' Window Slicing (`Window`)
+#' Slicing Window (`Window`)
 #'
-#' @description An `R6` class implementing window slicing for offline change-point detection.
+#' @description An `R6` class implementing slicing window for offline change-point detection.
 #'
 #' @include costFuncR6.R
 #' @docType class
@@ -11,7 +11,7 @@
 #' @export
 #'
 #' @details
-#' Window slicing is a scalable, linear-time change-point detection algorithm that selects breakpoints based on local gains computed over sliding windows.
+#' Slicing window is a scalable, linear-time change-point detection algorithm that selects breakpoints based on local gains computed over sliding windows.
 #'
 #' Currently supports the following cost functions:
 #'
@@ -304,7 +304,7 @@ Window = R6Class(
 
       if(printConfig){
 
-        cat(sprintf("Window Slicing (Window) \n"))
+        cat(sprintf("Slicing Window (Window) \n"))
         cat(sprintf("minSize      : %sL\n", private$.minSize))
         cat(sprintf("jump         : %sL\n", private$.jump))
         cat(sprintf("radius       : %sL\n", private$.radius))
