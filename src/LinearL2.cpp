@@ -3,7 +3,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 // ========================================================
-//                  Utility: Cost_LinearL2 class
+//                   Cost_LinearL2 class
 // ========================================================
 
 Cost_LinearL2::Cost_LinearL2(const arma::mat& Y, const arma::mat& X, bool intercept_, bool warnOnce)
