@@ -203,6 +203,7 @@ binSegObj$plot(d = 1L,
 - Enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility.
 - Improve `$plot()` method for models involving both dependent and independent variables.
 - Provide instructions for future contributors.
+- (Tentative) Develop a `R6` class for `penalty` methods (could be non-linear).
 - (Tentative) Implement online change-point detection classes.
 
 ## References
