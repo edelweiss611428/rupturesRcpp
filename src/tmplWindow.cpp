@@ -240,9 +240,11 @@ windowCppTmpl<Cost_L1_cwMed>::windowCppTmpl(const arma::mat& tsMat, int minSize_
     Rcpp::stop("Radius must be at least 1!");
   }
 
-  if(2*h <= minSize){
-    Rcpp::warning("Diameter should be at least `minSize`");
-  }
+  //Removed
+
+  // if(2*h <= minSize){
+  //   Rcpp::warning("Diameter should be at least `minSize`");
+  // }
 
 }
 
@@ -294,10 +296,6 @@ windowCppTmpl<Cost_L2>::windowCppTmpl(const arma::mat& tsMat, int minSize_, int 
     Rcpp::stop("Radius must be at least 1!");
   }
 
-  if(2*h <= minSize){
-    Rcpp::warning("Diameter should be at least `minSize`");
-  }
-
 }
 
 RCPP_EXPOSED_CLASS(windowCpp_L2)
@@ -347,10 +345,6 @@ windowCppTmpl<Cost_VAR>::windowCppTmpl(const arma::mat& tsMat, int pVAR, int min
 
   if(h < 1){
     Rcpp::stop("Radius must be at least 1!");
-  }
-
-  if(2*h <= minSize){
-    Rcpp::warning("Diameter should be at least `minSize`");
   }
 
 
@@ -407,10 +401,6 @@ windowCppTmpl<Cost_SIGMA>::windowCppTmpl(const arma::mat& tsMat, bool addSmallDi
     Rcpp::stop("Radius must be at least 1!");
   }
 
-  if(2*h <= minSize){
-    Rcpp::warning("Diameter should be at least `minSize`");
-  }
-
 
 }
 
@@ -462,10 +452,6 @@ windowCppTmpl<Cost_LinearL2>::windowCppTmpl(const arma::mat& tsMat,  const arma:
 
   if(h < 1){
     Rcpp::stop("Radius must be at least 1!");
-  }
-
-  if(2*h <= minSize){
-    Rcpp::warning("Diameter should be at least `minSize`");
   }
 
 
