@@ -93,7 +93,7 @@ test_that("Python ruptures PELT-L2 matches rupturesRcpp result (minSize = jump =
 
     # Expectation
     expect_equal(Pyresult, Rresult)
-    # expect_equal(CPresult, Rresult)
+    expect_equal(CPresult, Rresult)
   }
 
 
