@@ -30,6 +30,7 @@
 #' where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
 #' \eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where `n` is the time series length), return 0.
 #'
+#' - **"LinearL2"** for piecewise linear regression with **constant noise variance**
 #'
 #' @section Methods:
 #' \describe{
@@ -63,7 +64,7 @@ costFunc <- R6::R6Class(
         return(private$.costFunc)
       }
 
-      if(!charVal %in% c("L1", "L2", "SIGMA", "VAR")){
+      if(!charVal %in% c("L1", "L2", "SIGMA", "VAR", "LinearL2")){
         stop("Cost function not supported!")
       }
 
@@ -117,6 +118,21 @@ costFunc <- R6::R6Class(
       }
       private$.params[["epsilon"]] = doubleVal
 
+    },
+
+    #' @field intercept Logical. Whether to include the intercept in regression problems. Can be accessed or modified via `$intercept`.
+    intercept = function(boolVal) {
+
+      if (missing(boolVal)) {
+        return(private$.params[["intercept"]])
+      }
+
+      if (!is.logical(boolVal) | length(boolVal) != 1L) {
+        stop("`intercept` must be a single boolean value!")
+
+      }
+      private$.params[["intercept"]] = boolVal
+
     }
 
   ),
@@ -143,6 +159,11 @@ costFunc <- R6::R6Class(
     #' For \code{"VAR"}, \code{pVAR} is required:
     #' \describe{
     #'   \item{`pVAR`}{Integer. Vector autoregressive order. Must be a positive integer. Default: `1L`.}
+    #' }
+    #'
+    #' For \code{"LinearL2"}, \code{intercept} is required:
+    #' \describe{
+    #'   \item{`intercept`}{Logical. Whether to include the intercept in regression problems. Default: `TRUE`.}
     #' }
 
     initialize = function(costFunc, ...) {
@@ -182,6 +203,18 @@ costFunc <- R6::R6Class(
 
         }
       }
+
+      if (private$.costFunc == "LinearL2") {
+
+        self$intercept= if (hasName(args, "intercept") & !is.null(args$intercept)) {
+          args$intercept
+
+        } else {
+          TRUE
+
+        }
+      }
+
     },
 
     #' @description Returns a list of configuration parameters to initialise `detection` modules.
@@ -202,6 +235,10 @@ costFunc <- R6::R6Class(
         return(list(costFunc = "SIGMA",
                     addSmallDiag = private$.params[["addSmallDiag"]],
                     epsilon = private$.params[["epsilon"]]))
+
+      } else if(private$.costFunc == "LinearL2"){
+        return(list(costFunc = "LinearL2",
+                    intercept = private$.params[["intercept"]]))
 
       }
     }
