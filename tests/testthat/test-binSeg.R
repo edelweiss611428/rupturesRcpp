@@ -31,6 +31,15 @@ test_that("binSeg with L1/L2/SIGMA/VAR works for constant segments", {
   expect_warning(expect_false(binSegObj$eval(0,51) == 0), "seems singular")
   expect_warning(expect_true(all.equal(binSegObj$eval(0,50), 0)), "seems singular")
 
+  #LinearL2
+  costFuncObj = costFunc$new("LinearL2")
+  binSegObj = binSeg$new(costFunc = costFuncObj)
+  expect_warning(binSegObj$fit(tsMat), "an intercept") #without providing covariate matrix => only intercept
+
+  expect_equal(binSegObj$predict(pen = 0.1), seq(50,150,50))
+  expect_false(binSegObj$eval(0,51) == 0)
+  expect_true(all.equal(binSegObj$eval(0,50), 0))
+
 })
 
 
@@ -52,7 +61,7 @@ test_that("Test if active bindings work properly (i.e., setter/getter/input vali
   #VAR
   binSegObj$tsMat = X2
   costFuncObj = costFunc$new("VAR")
-  binSegObj$costFunc = costFuncObj #Modify cost funcc
+  suppressWarnings(binSegObj$costFunc <- costFuncObj)
   expect_warning(expect_false(binSegObj$eval(0,2)== 0.5), "singular") #No longer use the original cost function
 
   binSegObj$minSize = 5L

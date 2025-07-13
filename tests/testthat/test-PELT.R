@@ -34,6 +34,16 @@ test_that("PELT with L1/L2/SIGMA/VAR works for constant segments", {
   expect_warning(expect_false(PeltObj$eval(0,51) == 0), "seems singular")
   expect_warning(expect_true(all.equal(PeltObj$eval(0,50), 0)), "seems singular")
 
+  #LinearL2
+  costFuncObj = costFunc$new("LinearL2")
+  PELTObj = PELT$new(costFunc = costFuncObj)
+  expect_warning(PELTObj$fit(tsMat), "an intercept") #without providing covariate matrix => only intercept
+
+  expect_equal(PELTObj$predict(pen = 0.1), seq(50,150,50))
+  expect_false(PELTObj$eval(0,51) == 0)
+  expect_true(all.equal(PELTObj$eval(0,50), 0))
+
+
 })
 
 
