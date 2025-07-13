@@ -409,7 +409,6 @@ PELT = R6Class(
             }
 
             private$.fitted = TRUE
-            private$.PELTModule$fit()
 
             return(invisible(NULL))
 
