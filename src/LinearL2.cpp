@@ -80,7 +80,7 @@ double Cost_LinearL2::eval(int start, int end) const {
   double trace_YtY = arma::trace(YtY);
   double trace_BtXtY = arma::trace(B.t() * XtY);
 
-  return trace_YtY - trace_BtXtY;
+  return std::max(0.0, trace_YtY - trace_BtXtY);
 }
 
 void Cost_LinearL2::resetWarning(bool reset) {
