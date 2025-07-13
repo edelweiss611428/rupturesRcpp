@@ -135,7 +135,7 @@ public:
     sortedPeaks = localMaxima.elem(sortedIdx);
     arma::vec sortedGains = validGains.elem(sortedIdx);
 
-    // Cummulative gains
+    // cumulative gains
     cumGains = arma::cumsum(sortedGains);
 
   }
@@ -156,7 +156,7 @@ public:
     // penalties vector
     arma::vec penalties = arma::regspace(1, nMaxima) * penalty;
 
-    // Penalised cummulative gains
+    // Penalised cumulative gains
 
     arma::vec penCumGains = cumGains - penalties;
     arma::uword bestK;
