@@ -159,7 +159,7 @@ set.seed(1)
 tsMat = matrix(c(filter(rnorm(100), filter = 0.9, method = "recursive"), 
                  filter(rnorm(100), filter = -0.9, method = "recursive")))
 ```
-<img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/57a7fb68-b5cb-4189-92da-a76b36d0d8b4" />
+<img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/1837aac4-d37d-4835-b124-abdd6b74dbc6" />
 
 
 Here, the most suitable cost function is `"VAR"`. Instead of creating a new `binSeg` object, we will modify the current `binSegObj` as follows:
