@@ -102,7 +102,7 @@ set.seed(1)
 tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
               c(rnorm(100,0), rnorm(100,5,5)))
 ```
-![image](https://github.com/user-attachments/assets/73687865-b52e-4a6a-b8fd-5cf700a9be7a)
+<img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/65b5511c-070e-4b2d-872b-410679b4e395" />
 
 
 As our example involves regimes with varying variance, a suitable `costFunc` option is `"SIGMA"`.  Since the segmentation objects' interfaces are similar, it is sufficient to demonstrate the usage of `binSeg` only.
@@ -147,7 +147,7 @@ After running `$predict()`, the segmentation output is temporarily saved to the 
 binSegObj$plot(d = 1:2, 
                main = "method: binSeg; costFunc: SIGMA; pen: 100")
 ```
-![image](https://github.com/user-attachments/assets/d5d31c3d-ced1-4667-8de5-e9ad0cdc84ec)
+
 
 ### 2-regime VAR example: Modifying a `binSeg` object through its active bindings
 
@@ -158,7 +158,8 @@ set.seed(1)
 tsMat = matrix(c(filter(rnorm(100), filter = 0.9, method = "recursive"), 
                  filter(rnorm(100), filter = -0.9, method = "recursive")))
 ```
-![image](https://github.com/user-attachments/assets/de7a44ef-bc21-4348-b77d-3c05f1ff9c0a)
+<img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/57a7fb68-b5cb-4189-92da-a76b36d0d8b4" />
+
 
 Here, the most suitable cost function is `"VAR"`. Instead of creating a new `binSeg` object, we will modify the current `binSegObj` as follows:
 
@@ -191,7 +192,7 @@ binSegObj$predict(pen = 25)
 binSegObj$plot(d = 1L, 
                main = "method: binSeg; costFunc: VAR; pen: 25")
 ```
-![image](https://github.com/user-attachments/assets/37e45eaa-43f0-492b-ba2f-2b3a7ab6c72a)
+<img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/f677f835-1a99-41b3-a244-6b4e5de25f93" />
 
 
 ## Future development
