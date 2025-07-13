@@ -29,7 +29,7 @@ See \verb{$eval()} method for more details on computation of cost.
 \item{\code{$new()}}{Initialises a \code{Window} object.}
 \item{\code{$describe()}}{Describes the \code{Window} object.}
 \item{\code{$fit()}}{Constructs a \code{Window} module in \verb{C++}.}
-\item{\code{$eval()}}{Evaluate the cost of a segment.}
+\item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$predict()}}{Performs \code{Window} given a linear penalty value.}
 \item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
