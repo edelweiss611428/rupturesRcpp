@@ -39,7 +39,7 @@ test_that("PELT with L1/L2/SIGMA/VAR works for constant segments", {
 
 
 
-test_that("Test if active bindings work properl (i.e., setter/getter/input validating abilility)", {
+test_that("Test if active bindings work properly (i.e., setter/getter/input validating abilility)", {
 
   X1 = matrix(rep(0,100))
   X2 = matrix(1:100)
