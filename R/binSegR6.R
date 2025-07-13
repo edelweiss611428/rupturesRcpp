@@ -335,7 +335,9 @@ binSeg = R6Class(
     #' @description Constructs a `binSeg` module in `C++`.
     #'
     #' @param tsMat Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
-    #' Default: `NULL`.
+    #' If `tsMat = NULL`, the function will use the previously assigned `tsMat` (e.g., set via the active binding `$tsMat`
+    #' or from a prior `$fit(tsMat)`). Default: `NULL`.
+    #'
     #' @param covariates Numeric matrix. A time series matrix having a similar number of observations as `tsMat`.
     #' Required for models involving both dependent and independent variables.
     #' If `covariates = NULL` and no prior covariates were set (i.e., `$covariates` is still `NULL`),

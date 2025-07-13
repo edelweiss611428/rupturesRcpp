@@ -150,7 +150,8 @@ Constructs a \code{PELT} module in \verb{C++}.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{tsMat}}{Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
-Default: \code{NULL}.}
+If \code{tsMat = NULL}, the function will use the previously assigned \code{tsMat} (e.g., set via the active binding \verb{$tsMat}
+or from a prior \verb{$fit(tsMat)}). Default: \code{NULL}.}
 
 \item{\code{covariates}}{Numeric matrix. A time series matrix having a similar number of observations as \code{tsMat}.
 Required for models involving both dependent and independent variables.
