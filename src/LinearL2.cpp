@@ -6,8 +6,11 @@
 //                   Cost_LinearL2 class
 // ========================================================
 
-Cost_LinearL2::Cost_LinearL2(const arma::mat& Y, const arma::mat& X, bool intercept_, bool warnOnce)
-  : intercept(intercept_), warnOnce_(warnOnce), keepWarning(!warnOnce) {
+Cost_LinearL2::Cost_LinearL2(const arma::mat& Y, const arma::mat& X, bool intercept_, bool warnOnce){
+
+  intercept = intercept_;
+  warnOnce_ = warnOnce;
+  keepWarning = not warnOnce;
 
   if (Y.n_rows != X.n_rows) {
     Rcpp::stop("Number of observations in response and covariate matrices must match!");
@@ -87,6 +90,7 @@ void Cost_LinearL2::resetWarning(bool reset) {
   warnOnce_ = reset;
   keepWarning = !reset;
 }
+
 
 // ========================================================
 //                 Rcpp Module
