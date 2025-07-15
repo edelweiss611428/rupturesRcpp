@@ -339,7 +339,9 @@ RCPP_EXPOSED_CLASS(binSegCpp_L2)
     .constructor<arma::mat, int, int>()       // mat, minSize, jump
     .method("fit", &binSegCppTmpl<Cost_L2>::fit)
     .method("predict", &binSegCppTmpl<Cost_L2>::predict)
-    .method("eval", &binSegCppTmpl<Cost_L2>::eval);
+    .method("eval", &binSegCppTmpl<Cost_L2>::eval)
+    .field("bkpsVec", &binSegCppTmpl<Cost_L2>::bkpsVec)
+    .field("costVec", &binSegCppTmpl<Cost_L2>::costVec);
   }
 
 
