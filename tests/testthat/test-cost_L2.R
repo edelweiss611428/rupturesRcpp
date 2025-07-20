@@ -51,7 +51,7 @@ test_that("Expect C++ .eval() method in L2 cost module gives the correct results
   expect_equal(L2module$eval(0,0), 0)
   expect_equal(L2module$eval(0,1), 0)
 
-  expect_no_error(L2module$keepWarning(FALSE)) #Generally does nothing here
+  expect_no_error(L2module$resetWarning(FALSE)) #Generally does nothing here
 
 
 })

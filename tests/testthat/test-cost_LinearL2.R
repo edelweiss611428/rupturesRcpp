@@ -56,7 +56,7 @@ test_that("[No singularity] Expect C++ .eval() method in LinearL2 cost module gi
   expect_equal(LinearL2module$eval(0,0), 0)
   expect_equal(LinearL2module$eval(0,1), 0)
 
-  expect_no_error(LinearL2module$keepWarning(FALSE)) #Generally does nothing here
+  expect_no_error(LinearL2module$resetWarning(FALSE)) #Generally does nothing here
 
 })
 
