@@ -32,6 +32,8 @@ where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via 
 \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
 points needed for OLS, return 0.
 }
+
+If active binding \verb{$costFunc} Can be accessed or modified by assigning to \verb{$costFunc}, the default parameters will be used.
 }
 \section{Methods}{
 
@@ -48,7 +50,8 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{costFunc}}{Character. Cost function. Can be accessed or modified via \verb{$costFunc}.}
+\item{\code{costFunc}}{Character. Cost function. Can be accessed or modified via \verb{$costFunc}. If \code{costFunc} is modified
+and required parameters are missing, the default parameters are used.}
 
 \item{\code{pVAR}}{Integer. Vector autoregressive order. Can be accessed or modified via \verb{$pVAR}.}
 
