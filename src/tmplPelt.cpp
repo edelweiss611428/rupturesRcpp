@@ -151,7 +151,7 @@ public:
     }
 
     if(end > nSamples or end <= 0){
-      Rcpp::stop("`0 <= end <= nSamples` must be true!");
+      Rcpp::stop("`0 < end <= nSamples` must be true!");
     }
 
     return costModule.eval(start, end);

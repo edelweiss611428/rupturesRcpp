@@ -503,11 +503,11 @@ binSeg = R6Class(
       }
 
       if (!is.numeric(a) | any(a < 0) | length(a) != 1 | any(a > private$.n)) {
-        stop("`0 <= start <= n` must be true!")
+        stop("`0 <= start < nSamples` must be true!")
       }
 
       if (!is.numeric(b) | any(b < 0) | length(b) != 1 | any(b>private$.n)) {
-        stop("`0 <= end <= n` must be true!")
+        stop("`0 < end <= nSamples` must be true!")
       }
 
       a = as.integer(a)
