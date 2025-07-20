@@ -96,7 +96,7 @@ public:
         const int lastBkp = admissibleBkps[kLastBkp];
 
         if(end - lastBkp < minSize){ //Error message! However, by design, this should not happen.
-          Rcpp::Rcout << "end - lastBkp < minSize!"<< std::endl;
+          Rcpp::Rcout << "end - lastBkp < minSize!"<< std::endl; // nocov
           continue;
         }
 
