@@ -50,7 +50,7 @@ void Cost_L2::resetWarning(bool reset){
 RCPP_EXPOSED_CLASS(Cost_L2)
   RCPP_MODULE(Cost_L2_module) {
     Rcpp::class_<Cost_L2>("Cost_L2")
-    .constructor<arma::mat>()
+    .constructor<arma::mat, bool>()
     .method("eval", &Cost_L2::eval,
     "Evaluate L2 cost on interval (start, end]")
     .method("resetWarning", &Cost_L2::resetWarning,
