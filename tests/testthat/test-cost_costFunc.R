@@ -1,4 +1,4 @@
-#test-costFunc.R
+#costFunc module
 set.seed(12345)
 
 

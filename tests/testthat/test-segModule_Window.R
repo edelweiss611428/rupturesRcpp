@@ -1,5 +1,4 @@
-#test-Window.R
-
+#Window module
 set.seed(12345)
 test_that("Window with L2/SIGMA/VAR/LinearL2 works for constant segments", {
 

@@ -1,4 +1,4 @@
-#test-PELT.R
+#PELT module
 
 set.seed(12345)
 

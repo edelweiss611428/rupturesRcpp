@@ -1,4 +1,4 @@
-#test-L2module.R
+#LinearL2 module
 
 # ========================================================
 #               (R) LinearL2 cost function
