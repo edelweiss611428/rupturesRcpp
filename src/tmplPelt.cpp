@@ -96,12 +96,12 @@ public:
       for (arma::uword kLastBkp = 0; kLastBkp < nAdmissibleBkps; ++kLastBkp)
       {
         const int lastBkp = admissibleBkps[kLastBkp];
-
+        // LCOV_EXCL_START
         if(end - lastBkp < minSize){ //Error message! However, by design, this should not happen.
-          Rcpp::Rcout << "end - lastBkp < minSize!"<< std::endl;  // LCOV_EXCL_LINE
+          Rcpp::Rcout << "end - lastBkp < minSize!"<< std::endl;
           continue;
         }
-
+        // LCOV_EXCL_STOP
         const double currentCost = costModule.eval(lastBkp, end);
 
         const double currentSoc = socVec[lastBkp] + currentCost + penalty;
