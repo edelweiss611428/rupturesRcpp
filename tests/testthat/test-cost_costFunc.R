@@ -5,6 +5,7 @@ set.seed(12345)
 test_that("Cost function not supported", {
 
   expect_error(costFunc$new("Sydney"), regexp = "not supported")
+  expect_error(costFunc$new(c("L1", "L2")), regexp = "must be a single character value!")
 
 })
 
