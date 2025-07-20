@@ -216,7 +216,7 @@ test_that("Expect .eval() method in C++ Window_L2 class gives the correct result
 
 test_that("C++ L2 module gives 0 if start>=end+1", {
 
-  L2module = new(rupturesRcpp:::Cost_L2, tsMat)
+  L2module = new(rupturesRcpp:::Cost_L2, tsMat, TRUE)
   expect_equal(L2module$eval(0,0), 0)
   expect_equal(L2module$eval(0,1), 0)
 
