@@ -1,6 +1,4 @@
 #test-L2module.R
-set.seed(12345)
-
 
 # ========================================================
 #                    (R) L2 cost function
@@ -18,26 +16,27 @@ R_L2eval = function(X, start, end){
 }
 
 # ========================================================
-#                   Simulated dataset
+#                   Simulated datasets
 # ========================================================
-set.seed(1)
+
+set.seed(12345)
 tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)))
 nr = nrow(tsMat)
 
+nCases = 10
+idx1 = sample.int(nr-2, nCases)
+idx2 = integer(nCases)
+
+for(i in 1:nCases){
+  idx2[i] = sample((idx1[i]+1):nr, 1)
+}
+
+
 test_that("Expect C++ .eval() method in L2 cost module gives the correct results", {
 
-  set.seed(12345)
-
-  nCases = 10
   tsMat_L2module = new(rupturesRcpp:::Cost_L2, tsMat)
-  idx1 = sample.int(nr-2, nCases)
-  idx2 = integer(nCases)
 
-  for(i in 1:10){
-    idx2[i] = sample((idx1[i]+1):nr, 1)
-  }
-
-  for(i in 1:10){
+  for(i in 1:nCases){
     gs = R_L2eval(tsMat, idx1[i],idx2[i])
     expect_equal(tsMat_L2module$eval(idx1[i],idx2[i]), gs)
   }
@@ -57,19 +56,11 @@ test_that("Expect C++ .eval() method in L2 cost module gives the correct results
 
 test_that("Expect $eval() method in PELT_L2 gives the correct results/error message", {
 
-  set.seed(12345)
 
-  nCases = 10
   PELTObj = PELT$new() #This uses L2 cost module by default
   PELTObj$fit(tsMat)
-  idx1 = sample.int(nr-2, nCases)
-  idx2 = integer(nCases)
 
-  for(i in 1:10){
-    idx2[i] = sample((idx1[i]+1):nr, 1)
-  }
-
-  for(i in 1:10){
+  for(i in 1:nCases){
     gs = R_L2eval(tsMat, idx1[i],idx2[i])
     expect_equal(PELTObj$eval(idx1[i],idx2[i]), gs)
   }
@@ -94,18 +85,10 @@ test_that("Expect $eval() method in PELT_L2 gives the correct results/error mess
 
 test_that("Expect .eval() method in C++ PELT_L2 class gives the correct results/error message", {
 
-  set.seed(12345)
-
-  nCases = 10
+  #.constructor<arma::mat, int, int>()
   PELTCppObj = new(PELTCpp_L2, tsMat, 1L, 1L)
-  idx1 = sample.int(nr-2, nCases)
-  idx2 = integer(nCases)
 
-  for(i in 1:10){
-    idx2[i] = sample((idx1[i]+1):nr, 1)
-  }
-
-  for(i in 1:10){
+  for(i in 1:nCases){
     gs = R_L2eval(tsMat, idx1[i],idx2[i])
     expect_equal(PELTCppObj$eval(idx1[i],idx2[i]), gs)
   }
@@ -127,19 +110,10 @@ test_that("Expect .eval() method in C++ PELT_L2 class gives the correct results/
 
 test_that("Expect $eval() method in binSeg_L2 gives the correct results", {
 
-  set.seed(12345)
-
-  nCases = 10
   binSegObj = binSeg$new() #This uses L2 cost module by default
   binSegObj$fit(tsMat)
-  idx1 = sample.int(nr-2, nCases)
-  idx2 = integer(nCases)
 
-  for(i in 1:10){
-    idx2[i] = sample((idx1[i]+1):nr, 1)
-  }
-
-  for(i in 1:10){
+  for(i in 1:nCases){
     gs = R_L2eval(tsMat, idx1[i],idx2[i])
     expect_equal(binSegObj$eval(idx1[i],idx2[i]), gs)
   }
@@ -161,18 +135,10 @@ test_that("Expect $eval() method in binSeg_L2 gives the correct results", {
 
 test_that("Expect .eval() method in C++ binSeg_L2 class gives the correct results/error message", {
 
-  set.seed(12345)
-
-  nCases = 10
+  #.constructor<arma::mat, int, int>()
   binSegCppObj = new(binSegCpp_L2, tsMat, 1L, 1L)
-  idx1 = sample.int(nr-2, nCases)
-  idx2 = integer(nCases)
 
-  for(i in 1:10){
-    idx2[i] = sample((idx1[i]+1):nr, 1)
-  }
-
-  for(i in 1:10){
+  for(i in 1:nCases){
     gs = R_L2eval(tsMat, idx1[i],idx2[i])
     expect_equal(binSegCppObj$eval(idx1[i],idx2[i]), gs)
   }
@@ -196,19 +162,11 @@ test_that("Expect .eval() method in C++ binSeg_L2 class gives the correct result
 
 test_that("Expect $eval() method in Window_L2 gives the correct results", {
 
-  set.seed(12345)
 
-  nCases = 10
   WinObj = Window$new() #This uses L2 cost module by default
   WinObj$fit(tsMat)
-  idx1 = sample.int(nr-2, nCases)
-  idx2 = integer(nCases)
 
-  for(i in 1:10){
-    idx2[i] = sample((idx1[i]+1):nr, 1)
-  }
-
-  for(i in 1:10){
+  for(i in 1:nCases){
     gs = R_L2eval(tsMat, idx1[i],idx2[i])
     expect_equal(WinObj$eval(idx1[i],idx2[i]), gs)
   }
@@ -231,18 +189,10 @@ test_that("Expect $eval() method in Window_L2 gives the correct results", {
 
 test_that("Expect .eval() method in C++ Window_L2 class gives the correct results/error message", {
 
-  set.seed(12345)
-
-  nCases = 10
+  #.constructor<arma::mat, int, int,int>()
   WindowCppObj = new(windowCpp_L2, tsMat, 1L, 1L, 10)
-  idx1 = sample.int(nr-2, nCases)
-  idx2 = integer(nCases)
 
-  for(i in 1:10){
-    idx2[i] = sample((idx1[i]+1):nr, 1)
-  }
-
-  for(i in 1:10){
+  for(i in 1:nCases){
     gs = R_L2eval(tsMat, idx1[i],idx2[i])
     expect_equal(WindowCppObj$eval(idx1[i],idx2[i]), gs)
   }
@@ -258,7 +208,6 @@ test_that("Expect .eval() method in C++ Window_L2 class gives the correct result
 
   #Give 0 if end - start = 1
   expect_equal(WindowCppObj$eval(0,1), 0)
-
 
 })
 
