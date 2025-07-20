@@ -98,10 +98,10 @@ public:
         const int lastBkp = admissibleBkps[kLastBkp];
 
         if(end - lastBkp < minSize){ //Error message! However, by design, this should not happen.
-          // LCOV_EXCL_START
+          //  nocov start
           Rcpp::Rcout << "end - lastBkp < minSize!"<< std::endl;
           continue;
-          // LCOV_EXCL_STOP
+          //  nocov end
         }
 
         const double currentCost = costModule.eval(lastBkp, end);
