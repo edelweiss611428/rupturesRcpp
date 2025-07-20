@@ -35,7 +35,7 @@ void Cost_L1_cwMed::resetWarning(bool reset) {
 RCPP_EXPOSED_CLASS(Cost_L1_cwMed)
   RCPP_MODULE(Cost_L1_cwMed_module) {
     Rcpp::class_<Cost_L1_cwMed>("Cost_L1_cwMed")
-    .constructor<arma::mat>()
+    .constructor<arma::mat, bool>()
     .method("eval", &Cost_L1_cwMed::eval,
     "Evaluate L2 cost on interval (start, end]")
     .method("resetWarning", &Cost_L1_cwMed::resetWarning,
