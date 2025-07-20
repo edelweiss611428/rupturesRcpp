@@ -46,7 +46,13 @@ Create a `costFunc` object by specifying the desired (supported) cost function a
 ```r
 library("rupturesRcpp")
 costFuncObj = costFunc$new("L2")
+costFunc$pass() #output attributes corresponding to the specified cost function.
 ```
+<pre>
+$costFunc
+[1] "L2"
+</pre>
+
 The following table shows the list of supported cost functions. Here, `n` is segment length.
 
 | **Cost function** | **Description**                                                                                  | **Parameters/active bindings**           | **Dimension** | **Time complexity** |
