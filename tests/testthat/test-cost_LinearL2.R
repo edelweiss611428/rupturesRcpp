@@ -39,22 +39,22 @@ for(i in 1:nCases){
 test_that("[No singularity] Expect C++ .eval() method in LinearL2 cost module gives the correct results", {
 
 
-  tsMat_LinearL2module = new(rupturesRcpp:::Cost_LinearL2, Y, X, TRUE, TRUE) # intercept_ = TRUE
+  LinearL2module = new(rupturesRcpp:::Cost_LinearL2, Y, X, TRUE, TRUE) # intercept_ = TRUE
 
   for(i in 1:nCases){
     gs = R_LinearL2eval(Y,X, idx1[i],idx2[i])
-    expect_equal(tsMat_LinearL2module$eval(idx1[i],idx2[i]), gs)
+    expect_equal(LinearL2module$eval(idx1[i],idx2[i]), gs)
   }
 
-  expect_error(tsMat_LinearL2module$eval(0,nr+1),
+  expect_error(LinearL2module$eval(0,nr+1),
                regexp = "out of bounds") #arma::mat indexing error
 
-  expect_error(tsMat_LinearL2module$eval(-1,nr),
+  expect_error(LinearL2module$eval(-1,nr),
                regexp = "out of bounds") #arma::mat indexing error
 
   #Give 0 if end - start = 0 or 1
-  expect_equal(tsMat_LinearL2module$eval(0,0), 0)
-  expect_equal(tsMat_LinearL2module$eval(0,1), 0)
+  expect_equal(LinearL2module$eval(0,0), 0)
+  expect_equal(LinearL2module$eval(0,1), 0)
 
 
 })
@@ -232,6 +232,32 @@ test_that("[No singularity] Expect .eval() method in C++ window_LinearL2 class g
 
 
 })
+
+
+
+test_that("Expect correct error/warning messages when initialising C++ Cost_LinearL2 module", {
+
+  expect_error(new(rupturesRcpp:::Cost_LinearL2, Y, as.matrix(X[-1]), TRUE, TRUE), "Number of observations in response and covariate matrices must match!")
+
+  X2 = matrix(1:5, nrow = 1)
+  Y2 = matrix(1, nrow = 1)
+
+  expect_error(new(rupturesRcpp:::Cost_LinearL2, Y2, X2, TRUE, TRUE), "The full dataset contains not enough observations to fit a linear regression model!")
+
+  Xconst = matrix(rep(1,100))
+  Y3 = matrix(rnorm(100))
+
+  LinearL2module = new(rupturesRcpp:::Cost_LinearL2, Y3, Xconst, TRUE, TRUE)
+  #warnOnce_ = TRUE -> keepWarning = FALSE (expected behavior when running eval() inside segmentation methods)
+  expect_warning(LinearL2module$eval(0, 100), "System is singular")
+
+  #warnOnce_ = FALSE -> keepWarning = TRUE (expected behavior when running eval() outside segmentation methods)
+  LinearL2module = new(rupturesRcpp:::Cost_LinearL2, Y3, Xconst, TRUE, FALSE)
+  expect_warning(LinearL2module$eval(0, 100), "Singular system encountered")
+
+})
+
+
 
 
 
