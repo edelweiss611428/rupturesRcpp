@@ -15,9 +15,9 @@ public:
 
   virtual ~CostBase() = default;
 
-  virtual double eval(int start, int end) const = 0; // LCOV_EXCL_LINE
+  virtual double eval(int start, int end) const = 0;
 
-  virtual void resetWarning(bool reset) {}
+  virtual void resetWarning(bool reset) {}// LCOV_EXCL_LINE
 };
 
 #endif // COST_BASE_H
