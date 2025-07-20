@@ -34,22 +34,24 @@ for(i in 1:nCases){
 
 test_that("Expect C++ .eval() method in L2 cost module gives the correct results", {
 
-  tsMat_L2module = new(rupturesRcpp:::Cost_L2, tsMat)
+  L2module = new(rupturesRcpp:::Cost_L2, tsMat, TRUE) # (warnOnce) = (TRUE) by default
 
   for(i in 1:nCases){
     gs = R_L2eval(tsMat, idx1[i],idx2[i])
-    expect_equal(tsMat_L2module$eval(idx1[i],idx2[i]), gs)
+    expect_equal(L2module$eval(idx1[i],idx2[i]), gs)
   }
 
-  expect_error(tsMat_L2module$eval(0,nr+1),
+  expect_error(L2module$eval(0,nr+1),
                regexp = "out of bounds") #arma::mat indexing error
 
-  expect_error(tsMat_L2module$eval(-1,nr),
+  expect_error(L2module$eval(-1,nr),
                regexp = "out of bounds") #arma::mat indexing error
 
   #Give 0 if end - start = 0 or 1
-  expect_equal(tsMat_L2module$eval(0,0), 0)
-  expect_equal(tsMat_L2module$eval(0,1), 0)
+  expect_equal(L2module$eval(0,0), 0)
+  expect_equal(L2module$eval(0,1), 0)
+
+  expect_no_error(L2module$keepWarning(FALSE)) #Generally does nothing here
 
 
 })
@@ -214,8 +216,8 @@ test_that("Expect .eval() method in C++ Window_L2 class gives the correct result
 
 test_that("C++ L2 module gives 0 if start>=end+1", {
 
-  tsMat_L2module = new(rupturesRcpp:::Cost_L2, tsMat)
-  expect_equal(tsMat_L2module$eval(0,0), 0)
-  expect_equal(tsMat_L2module$eval(0,1), 0)
+  L2module = new(rupturesRcpp:::Cost_L2, tsMat)
+  expect_equal(L2module$eval(0,0), 0)
+  expect_equal(L2module$eval(0,1), 0)
 
 })

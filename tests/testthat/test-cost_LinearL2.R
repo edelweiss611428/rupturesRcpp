@@ -39,7 +39,7 @@ for(i in 1:nCases){
 test_that("[No singularity] Expect C++ .eval() method in LinearL2 cost module gives the correct results", {
 
 
-  LinearL2module = new(rupturesRcpp:::Cost_LinearL2, Y, X, TRUE, TRUE) # intercept_ = TRUE
+  LinearL2module = new(rupturesRcpp:::Cost_LinearL2, Y, X, TRUE, TRUE) # (intercept_, warnOnce) = (TRUE, TRUE)
 
   for(i in 1:nCases){
     gs = R_LinearL2eval(Y,X, idx1[i],idx2[i])
@@ -56,6 +56,7 @@ test_that("[No singularity] Expect C++ .eval() method in LinearL2 cost module gi
   expect_equal(LinearL2module$eval(0,0), 0)
   expect_equal(LinearL2module$eval(0,1), 0)
 
+  expect_no_error(LinearL2module$keepWarning(FALSE)) #Generally does nothing here
 
 })
 
