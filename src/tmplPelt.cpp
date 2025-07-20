@@ -131,9 +131,8 @@ public:
         static_cast<double>(end - minSize + 1) / jump) * jump);
       nAdmissibleBkps = nAdmissibleBkpsNew;
     }
-    return readPath(pathVec);
-
     costModule.resetWarning(false);
+    return readPath(pathVec);
 
   }
 
