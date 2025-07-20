@@ -65,6 +65,8 @@ public:
   // The predict() method as before...
   std::vector<int> predict(double penalty) {
 
+    costModule.resetWarning(true);
+
     if(penalty < 0){
       Rcpp::stop("`penalty must be non-negative!`");
     }
