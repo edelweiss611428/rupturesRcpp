@@ -65,6 +65,8 @@ public:
   // The predict() method as before...
   std::vector<int> predict(double penalty) {
 
+    costModule.resetWarning(true); //Only output warning once
+
     if(penalty < 0){
       Rcpp::stop("`penalty must be non-negative!`");
     }
@@ -96,7 +98,6 @@ public:
         const int lastBkp = admissibleBkps[kLastBkp];
 
         if(end - lastBkp < minSize){ //Error message! However, by design, this should not happen.
-          Rcpp::Rcout << "end - lastBkp < minSize!"<< std::endl;
           Rcpp::Rcout << "end - lastBkp < minSize!"<< std::endl;  // LCOV_EXCL_LINE
           continue;
         }
@@ -132,9 +133,8 @@ public:
         static_cast<double>(end - minSize + 1) / jump) * jump);
       nAdmissibleBkps = nAdmissibleBkpsNew;
     }
-    return readPath(pathVec);
-
     costModule.resetWarning(false);
+    return readPath(pathVec);
 
   }
 
@@ -152,7 +152,7 @@ public:
     }
 
     if(end > nSamples or end <= 0){
-      Rcpp::stop("`0 <= end <= nSamples` must be true!");
+      Rcpp::stop("`0 < end <= nSamples` must be true!");
     }
 
     return costModule.eval(start, end);

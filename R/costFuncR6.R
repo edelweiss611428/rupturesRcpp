@@ -32,6 +32,8 @@
 #' \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
 #' points needed for OLS, return 0.
 #'
+#' If active binding `$costFunc` Can be accessed or modified by assigning to `$costFunc`, the default parameters will be used.
+#'
 #'
 #' @section Methods:
 #' \describe{
@@ -58,14 +60,15 @@ costFunc <- R6::R6Class(
 
   active = list(
 
-    #' @field costFunc Character. Cost function. Can be accessed or modified via `$costFunc`.
+    #' @field costFunc Character. Cost function. Can be accessed or modified via `$costFunc`. If `costFunc` is modified
+    #' and required parameters are missing, the default parameters are used.
     costFunc = function(charVal) {
 
       if (missing(charVal)) {
         return(private$.costFunc)
       }
 
-      if(!charVal %in% c("L1", "L2", "SIGMA", "VAR", "LinearL2")){
+      if(any(!charVal %in% c("L1", "L2", "SIGMA", "VAR", "LinearL2"))){
         stop("Cost function not supported!")
       }
 
@@ -74,6 +77,28 @@ costFunc <- R6::R6Class(
       }
 
       private$.costFunc = charVal
+
+      # Set default values for required parameters if missing
+      if (charVal == "VAR") {
+        if (is.null(private$.params[["pVAR"]])) {
+          private$.params[["pVAR"]] = 1L
+        }
+      }
+
+      if (charVal == "SIGMA") {
+        if (is.null(private$.params[["addSmallDiag"]])) {
+          private$.params[["addSmallDiag"]] = TRUE
+        }
+        if (is.null(private$.params[["epsilon"]])) {
+          private$.params[["epsilon"]] = 1e-6
+        }
+      }
+
+      if (charVal == "LinearL2") {
+        if (is.null(private$.params[["intercept"]])) {
+          private$.params[["intercept"]] = TRUE
+        }
+      }
     },
 
     #' @field pVAR Integer. Vector autoregressive order. Can be accessed or modified via `$pVAR`.

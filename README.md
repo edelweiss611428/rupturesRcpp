@@ -46,7 +46,13 @@ Create a `costFunc` object by specifying the desired (supported) cost function a
 ```r
 library("rupturesRcpp")
 costFuncObj = costFunc$new("L2")
+costFunc$pass() #output attributes corresponding to the specified cost function.
 ```
+<pre>
+$costFunc
+[1] "L2"
+</pre>
+
 The following table shows the list of supported cost functions. Here, `n` is segment length.
 
 | **Cost function** | **Description**                                                                                  | **Parameters/active bindings**           | **Dimension** | **Time complexity** |
@@ -56,6 +62,20 @@ The following table shows the list of supported cost functions. Here, `n` is seg
 | `"SIGMA"`         | Log-determinant of empirical covariance; models varying mean&variance.                           | `costFunc`, `addSmallDiag`, `epsilon`    | `multi`        | O(1)                 |
 | `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | O(1)                 |
 | `"LinearL2"`      | Sum of squared residuals from a linear regression model with constant noise variance.            | `costFunc`, `intercept`                  | `multi`        | O(1)                 |
+
+If active binding `costFunc` is modified by assigning to `costFuncObj$costFunc` and the required parameters are missing, the default parameters will be used.
+```r
+costFuncObj$costFunc = "VAR"
+costFuncObj$pass()
+```
+<pre>
+$costFunc
+[1] "VAR"
+
+$pVAR
+[1] 1
+</pre>
+
 
 ### Segmentation methods
 
