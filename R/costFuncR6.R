@@ -68,7 +68,7 @@ costFunc <- R6::R6Class(
         return(private$.costFunc)
       }
 
-      if(!charVal %in% c("L1", "L2", "SIGMA", "VAR", "LinearL2")){
+      if(any(!charVal %in% c("L1", "L2", "SIGMA", "VAR", "LinearL2"))){
         stop("Cost function not supported!")
       }
 
