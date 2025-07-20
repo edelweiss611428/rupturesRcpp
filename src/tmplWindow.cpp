@@ -138,6 +138,8 @@ public:
     // cumulative gains
     cumGains = arma::cumsum(sortedGains);
 
+    costModule.resetWarning(false);
+
   }
 
   //.predict() method
