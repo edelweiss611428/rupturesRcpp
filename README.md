@@ -57,6 +57,20 @@ The following table shows the list of supported cost functions. Here, `n` is seg
 | `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | O(1)                 |
 | `"LinearL2"`      | Sum of squared residuals from a linear regression model with constant noise variance.            | `costFunc`, `intercept`                  | `multi`        | O(1)                 |
 
+If active binding `costFunc` is modified by assigning to `costFuncObj$costFunc` and the required parameters are missing, the default parameters will be used.
+```r
+costFuncObj$costFunc = "VAR"
+costFuncObj$pass()
+```
+<pre>
+$costFunc
+[1] "VAR"
+
+$pVAR
+[1] 1
+</pre>
+
+
 ### Segmentation methods
 
 After initialising a `costFunc` object, create a segmentation object such as `binSeg`, `Window`, or `PELT`.
