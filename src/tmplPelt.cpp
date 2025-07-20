@@ -97,6 +97,7 @@ public:
 
         if(end - lastBkp < minSize){ //Error message! However, by design, this should not happen.
           Rcpp::Rcout << "end - lastBkp < minSize!"<< std::endl;
+          Rcpp::Rcout << "end - lastBkp < minSize!"<< std::endl;  // LCOV_EXCL_LINE
           continue;
         }
 
