@@ -88,6 +88,8 @@ public:
   //.fit() method
   void fit(){
 
+    costModule.resetWarning(true); //Only output warning once - unnecessary if fit() only run once
+
     int nCandidates = (nSamples - 2 * h)/jump + 1; //Integer division
     candidates.resize(nCandidates);
     gains.resize(nCandidates);
@@ -137,6 +139,8 @@ public:
 
     // cumulative gains
     cumGains = arma::cumsum(sortedGains);
+
+    costModule.resetWarning(false);
 
   }
 
@@ -191,7 +195,7 @@ public:
     }
 
     if(end > nSamples or end <= 0){
-      Rcpp::stop("`0 <= end <= nSamples` must be true!");
+      Rcpp::stop("`0 < end <= nSamples` must be true!");
     }
 
     return costModule.eval(start, end);

@@ -1,4 +1,4 @@
-#test-binSeg.R
+#binSeg module
 set.seed(12345)
 test_that("binSeg with L1/L2/SIGMA/VAR works for constant segments", {
 

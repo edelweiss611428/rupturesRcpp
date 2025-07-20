@@ -1,3 +1,4 @@
+# nocov start
 #' @importFrom methods loadMethod
 NULL
 
@@ -51,4 +52,4 @@ NULL
 See https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md
 for basic usage!
 )") }
-
+# nocov end
