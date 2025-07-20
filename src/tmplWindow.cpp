@@ -88,7 +88,7 @@ public:
   //.fit() method
   void fit(){
 
-    costModule.resetWarning(true); //unnecessary if fit() only run once
+    costModule.resetWarning(true); //Only output warning once - unnecessary if fit() only run once
 
     int nCandidates = (nSamples - 2 * h)/jump + 1; //Integer division
     candidates.resize(nCandidates);

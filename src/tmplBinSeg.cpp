@@ -170,7 +170,7 @@ public:
   //.fit() method
   void fit(){
 
-    costModule.resetWarning(true); //unnecessary if fit() only run once
+    costModule.resetWarning(true); //Only output warning once - unnecessary if fit() only run once
 
     int nr = costModule.nr;
 
