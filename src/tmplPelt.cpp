@@ -64,6 +64,7 @@ public:
 
   // The predict() method as before...
   std::vector<int> predict(double penalty) {
+
     costModule.resetWarning(true); // Only output warning once
 
     if (penalty < 0) {
@@ -72,12 +73,11 @@ public:
 
     // Initialization
     arma::vec socVec = arma::zeros(nSamples + 1);         // Total cost up to each point
+    socVec[0] = -penalty;
     arma::ivec pathVec = arma::zeros<arma::ivec>(nSamples + 1);  // Backpointers
     std::vector<int> admissibleBkps;             // Admissible previous breakpoints
     std::vector<double> tmpCostVec;   // Temporary cost storage
 
-    socVec.fill(std::numeric_limits<double>::infinity());
-    socVec[0] = -penalty;
 
     // Build initial admissible set: all multiples of jump >= minSize
     std::vector<int> all_ends;
