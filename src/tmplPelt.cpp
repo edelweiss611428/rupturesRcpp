@@ -73,12 +73,11 @@ public:
     // Initialization
     arma::vec socVec = arma::zeros(nSamples + 1);         // Total cost up to each point
     arma::ivec pathVec = arma::zeros<arma::ivec>(nSamples + 1);  // Backpointers
-    arma::ivec admissibleBkps(nSamples + 1);              // Admissible previous breakpoints
-    arma::vec tmpCostVec = arma::zeros(nSamples + 1);     // Temporary cost storage
+    std::vector<int> admissibleBkps;             // Admissible previous breakpoints
+    std::vector<double> tmpCostVec;   // Temporary cost storage
 
     socVec.fill(std::numeric_limits<double>::infinity());
-    socVec[0] = 0.0;
-    int nAdmissibleBkps = 0;
+    socVec[0] = -penalty;
 
     // Build initial admissible set: all multiples of jump >= minSize
     std::vector<int> all_ends;
@@ -87,23 +86,22 @@ public:
     }
     all_ends.push_back(nSamples);
 
-    admissibleBkps[nAdmissibleBkps++] = 0;  // Always include 0 initially
-
     for (int i = 0; i < static_cast<int>(all_ends.size()); ++i) {
       int end = all_ends[i];
 
       // Add new admissible point
       int new_adm_pt = static_cast<int>(std::floor((end - minSize) / double(jump))) * jump;
-      admissibleBkps[nAdmissibleBkps++] = new_adm_pt;
-
+      admissibleBkps.push_back(new_adm_pt);
+      tmpCostVec.resize(admissibleBkps.size());
       double minSoc = std::numeric_limits<double>::infinity();
       int bestBkp = -1;
 
-      for (int j = 0; j < nAdmissibleBkps; ++j) {
+      for (int j = 0; j < admissibleBkps.size(); ++j) {
+
         int lastBkp = admissibleBkps[j];
-
+        // # nocov start
         if (end - lastBkp < minSize) continue;
-
+        // # nocov end
         double segCost = costModule.eval(lastBkp, end);
         double totalCost = socVec[lastBkp] + segCost + penalty;
         tmpCostVec[j] = segCost;
@@ -118,14 +116,15 @@ public:
       pathVec[end] = bestBkp;
 
       // Prune admissible set
-      int newLen = 0;
-      for (int j = 0; j < nAdmissibleBkps; ++j) {
+      std::vector<int> pruned_admissibleBkps;
+      for (size_t j = 0; j < admissibleBkps.size(); ++j) {
         int lastBkp = admissibleBkps[j];
-        if (socVec[lastBkp] + tmpCostVec[j] < minSoc) {
-          admissibleBkps[newLen++] = lastBkp;
+        if (socVec[lastBkp] + tmpCostVec[j] <= socVec[end]){
+          pruned_admissibleBkps.push_back(lastBkp);
         }
       }
-      nAdmissibleBkps = newLen;
+      admissibleBkps = std::move(pruned_admissibleBkps);
+      tmpCostVec.resize(admissibleBkps.size());
     }
 
     costModule.resetWarning(false);
