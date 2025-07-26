@@ -72,8 +72,11 @@ public:
     }
 
     // Initialization
-    arma::vec socVec = arma::zeros(nSamples + 1);         // Total cost up to each point
+
+    arma::vec socVec(nSamples + 1);     // Total cost up to each point
+    socVec.fill(-std::numeric_limits<double>::infinity());
     socVec[0] = -penalty;
+
     arma::ivec pathVec = arma::zeros<arma::ivec>(nSamples + 1);  // Backpointers
     std::vector<int> admissibleBkps;             // Admissible previous breakpoints
     std::vector<double> tmpCostVec;   // Temporary cost storage
