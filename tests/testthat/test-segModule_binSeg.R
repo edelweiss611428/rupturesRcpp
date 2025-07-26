@@ -1,47 +1,66 @@
 #binSeg module
 set.seed(12345)
-test_that("binSeg with L1/L2/SIGMA/VAR works for constant segments", {
+
+
+test_that("binSeg_L1 works for constant segments", {
 
   tsMat = matrix(c(rep(0,50), rep(5, 50), rep(10, 50)))
-
-  #L1
   costFuncObj = costFunc$new("L1")
   binSegObj = binSeg$new(costFunc = costFuncObj)
   binSegObj$fit(tsMat)
+
   expect_equal( binSegObj$predict(pen = 0.1), seq(50,150,50))
 
-  #L2
+})
+
+test_that("binSeg_L2 works for constant segments", {
+
+  tsMat = matrix(c(rep(0,50), rep(5, 50), rep(10, 50)))
   costFuncObj = costFunc$new("L2")
   binSegObj = binSeg$new(costFunc = costFuncObj)
   binSegObj$fit(tsMat)
+
   expect_equal( binSegObj$predict(pen = 0.1), seq(50,150,50))
 
-  #SIGMA
+})
+
+test_that("binSeg_SIGMA works for constant segments", {
+
+  tsMat = matrix(c(rep(0,50), rep(5, 50), rep(10, 50)))
   costFuncObj = costFunc$new("SIGMA")
   binSegObj = binSeg$new(costFunc = costFuncObj)
   binSegObj$fit(tsMat)
+
   expect_equal( binSegObj$predict(pen = 0.1), seq(50,150,50))
 
-  #VAR
+})
+
+test_that("binSeg_VAR works for constant segments", {
+
+  tsMat = matrix(c(rep(0,50), rep(5, 50), rep(10, 50)))
   costFuncObj = costFunc$new("VAR")
   binSegObj = binSeg$new(costFunc = costFuncObj)
-  expect_warning(binSegObj$fit(tsMat), "Some systems seem singular!") #Warning if singular because $fit() will perform binSeg for maximum nr of change points (for efficiency)
 
+  expect_warning(binSegObj$fit(tsMat), "Some systems seem singular!") #Warning once feature
   expect_equal(binSegObj$predict(pen = 0.1), seq(50,150,50))
   expect_warning(expect_false(binSegObj$eval(0,51) == 0), "seems singular")
   expect_warning(expect_true(all.equal(binSegObj$eval(0,50), 0)), "seems singular")
 
-  #LinearL2
+})
+
+
+test_that("binSeg_LinearL2 works for constant segments", {
+
+  tsMat = matrix(c(rep(0,50), rep(5, 50), rep(10, 50)))
   costFuncObj = costFunc$new("LinearL2")
   binSegObj = binSeg$new(costFunc = costFuncObj)
-  expect_warning(binSegObj$fit(tsMat), "an intercept") #without providing covariate matrix => only intercept
 
+  #when no covariate matrix is provided
+  expect_warning(binSegObj$fit(tsMat), "an intercept")
   expect_equal(binSegObj$predict(pen = 0.1), seq(50,150,50))
   expect_false(binSegObj$eval(0,51) == 0)
   expect_true(all.equal(binSegObj$eval(0,50), 0))
-
 })
-
 
 
 test_that("Test if active bindings work properly (i.e., setter/getter/input validating abilility)", {
