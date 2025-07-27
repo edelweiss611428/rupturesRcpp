@@ -19,9 +19,11 @@ IntegerVector binSegPredCpp(const IntegerVector& bkps,
                             const NumericVector& cost,
                             double penalty = 0){
 
+  // # nocov start
   if(penalty <0){
-    stop("Penalty should be non-negative!");
+    stop("Penalty should be non-negative!"); //tested in R
   }
+  // # nocov end
 
   NumericVector penCost = clone(cost);
 
@@ -66,7 +68,7 @@ struct Segment {
 //                Utility: miniOptHeapCpp
 // ========================================================
 
-inline Segment miniOptHeapCpp(const CostBase& costModule, int start, int end,
+inline Segment miniOptHeapCpp(const CostBase& costModule, int start, int end, int minLen,
                               int minSize = 1,  int jump = 1, double totalErr = -1) {
 
   int len = end - start;
@@ -75,7 +77,7 @@ inline Segment miniOptHeapCpp(const CostBase& costModule, int start, int end,
     totalErr = costModule.eval(start, end);
   }
 
-  if(len < 2*minSize){
+  if(len < minLen){
 
     return Segment{start, end, true, start,
                    -std::numeric_limits<double>::infinity(),
@@ -83,13 +85,13 @@ inline Segment miniOptHeapCpp(const CostBase& costModule, int start, int end,
                    std::numeric_limits<double>::infinity(),
                    std::numeric_limits<double>::infinity()};
 
-  } else if(len == 2*minSize){
+  } else if(len == minLen){
 
-    int cp = start + jump;
+    int cp = start + len/2;
     double lErr = costModule.eval(start, cp);
     double rErr = costModule.eval(cp, end);
     double err = lErr + rErr;
-    return Segment{start, end, true, start+jump,
+    return Segment{start, end, true, cp,
                    totalErr - err, //gain
                    lErr,
                    rErr,
@@ -150,6 +152,7 @@ public:
   int nSamples;
   IntegerVector bkpsVec;
   NumericVector costVec;
+  int minLen;
 
   // Declare generic constructors (empty here)
   // The actual definitions will be specialized outside.
@@ -177,7 +180,7 @@ public:
     const int& maxNRegimes = std::floor(nr / minSize);
     NumericVector cost(maxNRegimes);
     double initCost = costModule.eval(0,nr);  //(0, nr]
-    Segment seg0 = miniOptHeapCpp(costModule, 0, nr, minSize, jump, initCost);
+    Segment seg0 = miniOptHeapCpp(costModule, 0, nr, minLen, minSize, jump, initCost);
     IntegerVector changePoints(maxNRegimes-1);
 
     cost[0] = initCost;
@@ -198,8 +201,8 @@ public:
       idx++;
       cost[idx] = cost[idx-1] - bestSeg.gain;
 
-      Segment leftSeg = miniOptHeapCpp(costModule, bestSeg.start, bestSeg.cp, minSize, jump, bestSeg.lErr);
-      Segment rightSeg = miniOptHeapCpp(costModule, bestSeg.cp, bestSeg.end, minSize, jump, bestSeg.rErr);
+      Segment leftSeg = miniOptHeapCpp(costModule, bestSeg.start, bestSeg.cp, minLen, minSize, jump, bestSeg.lErr);
+      Segment rightSeg = miniOptHeapCpp(costModule, bestSeg.cp, bestSeg.end, minLen,  minSize, jump, bestSeg.rErr);
       heap.push(leftSeg);
       heap.push(rightSeg);
 
@@ -275,6 +278,10 @@ binSegCppTmpl<Cost_L1_cwMed>::binSegCppTmpl(const arma::mat& tsMat, int minSize_
   : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -283,8 +290,8 @@ binSegCppTmpl<Cost_L1_cwMed>::binSegCppTmpl(const arma::mat& tsMat, int minSize_
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
@@ -317,6 +324,9 @@ binSegCppTmpl<Cost_L2>::binSegCppTmpl(const arma::mat& tsMat, int minSize_, int 
   : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -325,8 +335,8 @@ binSegCppTmpl<Cost_L2>::binSegCppTmpl(const arma::mat& tsMat, int minSize_, int 
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
@@ -362,6 +372,9 @@ binSegCppTmpl<Cost_VAR>::binSegCppTmpl(const arma::mat& tsMat, int pVAR, int min
   : costModule(tsMat, pVAR, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -370,8 +383,8 @@ binSegCppTmpl<Cost_VAR>::binSegCppTmpl(const arma::mat& tsMat, int pVAR, int min
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
@@ -406,6 +419,10 @@ binSegCppTmpl<Cost_SIGMA>::binSegCppTmpl(const arma::mat& tsMat, bool addSmallDi
   : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -414,8 +431,8 @@ binSegCppTmpl<Cost_SIGMA>::binSegCppTmpl(const arma::mat& tsMat, bool addSmallDi
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
@@ -450,6 +467,9 @@ binSegCppTmpl<Cost_LinearL2>::binSegCppTmpl(const arma::mat& tsMat,  const arma:
   : costModule(tsMat, covariates, intercept_, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -458,8 +478,8 @@ binSegCppTmpl<Cost_LinearL2>::binSegCppTmpl(const arma::mat& tsMat,  const arma:
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
