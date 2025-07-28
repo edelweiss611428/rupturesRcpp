@@ -22,8 +22,6 @@ Suggests:
     testthat (>= 3.0.0),
     reticulate,
     binsegRcpp
-Remotes:
-    tdhock/binsegRcpp
 Config/testthat/edition: 3
 Collate: 
     'costFuncR6.R'
