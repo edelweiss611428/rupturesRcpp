@@ -33,8 +33,8 @@ install_github("edelweiss611428/rupturesRcpp")
 
 To detect change-points using `rupturesRcpp` you need three main components:
 
-- **Cost function**(`costFunc`)
-- **Segmentation method**(`binSeg`, `Window`, `PELT`)
+- **Cost function** (`costFunc`)
+- **Segmentation method** (`binSeg`, `Window`, `PELT`)
 - **Linear penalty threshold**
 
 Each `component` is implemented using an R6-based object-oriented design for clarity and flexibility.
