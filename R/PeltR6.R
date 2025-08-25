@@ -449,7 +449,9 @@ PELT = R6Class(
                                   private$.minSize, private$.jump)
 
       } else{
+        # nocov start
         stop("Cost function not supported!")
+        # nocov start
       }
 
       private$.fitted = TRUE
