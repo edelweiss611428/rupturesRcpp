@@ -63,7 +63,7 @@ public:
   PELTCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_, int minSize_, int jump_);
 
 
-  // The predict() method as before...
+  // predict() method: Perform PELT segmentation
   std::vector<int> predict(double penalty) {
 
     costModule.resetWarning(true); // Only output warning once
@@ -75,8 +75,12 @@ public:
     // Initialization
 
     arma::vec socVec(nSamples + 1);     // Total cost up to each point
-    socVec.fill(-std::numeric_limits<double>::infinity());
+
     socVec[0] = -penalty;
+
+    for(int k = 1; k < minSize; k++){
+       socVec[k] = costModule.eval(0,k) - penalty;
+    }
 
     arma::ivec pathVec = arma::zeros<arma::ivec>(nSamples + 1);  // Backpointers
     std::vector<int> admissibleBkps;             // Admissible previous breakpoints
@@ -85,6 +89,7 @@ public:
 
     // Build initial admissible set: all multiples of jump >= minSize
     std::vector<int> all_ends;
+
     for (int k = 0; k < nSamples; k += jump) {
       if (k >= minSize) all_ends.push_back(k);
     }
@@ -96,6 +101,7 @@ public:
       // Add new admissible point
       int new_adm_pt = static_cast<int>(std::floor((end - minSize) / double(jump))) * jump;
       admissibleBkps.push_back(new_adm_pt);
+
       tmpCostVec.resize(admissibleBkps.size());
       double minSoc = std::numeric_limits<double>::infinity();
       int bestBkp = -1;
@@ -120,6 +126,7 @@ public:
       pathVec[end] = bestBkp;
 
       // Prune admissible set
+
       std::vector<int> pruned_admissibleBkps;
       for (size_t j = 0; j < admissibleBkps.size(); ++j) {
         int lastBkp = admissibleBkps[j];
