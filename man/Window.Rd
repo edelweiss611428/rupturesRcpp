@@ -93,7 +93,7 @@ Initialises a \code{Window} object.
 \describe{
 \item{\code{minSize}}{Integer. Minimum allowed segment length. Default: \code{1L}.}
 
-\item{\code{jump}}{Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: \code{1L}.}
+\item{\code{jump}}{Integer. Search grid step size: only positions in \{k, 2k, ...\} are considered. Default: \code{1L}.}
 
 \item{\code{radius}}{Integer. Radius of each sliding window. Default: \code{1L}.}
 
