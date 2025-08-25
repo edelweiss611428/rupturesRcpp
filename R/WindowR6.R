@@ -236,7 +236,7 @@ Window = R6Class(
     #' @description Initialises a `Window` object.
     #'
     #' @param minSize Integer. Minimum allowed segment length. Default: `1L`.
-    #' @param jump Integer. Search grid step size: only positions in \{1, k+1, 2k+1, ...\} are considered. Default: `1L`.
+    #' @param jump Integer. Search grid step size: only positions in \{k, 2k, ...\} are considered. Default: `1L`.
     #' @param radius Integer. Radius of each sliding window. Default: `1L`.
     #' @param costFunc A `R6` object of class `costFunc`. Should be created via `costFunc$new()` to avoid error.
     #' Default: `costFunc$new("L2")`.
