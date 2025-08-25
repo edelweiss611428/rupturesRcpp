@@ -480,7 +480,9 @@ Window = R6Class(
                                     private$.minSize, private$.jump, private$.radius)
 
       } else{
+        # nocov start
         stop("Cost function not supported!")
+        # nocov end
       }
 
       private$.fitted = TRUE
