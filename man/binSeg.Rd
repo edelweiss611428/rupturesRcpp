@@ -93,7 +93,7 @@ Initialises a \code{binSeg} object.
 \describe{
 \item{\code{minSize}}{Integer. Minimum allowed segment length. Default: \code{1L}.}
 
-\item{\code{jump}}{Integer. Search grid step size: only positions in \{0, k, 2k, ...\} are considered. Default: \code{1L}.}
+\item{\code{jump}}{Integer. Search grid step size: only positions in \{k, 2k, ...\} are considered. Default: \code{1L}.}
 
 \item{\code{costFunc}}{A \code{R6} object of class \code{costFunc}. Should be created via \code{costFunc$new()} to avoid error.
 Default: \code{costFunc$new("L2")}.}
