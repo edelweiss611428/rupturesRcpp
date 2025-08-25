@@ -44,6 +44,7 @@ public:
   int minSize;
   int jump;
   int nSamples;
+  int minLen;
 
   // Declare generic constructors (empty here)
   // The actual definitions will be specialized outside.
@@ -62,7 +63,7 @@ public:
   PELTCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_, int minSize_, int jump_);
 
 
-  // The predict() method as before...
+  // predict() method: Perform PELT segmentation
   std::vector<int> predict(double penalty) {
 
     costModule.resetWarning(true); // Only output warning once
@@ -74,8 +75,12 @@ public:
     // Initialization
 
     arma::vec socVec(nSamples + 1);     // Total cost up to each point
-    socVec.fill(-std::numeric_limits<double>::infinity());
+
     socVec[0] = -penalty;
+
+    for(int k = 1; k < minSize; k++){
+       socVec[k] = costModule.eval(0,k) - penalty;
+    }
 
     arma::ivec pathVec = arma::zeros<arma::ivec>(nSamples + 1);  // Backpointers
     std::vector<int> admissibleBkps;             // Admissible previous breakpoints
@@ -84,6 +89,7 @@ public:
 
     // Build initial admissible set: all multiples of jump >= minSize
     std::vector<int> all_ends;
+
     for (int k = 0; k < nSamples; k += jump) {
       if (k >= minSize) all_ends.push_back(k);
     }
@@ -95,6 +101,7 @@ public:
       // Add new admissible point
       int new_adm_pt = static_cast<int>(std::floor((end - minSize) / double(jump))) * jump;
       admissibleBkps.push_back(new_adm_pt);
+
       tmpCostVec.resize(admissibleBkps.size());
       double minSoc = std::numeric_limits<double>::infinity();
       int bestBkp = -1;
@@ -119,6 +126,7 @@ public:
       pathVec[end] = bestBkp;
 
       // Prune admissible set
+
       std::vector<int> pruned_admissibleBkps;
       for (size_t j = 0; j < admissibleBkps.size(); ++j) {
         int lastBkp = admissibleBkps[j];
@@ -173,6 +181,10 @@ PELTCppTmpl<Cost_L1_cwMed>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, in
   : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -181,8 +193,8 @@ PELTCppTmpl<Cost_L1_cwMed>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, in
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
@@ -214,6 +226,10 @@ PELTCppTmpl<Cost_L2>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, int jump
   : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -222,8 +238,8 @@ PELTCppTmpl<Cost_L2>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, int jump
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
@@ -256,6 +272,10 @@ PELTCppTmpl<Cost_VAR>::PELTCppTmpl(const arma::mat& tsMat, int pVAR, int minSize
   : costModule(tsMat, pVAR, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -264,8 +284,8 @@ PELTCppTmpl<Cost_VAR>::PELTCppTmpl(const arma::mat& tsMat, int pVAR, int minSize
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
@@ -299,6 +319,9 @@ PELTCppTmpl<Cost_SIGMA>::PELTCppTmpl(const arma::mat& tsMat, bool addSmallDiag, 
   : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -307,8 +330,8 @@ PELTCppTmpl<Cost_SIGMA>::PELTCppTmpl(const arma::mat& tsMat, bool addSmallDiag, 
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
@@ -342,6 +365,10 @@ PELTCppTmpl<Cost_LinearL2>::PELTCppTmpl(const arma::mat& tsMat,  const arma::mat
   : costModule(tsMat, covariates, intercept_, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -350,8 +377,8 @@ PELTCppTmpl<Cost_LinearL2>::PELTCppTmpl(const arma::mat& tsMat,  const arma::mat
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){

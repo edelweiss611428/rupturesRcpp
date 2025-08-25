@@ -62,6 +62,7 @@ public:
   int jump;
   int nSamples;
   int h;
+  int minLen;
 
   arma::uvec candidates;
   arma::vec gains;
@@ -220,6 +221,10 @@ windowCppTmpl<Cost_L1_cwMed>::windowCppTmpl(const arma::mat& tsMat, int minSize_
   : costModule(tsMat, true), minSize(minSize_), jump(jump_), h(h_) {
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -228,8 +233,8 @@ windowCppTmpl<Cost_L1_cwMed>::windowCppTmpl(const arma::mat& tsMat, int minSize_
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
@@ -327,6 +332,10 @@ windowCppTmpl<Cost_VAR>::windowCppTmpl(const arma::mat& tsMat, int pVAR, int min
   : costModule(tsMat, pVAR, true), minSize(minSize_), jump(jump_), h(h_){
   nSamples = costModule.nr;
 
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -335,8 +344,8 @@ windowCppTmpl<Cost_VAR>::windowCppTmpl(const arma::mat& tsMat, int pVAR, int min
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
@@ -380,6 +389,9 @@ windowCppTmpl<Cost_SIGMA>::windowCppTmpl(const arma::mat& tsMat, bool addSmallDi
                                          int h_)
   : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_), h(h_){
   nSamples = costModule.nr;
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
 
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
@@ -389,8 +401,8 @@ windowCppTmpl<Cost_SIGMA>::windowCppTmpl(const arma::mat& tsMat, bool addSmallDi
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
@@ -433,6 +445,9 @@ windowCppTmpl<Cost_LinearL2>::windowCppTmpl(const arma::mat& tsMat,  const arma:
                                             bool intercept_, int minSize_, int jump_, int h_)
   : costModule(tsMat, covariates, intercept_, true), minSize(minSize_), jump(jump_), h(h_){
   nSamples = costModule.nr;
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
 
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
@@ -442,8 +457,8 @@ windowCppTmpl<Cost_LinearL2>::windowCppTmpl(const arma::mat& tsMat,  const arma:
     Rcpp::stop("`jump` must be at least 1!");
   }
 
-  if(nSamples < 2*minSize){
-    Rcpp::stop("Number of observations must be at least `2*minSize`!");
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
   }
 
   if(nSamples <= jump){
