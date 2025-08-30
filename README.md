@@ -28,16 +28,16 @@ To address these limitations, we will re-implement core change-point detection a
 In this GSoC 2025 project, we have done the following:
 
 - Implemented three popular offline change-point detection methods—Pruned Exact Linear Time (`PELT`), Binary Segmentation (`binSeg`), and Slicing Window (`Window`)—as template classes in C++ to support various cost functions with minimal overhead. (see the `Getting started/Segmentation methods` section for more details).
-- Implemented five C++ classes for multivariate cost functions. Four of these costs can be queried in `O(1)` time given pre-computation (see the `Getting started/Cost functions` section for more details).
+- Implemented five C++ classes for multivariate cost functions `"L1"`, `"L2"`, `"VAR"`, `"SIGMA"`, and `"LinearL2"`. Four of these costs can be queried in `O(1)` time given pre-computation (see the `Getting started/Cost functions` section for more details).
 - Developed a modern, object-oriented R package interface via R6 classes to wrap these implementations. It is robust and well-engineered for error handling.
 - Well-documented the code.
-- Tested most of these R/C++ modules for robustness and correctness, achieving an overall coverage of 96%. Added CI/CD via GitHub Actions to automatically test and report coverage.
+- Tested most of these R/C++ modules for robustness and correctness, achieving an overall coverage of 96% and added CI/CD via GitHub Actions to automatically test and report coverage.
   
 Currently, this project can be installed and is close to being ready for practical usage, including potential CRAN publication.
 
 ## Outstanding and future work
 
-This project is far from finished, and there are several areas for improvement and expansion, which are open to future contributors:
+This project is still on-going, and there are several areas for improvement and expansion, which are open to future contributors:
 
 1. Testing and validation
    - Increase testing for robustness and correctness of existing modules (e.g., mathematical correctness, time complexities).
