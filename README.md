@@ -40,7 +40,7 @@ Currently, this project can be installed and is close to being ready for practic
 
 ## Outstanding and future work
 
-This project is still on-going, and there are several areas for improvement and expansion, which are open to future contributors:
+This project is still ongoing, and there are several areas for improvement and expansion, which are open to future contributors:
 
 1. Testing and validation
    - Increase testing for robustness and correctness of existing modules (e.g., mathematical correctness, time complexities).
@@ -51,7 +51,7 @@ This project is still on-going, and there are several areas for improvement and 
 3. Optimisation
    - Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using structures such as a persistent segment tree with `O(nlog(n))` precomputation.
 4. Enhancing OOP interface
-   - Clean and improve the existing segmentation classes for robustness, including better `$clone()` method (the current implementation may not fully copy C++ class attributes to a new object), new `$save()` and `$load()` methods to save and reconstruct R6 objects, and an enhanced `$plot()` method for models involving both independent and dependent variables.
+   - Clean and improve the existing segmentation classes for robustness, including better `$clone()` method (the current implementation may not fully copy all C++ class attributes to a new object), new `$save()` and `$load()` methods to save and reconstruct R6 objects, and an enhanced `$plot()` method for models involving both independent and dependent variables.
 5. Code refactoring
    - Further refactor existing C++ and R code for readability and modularity. Each module currently exists in a single file and could be reorganised for easier integration with other programming languages (e.g., separating Rcpp and RcppArmadillo code and reducing Rcpp usage).
 6. Feature expansion
