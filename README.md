@@ -30,10 +30,9 @@ To address these limitations, we re-implemented core change-point detection algo
 
 In this GSoC 2025 project, we have done the following:
 
-- Implemented three popular offline change-point detection methods—Pruned Exact Linear Time (`PELT`), Binary Segmentation (`binSeg`), and Slicing Window (`Window`)—as template classes in C++ to support various cost functions with minimal overhead. (see the `Getting started/Segmentation methods` section for more details).
+- Implemented three popular offline change-point detection methods—Pruned Exact Linear Time (`PELT`), Binary Segmentation (`binSeg`), and Slicing Window (`Window`)—as template classes in C++ to support various cost functions with minimal overhead. (see the `Getting started/Segmentation methods` section for more details). 
 - Implemented five C++ classes for multivariate cost functions `"L1"`, `"L2"`, `"VAR"`, `"SIGMA"`, and `"LinearL2"`. Four of these costs can be queried in `O(1)` time given pre-computation (see the `Getting started/Cost functions` section for more details).
-- Developed a modern, object-oriented R package interface via R6 classes to wrap these implementations. It is robust and well-engineered for error handling.
-- Well-documented the code.
+- Developed a modern, well-documented, object-oriented R package interface via R6 classes to wrap these implementations. It is robust and well-engineered for error handling. 
 - Tested most of these R/C++ modules for robustness and correctness, achieving an overall coverage of 96% and added CI/CD via GitHub Actions to automatically test and report coverage.
   
 Currently, this project can be installed and is close to being ready for practical usage, including potential CRAN publication.
@@ -103,11 +102,11 @@ The following table shows the list of supported cost functions. Here, `n` is seg
 
 | **Cost function** | **Description**                                                                                  | **Parameters/active bindings**           | **Dimension** | **Time complexity** |
 |-------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|----------------|----------------------|
-| `"L1"`            | Sum of `L1` distances to the segment-wise median; robust to outliers.                            | `costFunc`                               | `multi`        | O(nlog(n))                 |
-| `"L2"`            | Sum of squared `L2` distances to the segment-wise mean; faster but less robust than `L1`.        | `costFunc`                               | `multi`        | O(1)                 |
-| `"SIGMA"`         | Log-determinant of empirical covariance; models varying mean&variance.                           | `costFunc`, `addSmallDiag`, `epsilon`    | `multi`        | O(1)                 |
-| `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | O(1)                 |
-| `"LinearL2"`      | Sum of squared residuals from a linear regression model with constant noise variance.            | `costFunc`, `intercept`                  | `multi`        | O(1)                 |
+| `"L1"`            | Sum of `L1` distances to the segment-wise median; robust to outliers.                            | `costFunc`                               | `multi`        | `O(nlog(n))`                 |
+| `"L2"`            | Sum of squared `L2` distances to the segment-wise mean; faster but less robust than `L1`.        | `costFunc`                               | `multi`        | `O(1)`                 |
+| `"SIGMA"`         | Log-determinant of empirical covariance; models varying mean&variance.                           | `costFunc`, `addSmallDiag`, `epsilon`    | `multi`        | `O(1)`                 |
+| `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | `O(1)`                 |
+| `"LinearL2"`      | Sum of squared residuals from a linear regression model with constant noise variance.            | `costFunc`, `intercept`                  | `multi`        | `O(1)`                 |
 
 If active binding `costFunc` is modified by assigning to `costFuncObj$costFunc` and the required parameters are missing, the default parameters will be used.
 ```r
