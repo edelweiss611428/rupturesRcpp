@@ -253,17 +253,6 @@ binSegObj$plot(d = 1L,
 ```
 <img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/f677f835-1a99-41b3-a244-6b4e5de25f93" />
 
-
-## Future development
-
-- Provide additional cost functions (e.g., `"Poisson"`, `"Linear-L1"`, and `"Linear-L2"`). 
-- Implement other offline change-point detection classes (e.g., `Opt` and `Dynp`).
-- Enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility.
-- Improve `$plot()` method for models involving both dependent and independent variables.
-- Provide instructions for future contributors.
-- (Tentative) Develop a `R6` class for `penalty` methods (could be non-linear).
-- (Tentative) Implement online change-point detection classes.
-
 ## Contributing
 
 We welcome all contributions, whether big or small. If you encounter a bug or have a feature request, please open an issue to let us know. 
