@@ -3,7 +3,7 @@
 
 ## Abstract
 
-<p align="justify"> This project develops an object-oriented R package for offline change-point detection. We implemented three core segmentation algorithms in C++, wrapped them with R6 classes in R, developed five multivariate cost functions, added CI/CD, and tested extensively. The package is installable and nearly ready for CRAN publication, with additional features planned for future work. </p>
+<p>The R package provides an efficient, object-oriented R6 interface for offline change point detection, implemented in C++ for high performance. This was created as part of the Google Summer of Code 2025 program (see <a href="https://github.com/edelweiss611428/rupturesRcpp/blob/gsoc-2025/README.md">edelweiss611428/rupturesRcpp at gsoc-2025</a> for the project archive).</p>
 
 ## Description
 
