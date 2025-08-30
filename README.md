@@ -11,7 +11,7 @@
   
 To address these limitations, we will re-implement core change-point detection algorithms in `ruptures` in modern C++ and wrap these implementations in an object-oriented R package with consistent interface. This will make state-of-the-art change-point detection tools more efficient and accessible to practitioners. </p>
 
-<p align="justify"> This branch was created as part of the Google Summer of Code 2025 (GSoC 2025) program to document and archive the work we have done.</p>
+<p align="justify"> This branch was created as part of the Google Summer of Code 2025 (GSoC 2025) program to document and archive the work we had done.</p>
 
 <pre>
 +------------------------------------------------------------+
