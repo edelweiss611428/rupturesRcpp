@@ -23,17 +23,17 @@
 
 ## Completed work 
 
-In this GSoC Project, we have done the following:
+In this GSoC project, we have done the following:
 
-- Implemented three popular offline change-point detection methods—Pruned Exact Linear Time (PELT), Binary Segmentation (binSeg), and Slicing Window (Window)—as template classes in C++ to support various cost functions with minimal overhead. (see the `Getting started/Segmentation methods` section for more details).
-- Implemented five C++ classes for multivariate cost functions. Four of these costs can be queried in O(1) time given pre-computation (see the `Getting started/Cost functions` section for more details).
+- Implemented three popular offline change-point detection methods—Pruned Exact Linear Time (`PELT`), Binary Segmentation (`binSeg`), and Slicing Window (`Window`)—as template classes in C++ to support various cost functions with minimal overhead. (see the `Getting started/Segmentation methods` section for more details).
+- Implemented five C++ classes for multivariate cost functions. Four of these costs can be queried in `O(1)` time given pre-computation (see the `Getting started/Cost functions` section for more details).
 - Developed a modern, object-oriented R package interface via R6 classes to wrap these implementations. It is robust and well-engineered for error handling.
 - Well-documented the code.
-- Tested most of these R/C++ modules for robustness and correctness, achieving an overall coverage of 96%. ADded CI/CD for github actions automatically t4esting and reporting coverage.
+- Tested most of these R/C++ modules for robustness and correctness, achieving an overall coverage of 96%. Added CI/CD via GitHub Actions to automatically test and report coverage.
   
 Currently, this project can be installed and is close to being ready for practical usage, including potential CRAN publication.
 
-## Out standing and future work
+## Outstanding and future work
 
 This project is far from finished, and there are several areas for improvement and expansion, which are open to future contributors:
 
@@ -46,14 +46,16 @@ This project is far from finished, and there are several areas for improvement a
 3. Optimisation
    - Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using structures such as a persistent segment tree with `O(nlog(n))` precomputation.
 4. Enhancing OOP interface
-   - Clean and improve the R6 interface for robustness, e.g., better `$clone()` methods as the current one might not be enough to copy C++ classes content atrtibutes to a new obejcs, save/load methods to reconstruct R6 objects, and enhanced `$plot()` methods.
+   - Clean and improve the existing segmentation classes for robustness, including better `$clone()` method (the current implementation may not fully copy C++ class attributes to a new object), new `$save()` and `$load()` methods to save and reconstruct R6 objects, and an enhanced `$plot()` method for models involving both independent and dependent variables.
 5. Code refactoring
    - Further refactor existing C++ and R code for readability and modularity. Each module currently exists in a single file and could be reorganised for easier integration with other programming languages (e.g., separating Rcpp and RcppArmadillo code and reducing Rcpp usage).
 6. Feature expansion
-   - Add additional cost functions (e.g., `"PoissonReg"`, `"Linear-L1"`).
+   - Add additional cost functions (e.g., `"Poisson"`, `"Linear-L1"`).
    - Implement other offline change-point detection classes (e.g., `Opt`, `BottomUp`).
    - Develop a `costFactory` class for users focused solely on fast cost computation.
    - Develop an R6 class for penalty methods, including potential non-linear penalties.
+
+---
 
 ## Installation
 
