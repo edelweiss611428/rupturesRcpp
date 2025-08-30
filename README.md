@@ -3,7 +3,7 @@
 
 ## Description
 
-<p align="justify"> The R package provides an efficient, object-oriented R6 interface for offline change point detection, implemented in C++ for high performance. This was created as part of the Google Summer of Code 2025 program (see [edelweiss611428/rupturesRcpp at gsoc-2025 for the project archive] (https://github.com/edelweiss611428/rupturesRcpp/blob/gsoc-2025/README.md). </p>
+<p align="justify"> The R package provides an efficient, object-oriented R6 interface for offline change point detection, implemented in C++ for high performance. This was created as part of the Google Summer of Code 2025 program (see [edelweiss611428/rupturesRcpp at gsoc-2025 for the project archive](https://github.com/edelweiss611428/rupturesRcpp/blob/gsoc-2025/README.md). </p>
 
 
 <pre>
