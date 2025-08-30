@@ -8,7 +8,7 @@
   
 To address these limitations, we will re-implement core change-point detection algorithms in `ruptures` in modern C++ and wrap these implementations in an object-oriented R package with consistent interface. This will make state-of-the-art change-point detection tools more efficient and accessible to practitioners. </p>
 
-<p align="justify"> This was created as part of the Google Summer of Code 2025 program to document and archive the work we have done.</p>
+<p align="justify"> This branch was created as part of the Google Summer of Code 2025 (GSoC 2025) program to document and archive the work we have done.</p>
 
 <pre>
 +------------------------------------------------------------+
@@ -25,7 +25,7 @@ To address these limitations, we will re-implement core change-point detection a
 
 ## Completed work 
 
-In this GSoC project, we have done the following:
+In this GSoC 2025 project, we have done the following:
 
 - Implemented three popular offline change-point detection methods—Pruned Exact Linear Time (`PELT`), Binary Segmentation (`binSeg`), and Slicing Window (`Window`)—as template classes in C++ to support various cost functions with minimal overhead. (see the `Getting started/Segmentation methods` section for more details).
 - Implemented five C++ classes for multivariate cost functions. Four of these costs can be queried in `O(1)` time given pre-computation (see the `Getting started/Cost functions` section for more details).
