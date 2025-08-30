@@ -1,6 +1,9 @@
 # Welcome to rupturesRcpp (GSoC 2025-archive)
-[![R-CMD-check](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/edelweiss611428/rupturesRcpp/graphs/commit-activity) [![codecov](https://codecov.io/gh/edelweiss611428/rupturesRcpp/branch/main/graph/badge.svg)](https://codecov.io/gh/edelweiss611428/rupturesRcpp)
+[![R-CMD-check](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml) [![codecov](https://codecov.io/gh/edelweiss611428/rupturesRcpp/branch/main/graph/badge.svg)](https://codecov.io/gh/edelweiss611428/rupturesRcpp)
 
+## Abstract
+
+<p align="justify"> This project develops an object-oriented R package for offline change-point detection. We implemented three core segmentation algorithms in C++, wrapped them with R6 classes in R, developed five multivariate cost functions, added CI/CD, and tested extensively. The package is installable and nearly ready for CRAN publication, with additional features planned for future work. </p>
 
 ## Description
 
