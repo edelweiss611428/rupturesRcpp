@@ -59,6 +59,10 @@ This project is still ongoing, and there are several areas for improvement and e
    - Implement other offline change-point detection classes (e.g., `Opt`, `BottomUp`).
    - Develop a `costFactory` class for users focused solely on fast cost computation.
    - Develop an R6 class for penalty methods, including potential non-linear penalties.
+     
+## Contact
+
+For inquiries regarding this GSoC project, the rupturesRcpp package, GSoC in general, or to report issues, please contact: `nguyem39@qut.edu.au`.
 
 ---
 
