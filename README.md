@@ -219,13 +219,14 @@ binSegObj$plot(d = 1L,
 
 ## Future development
 
-- Provide additional cost functions (e.g., `"Poisson"` and `"Linear-L1"`). 
-- Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
+- Increase testing for robustness and correctness of existing modules (e.g., mathematical correctness, time complexities).
+- Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using structures such as a persistent segment tree with `O(nlog(n))` precomputation.
 - Enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility.
+- Implement additional cost functions (e.g., `"Poisson"` and `"Linear-L1"`). 
+- Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
 - Improve `$plot()` method for models involving both dependent and independent variables.
 - Provide instructions for future contributors.
-- (Tentative) Develop a `R6` class for `penalty` methods (could be non-linear).
-- (Tentative) Implement online change-point detection classes.
+
 
 ## Contributing
 
