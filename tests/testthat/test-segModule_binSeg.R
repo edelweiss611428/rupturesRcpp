@@ -94,8 +94,8 @@ test_that("Active binding `minSize` works as intended", {
   expect_equal(ms1Seg, seq(1, 100, 1))
 
   binSegObj$minSize = 50L
-  ms5Seg = binSegObj$predict(0)
-  expect_equal(ms5Seg, c(50, 100))
+  ms50Seg = binSegObj$predict(0)
+  expect_equal(ms50Seg, c(50, 100))
 
 })
 

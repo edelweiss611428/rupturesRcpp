@@ -78,8 +78,8 @@ public:
 
     socVec[0] = -penalty;
 
-    for(int k = 1; k < minSize; k++){
-       socVec[k] = costModule.eval(0,k) - penalty;
+    for (int k = 1; k < minSize; k++){
+      socVec[k] = std::numeric_limits<double>::infinity();
     }
 
     arma::ivec pathVec = arma::zeros<arma::ivec>(nSamples + 1);  // Backpointers
