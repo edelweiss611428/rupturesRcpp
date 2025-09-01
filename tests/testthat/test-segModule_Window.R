@@ -152,9 +152,9 @@ test_that("Active binding `minSize` works as intended", {
   ms1Seg = WindowObj$predict(0)
 
   WindowObj$minSize = 75L
-  ms5Seg = WindowObj$predict(0)
+  ms75Seg = WindowObj$predict(0)
 
-  expect_false(identical(ms1Seg, ms5Seg))
+  expect_false(identical(ms1Seg, ms75Seg))
 
 })
 

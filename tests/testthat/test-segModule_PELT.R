@@ -73,6 +73,61 @@ test_that("PELT_L2 modules in `rupturesRcpp` and `ruptures` give the same result
 
   }
 
+  #PyPeltL2(min_size = 5L, jump = 10L)
+  PyPelt$min_size = 5L
+  PyPelt$jump = 10L
+
+  #RPeltL2(min_size = 5L, jump = 10L)
+  RPelt$minSize = 5L
+  RPelt$jump = 10L
+
+  for(i in 1:10){
+
+    pen = runif(1,0,1)
+    PySol = PyPelt$predict(pen)
+    RSol = RPelt$predict(pen)
+
+    expect_true(all.equal(PySol, RSol))
+
+  }
+
+  #PyPeltL2(min_size = 10L, jump = 1L)
+  PyPelt$min_size = 10L
+  PyPelt$jump = 1L
+
+  #RPeltL2(min_size = 10L, jump = 1L)
+  RPelt$minSize = 10L
+  RPelt$jump = 1L
+
+  for(i in 1:10){
+
+    pen = runif(1,0,1)
+    PySol = PyPelt$predict(pen)
+    RSol = RPelt$predict(pen)
+
+    expect_true(all.equal(PySol, RSol))
+
+  }
+
+  #PyPeltL2(min_size = 10L, jump = 2L)
+  PyPelt$min_size = 10L
+  PyPelt$jump = 2L
+
+  #RPeltL2(min_size = 10L, jump = 2L)
+  RPelt$minSize = 10L
+  RPelt$jump = 2L
+
+  for(i in 1:10){
+
+    pen = runif(1,0,1)
+    PySol = PyPelt$predict(pen)
+    RSol = RPelt$predict(pen)
+
+    expect_true(all.equal(PySol, RSol))
+
+  }
+
+
 })
 
 
@@ -165,8 +220,8 @@ test_that("Active binding `minSize` works as intended", {
   expect_equal(ms1Seg, seq(1, 100, 1))
 
   PELTObj$minSize = 50L
-  ms5Seg = PELTObj$predict(0)
-  expect_equal(ms5Seg, c(50, 100))
+  ms50Seg = PELTObj$predict(0)
+  expect_equal(ms50Seg, c(50, 100))
 
 })
 
