@@ -1,17 +1,9 @@
-# Welcome to rupturesRcpp (GSoC 2025-archive)
-[![R-CMD-check](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml) [![codecov](https://codecov.io/gh/edelweiss611428/rupturesRcpp/branch/main/graph/badge.svg)](https://codecov.io/gh/edelweiss611428/rupturesRcpp)
-
-## Abstract
-
-<p align="justify"> This project develops an object-oriented R package for offline change-point detection. We implemented three core segmentation algorithms in C++, wrapped them with R6 classes in R, developed five multivariate cost functions, added CI/CD, and tested extensively. The package is installable and nearly ready for CRAN publication, with additional features planned for future work. </p>
+# Welcome to rupturesRcpp
+[![R-CMD-check](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/edelweiss611428/rupturesRcpp/graphs/commit-activity) [![codecov](https://codecov.io/gh/edelweiss611428/rupturesRcpp/branch/main/graph/badge.svg)](https://codecov.io/gh/edelweiss611428/rupturesRcpp)
 
 ## Description
 
-<p align="justify"> This project aims to develop an object-oriented R package for offline change-point detection, based on the widely used Python library `ruptures`, which has received over 500,000 downloads as of April 8, 2025. These methods identify shifts in the underlying structure of time series and are widely used in fields such as signal processing and econometrics. Despite the popularity of `ruptures` and related R packages, their implementations do not achieve optimal runtime complexities. Several efficient C++ implementations exist, but they lack consistent interface and offer limited support for multivariate time series. 
-  
-To address these limitations, we re-implemented core change-point detection algorithms in `ruptures` in modern C++ and wrapped these implementations in an object-oriented R package with consistent interface. This will make state-of-the-art change-point detection tools more efficient and accessible to practitioners. </p>
-
-<p align="justify"> This branch was created as part of the Google Summer of Code 2025 (GSoC 2025) program to document and archive the work we have done. </p>
+<p>The R package provides an efficient, object-oriented R6 interface for offline change point detection, implemented in C++ for high performance. This was created as part of the Google Summer of Code 2025 program (see <a href="https://github.com/edelweiss611428/rupturesRcpp/blob/gsoc-2025/README.md">edelweiss611428/rupturesRcpp at gsoc-2025</a> for the project archive).</p>
 
 <pre>
 +------------------------------------------------------------+
@@ -26,44 +18,6 @@ To address these limitations, we re-implemented core change-point detection algo
 +------------------------------------------------------------+
 </pre>
 
-## Completed work 
-
-In this GSoC 2025 project, we have done the following:
-
-- Implemented three popular offline change-point detection methods—Pruned Exact Linear Time (`PELT`), Binary Segmentation (`binSeg`), and Slicing Window (`Window`)—as template classes in C++ to support various cost functions with minimal overhead. (see the `Getting started/Segmentation methods` section for more details). 
-- Implemented five C++ classes for multivariate cost functions `"L1"`, `"L2"`, `"VAR"`, `"SIGMA"`, and `"LinearL2"`. Four of these costs can be queried in `O(1)` time given pre-computation (see the `Getting started/Cost functions` section for more details).
-- Developed a modern, well-documented, object-oriented R package interface via R6 classes to wrap these implementations. It is robust and well-engineered for error handling. 
-- Tested most of these R/C++ modules for robustness and correctness, achieving an overall coverage of 96% and added CI/CD via GitHub Actions to automatically test and report coverage.
-  
-Currently, this project can be installed and is close to being ready for practical usage, including potential CRAN publication.
-
-## Outstanding and future work
-
-This project is still ongoing, and there are several areas for improvement and expansion, which are open to future contributors:
-
-1. Testing and validation
-   - Increase testing for robustness and correctness of existing modules (e.g., mathematical correctness, time complexities).
-2. Documentation and examples
-   - Add examples to the package (currently instructions are online only).
-   - Provide vignettes demonstrating practical usage, such as tuning/selecting linear penalty thresholds.
-   - Provide clearer instructions for future contributors, as the current setup is somewhat complex.
-3. Optimisation
-   - Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using structures such as a persistent segment tree with `O(nlog(n))` precomputation.
-4. Enhancing OOP interface
-   - Clean and improve the existing segmentation classes for robustness, including better `$clone()` method (the current implementation may not fully copy all C++ class attributes to a new object), new `$save()` and `$load()` methods to save and reconstruct R6 objects, and an enhanced `$plot()` method for models involving both independent and dependent variables.
-5. Code refactoring
-   - Further refactor existing C++ and R code for readability and modularity. Each module currently exists in a single file and could be reorganised for easier integration with other programming languages (e.g., separating Rcpp and RcppArmadillo code and reducing Rcpp usage).
-6. Feature expansion
-   - Add additional cost functions (e.g., `"Poisson"`, `"Linear-L1"`).
-   - Implement other offline change-point detection classes (e.g., `Opt`, `BottomUp`).
-   - Develop a `costFactory` class for users focusing solely on fast cost computation.
-   - Develop an R6 class for penalty methods, including potential non-linear penalties.
-     
-## Contact
-
-For inquiries regarding this GSoC project, the rupturesRcpp package, GSoC in general, or to report issues, please contact: `nguyem39@qut.edu.au`.
-
----
 
 ## Installation
 
@@ -260,6 +214,18 @@ binSegObj$plot(d = 1L,
                main = "method: binSeg; costFunc: VAR; pen: 25")
 ```
 <img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/f677f835-1a99-41b3-a244-6b4e5de25f93" />
+
+
+## Future development
+
+- Increase testing for robustness and correctness of existing modules (e.g., mathematical correctness, time complexities).
+- Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using structures such as a persistent segment tree with `O(nlog(n))` precomputation.
+- Enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility.
+- Implement additional cost functions (e.g., `"Poisson"` and `"Linear-L1"`). 
+- Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
+- Improve `$plot()` method for models involving both dependent and independent variables.
+- Provide instructions for future contributors.
+
 
 ## Contributing
 
