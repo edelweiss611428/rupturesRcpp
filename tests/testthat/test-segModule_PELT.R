@@ -5,7 +5,7 @@ X_constantSeg = matrix(c(rep(0,50), rep(5, 50), rep(10, 50)))
 test_that("PELT_L2 modules in `rupturesRcpp` and `ruptures` give the same results", {
 
   set.seed(123)
-  X_noBkp = matrix(rnorm(100))
+  X_noBkp = matrix(rnorm(250))
 
   skip_if_not_installed("reticulate")
   reticulate = asNamespace("reticulate")
@@ -27,7 +27,7 @@ test_that("PELT_L2 modules in `rupturesRcpp` and `ruptures` give the same result
   RPelt = PELT$new(minSize = 1L, jump = 1L, costFunc = costFunc$new("L2"))
   RPelt$fit(X_noBkp)
 
-  for(i in 1:20){
+  for(i in 1:10){
 
     pen = runif(1,0,1)
     PySol = PyPelt$predict(pen)

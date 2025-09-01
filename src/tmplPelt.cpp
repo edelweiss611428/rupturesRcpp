@@ -82,10 +82,6 @@ public:
       socVec[k] = std::numeric_limits<double>::infinity();
     }
 
-    // for(int k = 1; k < minSize; k++){
-    //    socVec[k] = costModule.eval(0,k) - penalty;
-    // }
-
     arma::ivec pathVec = arma::zeros<arma::ivec>(nSamples + 1);  // Backpointers
     std::vector<int> admissibleBkps;             // Admissible previous breakpoints
     std::vector<double> tmpCostVec;   // Temporary cost storage
