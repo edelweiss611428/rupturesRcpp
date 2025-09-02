@@ -56,7 +56,8 @@ This project is still ongoing, and there are several areas for improvement and e
 6. Feature expansion
    - Add additional cost functions (e.g., `"Poisson"`, `"Linear-L1"`).
    - Implement other offline change-point detection classes (e.g., `Opt`, `BottomUp`).
-   - Develop a `costFactory` class for users focusing solely on fast cost computation.
+   - Enhance existing `$eval()` methods for parameter estimation.
+   - Develop a `costFactory` class for users focusing solely on fast cost computation and parameter estimation.
    - Develop an R6 class for penalty methods, including potential non-linear penalties.
      
 ## Contact
