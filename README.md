@@ -36,7 +36,7 @@ To detect change-points using `rupturesRcpp` you need three main components:
 - **Segmentation method** (`binSeg`, `Window`, `PELT`)
 - **Linear penalty threshold**
 
-Each `component` is implemented using an R6-based object-oriented design for clarity and flexibility.
+Each `component` is implemented using an R6-based object-oriented design for modularity and maintainability.
 
 ### Cost functions
 
@@ -220,9 +220,11 @@ binSegObj$plot(d = 1L,
 
 - Increase testing for robustness and correctness of existing modules (e.g., mathematical correctness, time complexities).
 - Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using structures such as a persistent segment tree with `O(nlog(n))` precomputation.
-- Enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility.
+- Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility.
 - Implement additional cost functions (e.g., `"Poisson"` and `"Linear-L1"`). 
 - Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
+- Enhance existing `$eval()` methods for parameter estimation.
+- Develop a `costFactory` class for users focusing solely on fast cost computation and parameter estimation.
 - Improve `$plot()` method for models involving both dependent and independent variables.
 - Provide instructions for future contributors.
 
