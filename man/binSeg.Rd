@@ -11,7 +11,7 @@ An \code{R6} class implementing binary segmentation for offline change-point det
 Binary segmentation is a classic algorithm for change-point detection that recursively
 splits the data at locations that minimise the cost function.
 
-Currently supports the following cost functions:
+\code{binSeg} requires  a \code{R6} object of class \code{costFunc}, which can be created via \code{costFunc$new()}. Currently, the following cost functions are supported:
 \itemize{
 \item \code{"L1"} and \code{"L2"} for (independent) piecewise Gaussian process with \strong{constant variance}
 \item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
@@ -19,11 +19,10 @@ Currently supports the following cost functions:
 \item \code{"LinearL2"}: for piecewise linear regression process with \strong{constant noise variance}
 }
 
-\code{binSeg} requires  a \code{R6} object of class \code{costFunc}, which can be created via \code{costFunc$new()}.
-
-Basic usage: \url{https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md}
-
 See \verb{$eval()} method for more details on computation of cost.
+
+Some examples are provided below. See the \href{https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md}{GitHub README}
+for detailed basic usage!
 }
 \section{Methods}{
 
@@ -38,6 +37,37 @@ See \verb{$eval()} method for more details on computation of cost.
 }
 }
 
+\examples{
+
+## L2 example
+set.seed(1121)
+signals = as.matrix(c(rnorm(100,0,1),
+                     rnorm(100,5,1)))
+# Default L2 cost function
+binSegObj = binSeg$new(minSize = 1L, jump = 1L)
+binSegObj$fit(signals)
+binSegObj$predict(pen = 100)
+binSegObj$plot()
+
+## SIGMA example
+set.seed(111)
+signals = as.matrix(c(rnorm(100,-5,1),
+                      rnorm(100,-5,10),
+                      rnorm(100,-5,1)))
+# L2 cost function
+binSegObj = binSeg$new(minSize = 1L, jump = 1L)
+binSegObj$fit(signals)
+# We choose pen = 50. Details on how to tune the linear penalty threshold will be provided in future versions.
+binSegObj$predict(pen = 50)
+binSegObj$plot()
+
+# Since this is a piecewise Gaussian process with varying variance, the standard L2 cost function is not suitable.
+# We need to use the SIGMA cost function.
+binSegObj$costFunc = costFunc$new(costFunc = "SIGMA")
+binSegObj$predict(pen = 50)
+binSegObj$plot()
+
+}
 \references{
 Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
 Signal Processing, 167, 107299.
@@ -45,7 +75,9 @@ Signal Processing, 167, 107299.
 Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation. arXiv preprint arXiv:2410.08654.
 }
 \author{
-Minh Long Nguyen \email{edelweiss611428@gmail.com}
+Minh Long Nguyen \email{edelweiss611428@gmail.com} \cr
+Toby Dylan Hocking \email{toby.hocking@r-project.org} \cr
+Charles Truong \email{ctruong@ens-paris-saclay.fr}
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
@@ -139,7 +171,7 @@ Invisibly returns a list storing at least the following fields:
 \if{html}{\out{<a id="method-binSeg-fit"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-fit}{}}}
 \subsection{Method \code{fit()}}{
-Constructs a \code{binSeg} module in \verb{C++}.
+Constructs a \verb{C++} module for binary segmentation.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{binSeg$fit(tsMat = NULL, covariates = NULL)}\if{html}{\out{</div>}}
 }
@@ -148,22 +180,21 @@ Constructs a \code{binSeg} module in \verb{C++}.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{tsMat}}{Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
-If \code{tsMat = NULL}, the function will use the previously assigned \code{tsMat} (e.g., set via the active binding \verb{$tsMat}
+If \code{tsMat = NULL}, the method will use the previously assigned \code{tsMat} (e.g., set via the active binding \verb{$tsMat}
 or from a prior \verb{$fit(tsMat)}). Default: \code{NULL}.}
 
 \item{\code{covariates}}{Numeric matrix. A time series matrix having a similar number of observations as \code{tsMat}.
 Required for models involving both dependent and independent variables.
 If \code{covariates = NULL} and no prior covariates were set (i.e., \verb{$covariates} is still \code{NULL}),
-the model is force-fitted with only an intercept. Default: \code{NULL}..}
+the model is force-fitted with only an intercept. Default: \code{NULL}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-This method does the following:
-\itemize{
-\item Initialises \code{private$.tsMat}, \code{private$.n}, and \code{private$.p}.
-\item Constructs a \code{binSeg} module in \verb{C++} and sets \code{private$.fitted} to \code{TRUE}, enabling the use of \verb{$predict()} and \verb{$eval()}.
-}
+This method constructs a \verb{C++} \code{binSeg} module and sets \code{private$.fitted} to \code{TRUE},
+enabling the use of \verb{$predict()} and \verb{$eval()}. Some precomputations are performed to allow
+\verb{$predict()} to run in linear time with respect to the number of data points
+(see \verb{$predict()} for more details).
 }
 
 \subsection{Returns}{
@@ -235,14 +266,34 @@ Performs \code{binSeg} given a linear penalty value.
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Performs \code{binSeg} given a linear penalty value. Temporary end points are saved
-to \code{private$.tmpEndPoints}, allowing users to use \verb{$plot()} without specifying
-end points.
+The algorithm recursively partitions a time series to detect multiple change-points.
+At each step, the algorithm identifies the segment that, if split, would result in the greatest reduction in total cost.
+This process continues until no further splits are possible (e.g., each segment is of minimal length or each breakpoint
+corresponds to a single data point).
+
+Then, the algorithm selects the "optimal" set of break-points given the linear penalty threshold. Let \eqn{[c_1, \dots, c_k, c_{k+1}]} denote the set of segment end-points with \eqn{c_1 < c_2 < \dots < c_k < c_{k+1} = n},
+where \eqn{k} is the number of detected change-points and \eqn{n} is the total number of data points.
+and \eqn{k} is the number of change-points. Let \eqn{c_{(c_i, c_{i+1}]}} be the cost of segment \eqn{(c_i, c_{i+1}]}.
+The total penalised cost is then
+\deqn{
+  \text{TotalCost} = \sum_{i=1}^{k+1} c_{(c_i, c_{i+1}]} + \lambda \cdot k,
+}
+where \eqn{\lambda} is a linear penalty applied per change-point. We then optimise over
+\eqn{k} to minimise the penalised cost function.
+
+This approach allows detecting multiple change-points in a time series while controlling
+model complexity through the linear penalty threshold.
+
+In our implementation, the recursive step is carried out during \verb{$fit()}.
+Therefore, \verb{$predict()} runs in linear time with respect to the number of data points.
+
+Temporary segment end-points are saved to \code{private$.tmpEndPoints} after \verb{$predict()}, enabling users to call \verb{$plot()} without
+specifying endpoints manually.
 }
 
 \subsection{Returns}{
 An integer vector of regime end-points. By design, the last element is the
-number of observations \code{private$.n}.
+number of observations.
 }
 }
 \if{html}{\out{<hr>}}

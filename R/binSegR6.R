@@ -14,18 +14,47 @@
 #' Binary segmentation is a classic algorithm for change-point detection that recursively
 #' splits the data at locations that minimise the cost function.
 #'
-#' Currently supports the following cost functions:
+#' `binSeg` requires  a `R6` object of class `costFunc`, which can be created via `costFunc$new()`. Currently, the following cost functions are supported:
 #'
 #' - `"L1"` and `"L2"` for (independent) piecewise Gaussian process with **constant variance**
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
 #' - `"LinearL2"`: for piecewise linear regression process with **constant noise variance**
 #'
-#' `binSeg` requires  a `R6` object of class `costFunc`, which can be created via `costFunc$new()`.
+#' See `$eval()` method for more details on computation of cost.
 #'
-#'  Basic usage: <https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md>
+#' Some examples are provided below. See the [GitHub README](https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md)
+#' for detailed basic usage!
 #'
-#'  See `$eval()` method for more details on computation of cost.
+#' @examples
+#'
+#' ## L2 example
+#' set.seed(1121)
+#' signals = as.matrix(c(rnorm(100,0,1),
+#'                      rnorm(100,5,1)))
+#' # Default L2 cost function
+#' binSegObj = binSeg$new(minSize = 1L, jump = 1L)
+#' binSegObj$fit(signals)
+#' binSegObj$predict(pen = 100)
+#' binSegObj$plot()
+#'
+#' ## SIGMA example
+#' set.seed(111)
+#' signals = as.matrix(c(rnorm(100,-5,1),
+#'                       rnorm(100,-5,10),
+#'                       rnorm(100,-5,1)))
+#' # L2 cost function
+#' binSegObj = binSeg$new(minSize = 1L, jump = 1L)
+#' binSegObj$fit(signals)
+#' # We choose pen = 50. Details on how to tune the linear penalty threshold will be provided in future versions.
+#' binSegObj$predict(pen = 50)
+#' binSegObj$plot()
+#'
+#' # Since this is a piecewise Gaussian process with varying variance, the standard L2 cost function is not suitable.
+#' # We need to use the SIGMA cost function.
+#' binSegObj$costFunc = costFunc$new(costFunc = "SIGMA")
+#' binSegObj$predict(pen = 50)
+#' binSegObj$plot()
 #'
 #' @section Methods:
 #' \describe{
@@ -44,7 +73,11 @@
 #'
 #' Hocking, T. D. (2024). Finite Sample Complexity Analysis of Binary Segmentation. arXiv preprint arXiv:2410.08654.
 #'
-#' @author Minh Long Nguyen \email{edelweiss611428@gmail.com}
+#' @author
+#' Minh Long Nguyen \email{edelweiss611428@gmail.com} \cr
+#' Toby Dylan Hocking \email{toby.hocking@r-project.org} \cr
+#' Charles Truong \email{ctruong@ens-paris-saclay.fr}
+#'
 #' @export
 
 binSeg = R6Class(
@@ -332,27 +365,27 @@ binSeg = R6Class(
 
     },
 
-    #' @description Constructs a `binSeg` module in `C++`.
+    #' @description Constructs a `C++` module for binary segmentation.
     #'
     #' @param tsMat Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
-    #' If `tsMat = NULL`, the function will use the previously assigned `tsMat` (e.g., set via the active binding `$tsMat`
+    #' If `tsMat = NULL`, the method will use the previously assigned `tsMat` (e.g., set via the active binding `$tsMat`
     #' or from a prior `$fit(tsMat)`). Default: `NULL`.
     #'
     #' @param covariates Numeric matrix. A time series matrix having a similar number of observations as `tsMat`.
     #' Required for models involving both dependent and independent variables.
     #' If `covariates = NULL` and no prior covariates were set (i.e., `$covariates` is still `NULL`),
-    #' the model is force-fitted with only an intercept. Default: `NULL`..
+    #' the model is force-fitted with only an intercept. Default: `NULL`.
     #'
     #' @return Invisibly returns `NULL`.
     #'
-    #' @details This method does the following:
-    #'- Initialises `private$.tsMat`, `private$.n`, and `private$.p`.
-    #'- Constructs a `binSeg` module in `C++` and sets `private$.fitted` to `TRUE`, enabling the use of `$predict()` and `$eval()`.
+    #' @details This method constructs a `C++` `binSeg` module and sets `private$.fitted` to `TRUE`,
+    #' enabling the use of `$predict()` and `$eval()`. Some precomputations are performed to allow
+    #' `$predict()` to run in linear time with respect to the number of data points
+    #' (see `$predict()` for more details).
 
     fit = function(tsMat = NULL, covariates = NULL) {
 
       # Only assign if explicitly called with `tsMat` argument
-
 
       if (!is.null(tsMat)) {
 
@@ -528,11 +561,31 @@ binSeg = R6Class(
     #' @param pen Numeric. Penalty per change-point. Default: `0`.
     #'
     #' @return An integer vector of regime end-points. By design, the last element is the
-    #' number of observations `private$.n`.
+    #' number of observations.
     #'
-    #' @details Performs `binSeg` given a linear penalty value. Temporary end points are saved
-    #' to `private$.tmpEndPoints`, allowing users to use `$plot()` without specifying
-    #' end points.
+    #' @details The algorithm recursively partitions a time series to detect multiple change-points.
+    #' At each step, the algorithm identifies the segment that, if split, would result in the greatest reduction in total cost.
+    #' This process continues until no further splits are possible (e.g., each segment is of minimal length or each breakpoint
+    #' corresponds to a single data point).
+    #'
+    #' Then, the algorithm selects the "optimal" set of break-points given the linear penalty threshold. Let \eqn{[c_1, \dots, c_k, c_{k+1}]} denote the set of segment end-points with \eqn{c_1 < c_2 < \dots < c_k < c_{k+1} = n},
+    #' where \eqn{k} is the number of detected change-points and \eqn{n} is the total number of data points.
+    #' and \eqn{k} is the number of change-points. Let \eqn{c_{(c_i, c_{i+1}]}} be the cost of segment \eqn{(c_i, c_{i+1}]}.
+    #' The total penalised cost is then
+    #' \deqn{
+    #'   \text{TotalCost} = \sum_{i=1}^{k+1} c_{(c_i, c_{i+1}]} + \lambda \cdot k,
+    #' }
+    #' where \eqn{\lambda} is a linear penalty applied per change-point. We then optimise over
+    #' \eqn{k} to minimise the penalised cost function.
+    #'
+    #' This approach allows detecting multiple change-points in a time series while controlling
+    #' model complexity through the linear penalty threshold.
+    #'
+    #' In our implementation, the recursive step is carried out during `$fit()`.
+    #' Therefore, `$predict()` runs in linear time with respect to the number of data points.
+    #'
+    #' Temporary segment end-points are saved to `private$.tmpEndPoints` after `$predict()`, enabling users to call `$plot()` without
+    #' specifying endpoints manually.
 
     predict = function(pen = 0){
 
@@ -652,7 +705,7 @@ binSeg = R6Class(
       }
 
       # Build long-format dataframe for all selected dimensions
-      tsList <- lapply(seq_along(d), function(i) {
+      tsList = lapply(seq_along(d), function(i) {
         data.frame(
           time = 1:private$.n,
           value = private$.tsMat[, d[i]],
@@ -660,10 +713,10 @@ binSeg = R6Class(
         )
       })
 
-      allTsDf <- do.call(rbind, tsList)
+      allTsDf = do.call(rbind, tsList)
 
       # Create segment info
-      segInt <- data.frame(
+      segInt = data.frame(
         xmin = c(1, endPts[-length(endPts)]),
         xmax = endPts,
         fill = rep(bgCol, length.out = length(endPts))
