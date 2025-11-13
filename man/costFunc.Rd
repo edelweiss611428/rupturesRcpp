@@ -33,17 +33,31 @@ where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via 
 points needed for OLS, return 0.
 }
 
-If active binding \verb{$costFunc} Can be accessed or modified by assigning to \verb{$costFunc}, the default parameters will be used.
+If active binding \verb{$costFunc} is modified (via assignment operator), the default parameters will be used.
 }
 \section{Methods}{
 
 \describe{
 \item{\code{$new()}}{Initialises a \code{costFunc} object.}
-\item{\code{$describe()}}{Describes the \code{costFunc} object.}
+\item{\code{$pass()}}{Describes the \code{costFunc} object.}
 \item{\code{$clone()}}{Clones the \code{costFunc} object.}
 }
 }
 
+\examples{
+
+## L2 costFunc (default)
+costFuncObj = costFunc$new()
+costFuncObj$pass()
+## SIGMA costFunc
+costFuncObj = costFunc$new(costFunc = "SIGMA")
+costFuncObj$pass()
+# Modify active bindings
+costFuncObj$epsilon = 10^-5
+costFuncObj$pass()
+costFuncObj$costFunc = "VAR"
+costFuncObj$pass()
+}
 \author{
 Minh Long Nguyen \email{edelweiss611428@gmail.com}
 }

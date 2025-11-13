@@ -32,13 +32,13 @@
 #' \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
 #' points needed for OLS, return 0.
 #'
-#' If active binding `$costFunc` Can be accessed or modified by assigning to `$costFunc`, the default parameters will be used.
+#' If active binding `$costFunc` is modified (via assignment operator), the default parameters will be used.
 #'
 #'
 #' @section Methods:
 #' \describe{
 #'   \item{\code{$new()}}{Initialises a `costFunc` object.}
-#'   \item{\code{$describe()}}{Describes the `costFunc` object.}
+#'   \item{\code{$pass()}}{Describes the `costFunc` object.}
 #'   \item{\code{$clone()}}{Clones the `costFunc` object.}
 #' }
 #'
@@ -47,6 +47,20 @@
 #'
 #' @importFrom R6 R6Class
 #' @importFrom utils hasName
+#'
+#' @examples
+#'
+#' ## L2 costFunc (default)
+#' costFuncObj = costFunc$new()
+#' costFuncObj$pass()
+#' ## SIGMA costFunc
+#' costFuncObj = costFunc$new(costFunc = "SIGMA")
+#' costFuncObj$pass()
+#' # Modify active bindings
+#' costFuncObj$epsilon = 10^-5
+#' costFuncObj$pass()
+#' costFuncObj$costFunc = "VAR"
+#' costFuncObj$pass()
 #' @export
 #'
 #'
