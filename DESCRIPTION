@@ -3,7 +3,11 @@ Type: Package
 Title: Object-Oriented Interface for Offline Change-Point Detection 
 Version: 1.0.0
 Authors@R: 
-    person("Minh Long", "Nguyen", , "edelweiss611428@gmail.com", role = c("aut", "cre"))
+    c(
+      person("Minh Long", "Nguyen", , "edelweiss611428@gmail.com", role = c("aut", "cre")),
+      person("Toby", "Hocking", , "toby.hocking@r-project.org", role = "aut"),
+      person("Charles", "Truong", , "ctruong@ens-paris-saclay.fr", role = "aut")
+    )
 Description: A collection of efficient implementations of popular offline change-point detection algorithm, featuring a consistent, object-oriented interface for practical use.
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
