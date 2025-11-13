@@ -57,12 +57,12 @@ signals = as.matrix(c(rnorm(100,-5,1),
 # L2 cost function
 binSegObj = binSeg$new(minSize = 1L, jump = 1L)
 binSegObj$fit(signals)
-# We choose pen = 50. Details on how to tune the linear penalty threshold will be provided in future versions.
+# We choose pen = 50.
 binSegObj$predict(pen = 50)
 binSegObj$plot()
 
-# Since this is a piecewise Gaussian process with varying variance, the standard L2 cost function is not suitable.
-# We need to use the SIGMA cost function.
+# The standard L2 cost function is not suitable.
+# Use the SIGMA cost function.
 binSegObj$costFunc = costFunc$new(costFunc = "SIGMA")
 binSegObj$predict(pen = 50)
 binSegObj$plot()

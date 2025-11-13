@@ -47,12 +47,12 @@
 #' # L2 cost function
 #' PELTObj = PELT$new(minSize = 1L, jump = 1L)
 #' PELTObj$fit(signals)
-#' # We choose pen = 50. Details on how to tune the linear penalty threshold will be provided in future versions.
+#' # We choose pen = 50.
 #' PELTObj$predict(pen = 50)
 #' PELTObj$plot()
 #'
-#' # Since this is a piecewise Gaussian process with varying variance, the standard L2 cost function is not suitable.
-#' # We need to use the SIGMA cost function.
+#' # The standard L2 cost function is not suitable.
+#' # Use the SIGMA cost function.
 #' PELTObj$costFunc = costFunc$new(costFunc = "SIGMA")
 #' PELTObj$predict(pen = 50)
 #' PELTObj$plot()

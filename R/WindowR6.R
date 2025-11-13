@@ -52,12 +52,12 @@
 #' # L2 cost function
 #' WindowObj = Window$new(minSize = 1L, jump = 1L)
 #' WindowObj$fit(signals)
-#' # We choose pen = 50. Details on how to tune the linear penalty threshold will be provided in future versions.
+#' # We choose pen = 50.
 #' WindowObj$predict(pen = 50)
 #' WindowObj$plot()
 #'
-#' # Since this is a piecewise Gaussian process with varying variance, the standard L2 cost function is not suitable.
-#' # We need to use the SIGMA cost function.
+#' # The standard L2 cost function is not suitable.
+#' # Use the SIGMA cost function.
 #' WindowObj$costFunc = costFunc$new(costFunc = "SIGMA")
 #' WindowObj$predict(pen = 50)
 #' WindowObj$plot()
