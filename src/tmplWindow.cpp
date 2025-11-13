@@ -164,8 +164,7 @@ public:
     // Penalised cumulative gains
 
     arma::vec penCumGains = cumGains - penalties;
-    arma::uword bestK;
-    penCumGains.max(bestK);
+    arma::uword bestK = penCumGains.index_max();
 
     std::vector<int> selectedBkps;
     for (arma::uword i = 0; i <= bestK; ++i) {
