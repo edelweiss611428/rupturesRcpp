@@ -36,4 +36,4 @@ Collate:
     'binSegR6.R'
     'rupturesRcpp-package.R'
     'zzz.R'
-VignetteBuilder: knitr
+
