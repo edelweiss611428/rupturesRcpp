@@ -20,11 +20,47 @@
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
 #' - `"LinearL2"`: for piecewise linear regression process with **constant noise variance**
 #'
-#' `Window` requires  a `R6` object of class `costFunc`, which can be created via `costFunc$new()`.
+#' `Window` requires  a `R6` object of class `costFunc`, which can be created via `costFunc$new()`. Currently, the following cost functions are supported:
 #'
-#'  Basic usage: <https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md>
+#' - `"L1"` and `"L2"` for (independent) piecewise Gaussian process with **constant variance**
+#' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
+#' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
+#' - `"LinearL2"`: for piecewise linear regression process with **constant noise variance**
 #'
-#'  See `$eval()` method for more details on computation of cost.
+#' See `$eval()` method for more details on computation of cost.
+#'
+#' Some examples are provided below. See the [GitHub README](https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md)
+#' for detailed basic usage!
+#'
+#' @examples
+#'
+#' ## L2 example
+#' set.seed(1121)
+#' signals = as.matrix(c(rnorm(100,0,1),
+#'                      rnorm(100,5,1)))
+#' # Default L2 cost function
+#' WindowObj = Window$new(minSize = 1L, jump = 1L)
+#' WindowObj$fit(signals)
+#' WindowObj$predict(pen = 100)
+#' WindowObj$plot()
+#'
+#' ## SIGMA example
+#' set.seed(111)
+#' signals = as.matrix(c(rnorm(100,-5,1),
+#'                       rnorm(100,-5,10),
+#'                       rnorm(100,-5,1)))
+#' # L2 cost function
+#' WindowObj = Window$new(minSize = 1L, jump = 1L)
+#' WindowObj$fit(signals)
+#' # We choose pen = 50. Details on how to tune the linear penalty threshold will be provided in future versions.
+#' WindowObj$predict(pen = 50)
+#' WindowObj$plot()
+#'
+#' # Since this is a piecewise Gaussian process with varying variance, the standard L2 cost function is not suitable.
+#' # We need to use the SIGMA cost function.
+#' WindowObj$costFunc = costFunc$new(costFunc = "SIGMA")
+#' WindowObj$predict(pen = 50)
+#' WindowObj$plot()
 #'
 #' @section Methods:
 #' \describe{
@@ -40,7 +76,10 @@
 #' @references
 #' Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
 #' Signal Processing, 167, 107299.
-#' @author Minh Long Nguyen \email{edelweiss611428@gmail.com}
+#' @author
+#' Minh Long Nguyen \email{edelweiss611428@gmail.com} \cr
+#' Toby Dylan Hocking \email{toby.hocking@r-project.org} \cr
+#' Charles Truong \email{ctruong@ens-paris-saclay.fr}
 #' @export
 
 Window = R6Class(
@@ -363,10 +402,10 @@ Window = R6Class(
 
     },
 
-    #' @description Constructs a `Window` module in `C++`.
+    #' @description Constructs a `C++` module for `Window`.
     #'
     #' @param tsMat Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
-    #' If `tsMat = NULL`, the function will use the previously assigned `tsMat` (e.g., set via the active binding `$tsMat`
+    #' If `tsMat = NULL`, the method will use the previously assigned `tsMat` (e.g., set via the active binding `$tsMat`
     #' or from a prior `$fit(tsMat)`). Default: `NULL`.
     #'
     #' @param covariates Numeric matrix. A time series matrix having a similar number of observations as `tsMat`.
@@ -376,9 +415,10 @@ Window = R6Class(
     #'
     #' @return Invisibly returns `NULL`.
     #'
-    #' @details This method does the following:
-    #'- Initialises `private$.tsMat`, `private$.n`, and `private$.p`.
-    #'- Constructs a `Window` module in `C++` and sets `private$.fitted` to `TRUE`, enabling the use of `$predict()` and `$eval()`.
+    #' @details This method constructs a `C++` `Window` module and sets `private$.fitted` to `TRUE`,
+    #' enabling the use of `$predict()` and `$eval()`. Some precomputations are performed to allow
+    #' `$predict()` to run in linear time with respect to the number of local change-points
+    #' (see `$predict()` for more details).
 
     fit = function(tsMat = NULL, covariates = NULL) {
 
@@ -561,11 +601,37 @@ Window = R6Class(
     #' @param pen Numeric. Penalty per change-point. Default: `0`.
     #'
     #' @return An integer vector of regime end-points. By design, the last element is the
-    #' number of observations `private$.n`.
+    #' number of observations.
     #'
-    #' @details Performs `Window` given a linear penalty value. Temporary end points are saved
-    #' to `private$.tmpEndPoints`, allowing users to use `$plot()` without specifying
-    #' end points.
+    #' @details
+    #'
+    #' The algorithm scans the data with a fixed-size window to detect candidate local change-points (lcps)
+    #' if the gains of its \eqn{k_\text{thresh}} neighbors to the left and right are all smaller than its gain,
+    #' where \eqn{k_\text{thresh}} is defined as
+    #' \deqn{
+    #' k_\text{thresh} = \max \left( \frac{\max(2\text{radius}, 2 \cdot \text{minSize})}{2 \cdot \text{jump}}, 1 \right)
+    #' }
+    #'
+    #' After candidate local change-points and computing the local gains, the algorithm selects the "optimal" set of break-points given the linear penalty threshold.
+    #' Let \eqn{G_i} denote the local gain for candidate change-point \eqn{i}, for \eqn{i = 1, \dots, n_\text{lcps}}. The local gains are ordered such that
+    #' \eqn{G_1 \ge G_2 \ge \dots \ge G_{n_\text{lcps}}}. Note that it is possible that no local change-points are detected,
+    #' for example if the window size is too large.
+    #'
+    #' The total cost for the selected \eqn{k} change-points is then calculated as
+    #' \deqn{
+    #'   \text{TotalCost} = - \sum_{i=1}^{k} G_i + \lambda \cdot k,
+    #' }
+    #' where \eqn{\lambda} is a linear penalty applied per change-point. We then optimise over
+    #' \eqn{k} to minimise the penalised cost function.
+    #'
+    #' This approach allows detecting multiple change-points in a time series while controlling
+    #' model complexity through the linear penalty threshold.
+    #'
+    #' In our implementation, scanning the data to detect candidate local change-points and computing their corresponding local gains is already performed in `$fit()`.
+    #' Therefore, `$predict()` runs in linear time with respect to the number of local change-points.
+    #'
+    #' Temporary segment end-points are saved to `private$.tmpEndPoints` after `$predict()`, enabling users to call `$plot()` without
+    #' specifying endpoints manually.
 
     predict = function(pen = 0){
 
