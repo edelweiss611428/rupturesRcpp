@@ -1,10 +1,10 @@
 Package: rupturesRcpp
 Type: Package
-Title: A Semi-Modular Object-Oriented Interface for Change-Point Detection 
-Version: 0.1.0
+Title: Object-Oriented Interface for Offline Change-Point Detection 
+Version: 1.0.0
 Authors@R: 
     person("Minh Long", "Nguyen", , "edelweiss611428@gmail.com", role = c("aut", "cre"))
-Description: A collection of efficient implementations of classical and modern change-point detection algorithm, featuring a consistent, object-oriented interface for practical use and comparative analysis.
+Description: A collection of efficient implementations of popular offline change-point detection algorithm, featuring a consistent, object-oriented interface for practical use.
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
@@ -21,7 +21,9 @@ Imports:
 Suggests: 
     testthat (>= 3.0.0),
     reticulate,
-    binsegRcpp
+    binsegRcpp,
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
 Collate: 
     'costFuncR6.R'
@@ -30,3 +32,4 @@ Collate:
     'binSegR6.R'
     'rupturesRcpp-package.R'
     'zzz.R'
+VignetteBuilder: knitr
