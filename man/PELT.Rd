@@ -12,7 +12,7 @@ PELT (Pruned Exact Linear Time) is an efficient algorithm for change point detec
 that prunes the search space to achieve optimal segmentation in linear time under
 certain conditions.
 
-Currently supports the following cost functions:
+\code{PELT} requires  a \code{R6} object of class \code{costFunc}, which can be created via \code{costFunc$new()}. Currently, the following cost functions are supported:
 \itemize{
 \item \code{"L1"} and \code{"L2"} for (independent) piecewise Gaussian process with \strong{constant variance}
 \item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
@@ -20,11 +20,10 @@ Currently supports the following cost functions:
 \item \code{"LinearL2"}: for piecewise linear regression process with \strong{constant noise variance}
 }
 
-\code{PELT} requires  a \code{R6} object of class \code{costFunc}, which can be created via \code{costFunc$new()}.
-
-Basic usage: \url{https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md}
-
 See \verb{$eval()} method for more details on computation of cost.
+
+Some examples are provided below. See the \href{https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md}{GitHub README}
+for detailed basic usage!
 }
 \section{Methods}{
 
@@ -39,6 +38,37 @@ See \verb{$eval()} method for more details on computation of cost.
 }
 }
 
+\examples{
+
+## L2 example
+set.seed(1121)
+signals = as.matrix(c(rnorm(100,0,1),
+                     rnorm(100,5,1)))
+# Default L2 cost function
+PELTObj = PELT$new(minSize = 1L, jump = 1L)
+PELTObj$fit(signals)
+PELTObj$predict(pen = 100)
+PELTObj$plot()
+
+## SIGMA example
+set.seed(111)
+signals = as.matrix(c(rnorm(100,-5,1),
+                      rnorm(100,-5,10),
+                      rnorm(100,-5,1)))
+# L2 cost function
+PELTObj = PELT$new(minSize = 1L, jump = 1L)
+PELTObj$fit(signals)
+# We choose pen = 50. Details on how to tune the linear penalty threshold will be provided in future versions.
+PELTObj$predict(pen = 50)
+PELTObj$plot()
+
+# Since this is a piecewise Gaussian process with varying variance, the standard L2 cost function is not suitable.
+# We need to use the SIGMA cost function.
+PELTObj$costFunc = costFunc$new(costFunc = "SIGMA")
+PELTObj$predict(pen = 50)
+PELTObj$plot()
+
+}
 \references{
 Truong, C., Oudre, L., & Vayatis, N. (2020). Selective review of offline change point detection methods.
 Signal Processing, 167, 107299.
@@ -47,7 +77,9 @@ Killick, R., Fearnhead, P., & Eckley, I. A. (2012). Optimal detection of change 
 Journal of the American Statistical Association, 107(500), 1590-1598.
 }
 \author{
-Minh Long Nguyen \email{edelweiss611428@gmail.com}
+Minh Long Nguyen \email{edelweiss611428@gmail.com} \cr
+Toby Dylan Hocking \email{toby.hocking@r-project.org} \cr
+Charles Truong \email{ctruong@ens-paris-saclay.fr}
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
@@ -141,7 +173,7 @@ Invisibly returns a list storing at least the following fields:
 \if{html}{\out{<a id="method-PELT-fit"></a>}}
 \if{latex}{\out{\hypertarget{method-PELT-fit}{}}}
 \subsection{Method \code{fit()}}{
-Constructs a \code{PELT} module in \verb{C++}.
+Constructs a \verb{C++} module for \code{PELT}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PELT$fit(tsMat = NULL, covariates = NULL)}\if{html}{\out{</div>}}
 }
@@ -150,7 +182,7 @@ Constructs a \code{PELT} module in \verb{C++}.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{tsMat}}{Numeric matrix. A time series matrix of size \eqn{n \times p} whose rows are observations ordered in time.
-If \code{tsMat = NULL}, the function will use the previously assigned \code{tsMat} (e.g., set via the active binding \verb{$tsMat}
+If \code{tsMat = NULL}, the method will use the previously assigned \code{tsMat} (e.g., set via the active binding \verb{$tsMat}
 or from a prior \verb{$fit(tsMat)}). Default: \code{NULL}.}
 
 \item{\code{covariates}}{Numeric matrix. A time series matrix having a similar number of observations as \code{tsMat}.
@@ -161,11 +193,7 @@ the model is force-fitted with only an intercept. Default: \code{NULL}.}
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-This method does the following:
-\itemize{
-\item Initialises \code{private$.tsMat}, \code{private$.n}, and \code{private$.p}.
-\item Constructs a \code{PELT} module in \verb{C++} and sets \code{private$.fitted} to \code{TRUE}, enabling the use of \verb{$predict()} and \verb{$eval()}.
-}
+This method constructs a \verb{C++} \code{PELT} module and sets \code{private$.fitted} to \code{TRUE}, enabling the use of \verb{$predict()} and \verb{$eval()}.
 }
 
 \subsection{Returns}{
@@ -238,14 +266,28 @@ Performs \code{PELT} given a linear penalty value.
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
-Performs \code{PELT} given a linear penalty value. Temporary end points are saved
-to \code{private$.tmpEndPoints}, allowing users to use \verb{$plot()} without specifying
-end points.
+The \code{PELT} algorithm detects multiple change-points by finding the set of break-points that globally minimises
+a penalised cost function. \code{PELT} uses dynamic programming combined with a pruning rule to reduce the number of candidate change-points, achieving efficient computation.
+
+Let \eqn{[c_1, \dots, c_k, c_{k+1}]} denote the set of segment end-points with \eqn{c_1 < c_2 < \dots < c_k < c_{k+1} = n},
+where \eqn{k} is the number of detected change-points and \eqn{n} is the total number of data points.
+Let \eqn{c_{(c_i, c_{i+1}]}} be the cost of segment \eqn{(c_i, c_{i+1}]}.
+The total penalised cost is
+\deqn{
+  \text{TotalCost} = \sum_{i=1}^{k+1} c_{(c_i, c_{i+1}]} + \lambda \cdot k,
+}
+where \eqn{\lambda} is a linear penalty applied per change-point. \code{PELT} finds the set of endpoints that minimises this cost exactly.
+
+The pruning step eliminates candidate change-points that cannot lead to an optimal solution,
+allowing \code{PELT} to run in linear time with respect to the number of data points.
+
+Temporary segment end-points are saved to \code{private$.tmpEndPoints} after \verb{$predict()}, enabling users to call \verb{$plot()} without
+specifying endpoints manually.
 }
 
 \subsection{Returns}{
 An integer vector of regime end-points. By design, the last element is the
-number of observations \code{private$.n}.
+number of observations.
 }
 }
 \if{html}{\out{<hr>}}
