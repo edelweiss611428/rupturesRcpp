@@ -21,7 +21,7 @@ splits the data at locations that minimise the cost function.
 
 See \verb{$eval()} method for more details on computation of cost.
 
-Some examples are provided below. See the \href{https://github.com/edelweiss611428/rupturesRcpp/blob/main/README.md}{GitHub README}
+Some examples are provided below. See the \href{https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md}{GitHub README}
 for detailed basic usage!
 }
 \section{Methods}{

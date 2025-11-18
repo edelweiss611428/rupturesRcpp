@@ -49,7 +49,7 @@ NULL
 |                                               version 1.0.0        |
 +--------------------------------------------------------------------+
 
-See https://github.com/edelweiss611428/rupturesRcpp/blob/main/README.md
+See https://github.com/edelweiss611428/rupturesRcpp/tree/main/README.md
 for basic usage!
 )") }
 # nocov end
