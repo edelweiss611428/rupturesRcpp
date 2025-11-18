@@ -104,12 +104,11 @@ All segmentation objects implement the following methods:
 - `$plot(d, endPts,...)`: Plots change-point segmentation in `ggplot` style.
 
 Active bindings (such as `minSize` or `tsMat`) can be modified at any time—either before or after the object is created via the `$` operator. 
-For consistency, if the object has already been fitted, modifying any active bindings will automatically re-trigger the fitting process.
 
 ```r
 detectionObj$minSize = 2L #Before fitting
 detectionObj$fit(a_time_series_matrix) #Fitted
-detectionObj$minSize = 1L #After fitting - automatically re-trigger `$fit()`
+detectionObj$minSize = 1L #After fitting - automatically trigger `$fit()`
 ```
 
 ## Simulated data examples
@@ -240,18 +239,10 @@ Thanks for helping us improve this project!
 
 ## License
 
-This project is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) License. See the [LICENSE](LICENSE.md) file for details.
 
 
 ## References
 
-- Hocking, T. D. (2024). *Finite Sample Complexity Analysis of Binary Segmentation*. arXiv preprint arXiv:2410.08654. [https://arxiv.org/abs/2410.08654](https://arxiv.org/abs/2410.08654)
-
-- Truong, C., Oudre, L., & Vayatis, N. (2020). *Selective review of offline change point detection methods*. Signal Processing, 167, 107299. [https://doi.org/10.1016/j.sigpro.2019.107299
-](https://www.sciencedirect.com/science/article/abs/pii/S0165168419303494?via%3Dihub#:~:text=https%3A//doi.org/10.1016/j.sigpro.2019.107299)
-
-- Killick, R., Fearnhead, P., & Eckley, I. A. (2012). *Optimal detection of change points with a linear computational cost*. Journal of the American Statistical Association, 107(500), 1590–1598. [https://doi.org/10.1080/01621459.2012.737745
-](https://www.tandfonline.com/doi/full/10.1080/01621459.2012.737745#:~:text=https%3A//doi.org/10.1080/01621459.2012.737745)
 
 
 
