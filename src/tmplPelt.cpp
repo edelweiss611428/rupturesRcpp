@@ -181,10 +181,6 @@ PELTCppTmpl<Cost_L1_cwMed>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, in
   : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
-  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
-  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
-
-
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -192,6 +188,9 @@ PELTCppTmpl<Cost_L1_cwMed>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, in
   if(jump < 1){
     Rcpp::stop("`jump` must be at least 1!");
   }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
 
   if(nSamples < minLen){
     Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
@@ -226,10 +225,6 @@ PELTCppTmpl<Cost_L2>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, int jump
   : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
   nSamples = costModule.nr;
 
-  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
-  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
-
-
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -237,6 +232,9 @@ PELTCppTmpl<Cost_L2>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, int jump
   if(jump < 1){
     Rcpp::stop("`jump` must be at least 1!");
   }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
 
   if(nSamples < minLen){
     Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
@@ -272,10 +270,6 @@ PELTCppTmpl<Cost_VAR>::PELTCppTmpl(const arma::mat& tsMat, int pVAR, int minSize
   : costModule(tsMat, pVAR, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
-  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
-  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
-
-
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -283,6 +277,9 @@ PELTCppTmpl<Cost_VAR>::PELTCppTmpl(const arma::mat& tsMat, int pVAR, int minSize
   if(jump < 1){
     Rcpp::stop("`jump` must be at least 1!");
   }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
 
   if(nSamples < minLen){
     Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
@@ -319,9 +316,6 @@ PELTCppTmpl<Cost_SIGMA>::PELTCppTmpl(const arma::mat& tsMat, bool addSmallDiag, 
   : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
-  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
-  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
-
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -329,6 +323,9 @@ PELTCppTmpl<Cost_SIGMA>::PELTCppTmpl(const arma::mat& tsMat, bool addSmallDiag, 
   if(jump < 1){
     Rcpp::stop("`jump` must be at least 1!");
   }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
 
   if(nSamples < minLen){
     Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
@@ -365,10 +362,6 @@ PELTCppTmpl<Cost_LinearL2>::PELTCppTmpl(const arma::mat& tsMat,  const arma::mat
   : costModule(tsMat, covariates, intercept_, true), minSize(minSize_), jump(jump_){
   nSamples = costModule.nr;
 
-  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
-  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
-
-
   if(minSize < 1){
     Rcpp::stop("`minSize` must be at least 1!");
   }
@@ -376,6 +369,9 @@ PELTCppTmpl<Cost_LinearL2>::PELTCppTmpl(const arma::mat& tsMat,  const arma::mat
   if(jump < 1){
     Rcpp::stop("`jump` must be at least 1!");
   }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
 
   if(nSamples < minLen){
     Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
