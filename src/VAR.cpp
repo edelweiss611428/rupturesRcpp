@@ -80,12 +80,12 @@ double Cost_VAR::eval(int start, int end) const {
   if(!success){
 
     if(warnOnce_){
-      Rcpp::warning("Some systems seem singular! Switch to approximate the arma::solve solve()!");
+      Rcpp::warning("Some systems seem singular! Switch to the approximate arma::solve()!");
       warnOnce_ = false;
     }
 
     if(keepWarning){
-      Rcpp::warning("The system seems singular! Switch to approximate the arma::solve solve()!");
+      Rcpp::warning("The system seems singular! Switch to the approximate arma::solve()!");
     }
 
     arma::solve(B, G, H, arma::solve_opts::force_approx);
