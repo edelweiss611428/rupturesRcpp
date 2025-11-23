@@ -1,10 +1,10 @@
 Package: rupturesRcpp
 Type: Package
 Title: Object-Oriented Interface for Offline Change-Point Detection 
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: 
     c(
-      person("Minh Long", "Nguyen", , "edelweiss611428@gmail.com", role = c("aut", "cre")),
+      person("Long", "Nguyen", , "edelweiss611428@gmail.com", role = c("aut", "cre")),
       person("Toby", "Hocking", , "toby.hocking@r-project.org", role = "aut"),
       person("Charles", "Truong", , "ctruong@ens-paris-saclay.fr", role = "aut")
     )
