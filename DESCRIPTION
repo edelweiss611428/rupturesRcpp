@@ -33,6 +33,6 @@ Collate:
     'PeltR6.R'
     'WindowR6.R'
     'binSegR6.R'
+    'peakDetector.R'
     'rupturesRcpp-package.R'
     'zzz.R'
-
