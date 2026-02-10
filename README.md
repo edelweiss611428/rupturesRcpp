@@ -225,7 +225,7 @@ binSegObj$plot(d = 1L,
 
 - Increase testing for robustness and correctness of existing modules (e.g., mathematical correctness, time complexities).
 - Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using data structures such as a persistent segment tree with `O(nlog(n))` precomputation.
-- Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility.
+- Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility (see https://github.com/edelweiss611428/R6BinSeg/tree/main for an idea).
 - Implement additional cost functions (e.g., `"Poisson"` and `"Linear-L1"`). 
 - Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
 - Enhance existing `$eval()` methods for parameter estimation.
