@@ -223,7 +223,6 @@ binSegObj$plot(d = 1L,
 
 ## Future development
 
-- Increase testing for robustness and correctness of existing modules (e.g., mathematical correctness, time complexities).
 - Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using data structures such as a persistent segment tree with `O(nlog(n))` precomputation.
 - Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility (see https://github.com/edelweiss611428/R6BinSeg/tree/main for an idea).
 - Implement additional cost functions (e.g., `"Poisson"` and `"Linear-L1"`). 
@@ -231,8 +230,6 @@ binSegObj$plot(d = 1L,
 - Enhance existing `$eval()` methods for parameter estimation.
 - Develop a `costFactory` class for users focusing solely on fast cost computation and parameter estimation.
 - Improve `$plot()` method for models involving both dependent and independent variables.
-- Provide instructions for future contributors.
-
 
 ## Contributing
 
