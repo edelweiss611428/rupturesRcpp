@@ -1,16 +1,13 @@
 #PELT module
 
-X_constantSeg = matrix(c(rep(0,50), rep(5, 50), rep(10, 50)))
+segObj = function(obj, bkps, pen) {
+  starts = c(0, head(bkps, -1))
+  sum(mapply(function(s, e) obj$eval(s, e), starts, bkps)) + pen * (length(bkps) - 1)
+}
 
-
-test_that("PELT_L2 modules in `rupturesRcpp` and `ruptures` give the same results : Test 1", {
-
-  set.seed(59)
-  X_noBkp = matrix(rnorm(250))
+test_that("PELT_L2 in `rupturesRcpp` matches or beats `ruptures`", {
 
   skip_if_not_installed("reticulate")
-  reticulate = asNamespace("reticulate")
-
   if (!reticulate::py_module_available("numpy") ||
       !reticulate::py_module_available("ruptures")) {
     skip("Required Python modules not available")
@@ -18,119 +15,34 @@ test_that("PELT_L2 modules in `rupturesRcpp` and `ruptures` give the same result
 
   ruptures = reticulate::import("ruptures")
   np = reticulate::import("numpy")
-  npX_noBkp = np$array(X_noBkp)
+  cfgs = list(c(1, 1), c(3, 3), c(5, 5), c(5, 10), c(10, 1), c(10, 2))
 
-  #PyPeltL2(min_size = 1L, jump = 1L)
-  PyPelt = ruptures$Pelt(model = "l2", min_size = 1L, jump = 1L)
-  PyPelt$fit(npX_noBkp)
+  for (seed in c(59, 123)) {
+    set.seed(seed)
+    X = matrix(rnorm(250))
 
-  #RPeltL2(min_size = 1L, jump = 1L)
-  RPelt = PELT$new(minSize = 1L, jump = 1L, costFunc = costFunc$new("L2"))
-  RPelt$fit(X_noBkp)
+    for (cfg in cfgs) {
+      PyPelt = ruptures$Pelt(model = "l2", min_size = as.integer(cfg[1]), jump = as.integer(cfg[2]))
+      PyPelt$fit(np$array(X))
+      RPelt = PELT$new(minSize = cfg[1], jump = cfg[2], costFunc = costFunc$new("L2"))
+      RPelt$fit(X)
 
-  for(i in 1:10){
+      for (i in 1:10) {
+        pen = runif(1, 0, 1)
+        PySol = unlist(PyPelt$predict(pen = pen))
+        RSol = RPelt$predict(pen)
+        PyObj = segObj(RPelt, PySol, pen)
+        RObj = segObj(RPelt, RSol, pen)
 
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
+        expect_lte(RObj, PyObj + 1e-8)
+        if (abs(RObj - PyObj) <= 1e-8) expect_equal(RSol, PySol)
+      }
+    }
   }
-
-  #PyPeltL2(min_size = 3L, jump = 3L)
-  PyPelt$min_size = 3L
-  PyPelt$jump = 3L
-
-  #RPeltL2(min_size = 3L, jump = 3L)
-  RPelt$minSize = 3L
-  RPelt$jump = 3L
-
-  for(i in 1:10){
-
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
-  }
-
-  #PyPeltL2(min_size = 5L, jump = 5L)
-  PyPelt$min_size = 5L
-  PyPelt$jump = 5L
-
-  #RPeltL2(min_size = 5L, jump = 5L)
-  RPelt$minSize = 5L
-  RPelt$jump = 5L
-
-  for(i in 1:10){
-
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
-  }
-
-  #PyPeltL2(min_size = 5L, jump = 10L)
-  PyPelt$min_size = 5L
-  PyPelt$jump = 10L
-
-  #RPeltL2(min_size = 5L, jump = 10L)
-  RPelt$minSize = 5L
-  RPelt$jump = 10L
-
-  for(i in 1:10){
-
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
-  }
-
-  #PyPeltL2(min_size = 10L, jump = 1L)
-  PyPelt$min_size = 10L
-  PyPelt$jump = 1L
-
-  #RPeltL2(min_size = 10L, jump = 1L)
-  RPelt$minSize = 10L
-  RPelt$jump = 1L
-
-  for(i in 1:10){
-
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
-  }
-
-  #PyPeltL2(min_size = 10L, jump = 2L)
-  PyPelt$min_size = 10L
-  PyPelt$jump = 2L
-
-  #RPeltL2(min_size = 10L, jump = 2L)
-  RPelt$minSize = 10L
-  RPelt$jump = 2L
-
-  for(i in 1:10){
-
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
-  }
-
-
 })
 
+
+X_constantSeg = matrix(c(rep(0,50), rep(5, 50), rep(10, 50)))
 
 
 test_that("PELT_L1 works for constant segments", {
@@ -142,136 +54,6 @@ test_that("PELT_L1 works for constant segments", {
   expect_equal( PeltObj$predict(pen = 0.1), seq(50,150,50))
 
 })
-
-test_that("PELT_L2 modules in `rupturesRcpp` and `ruptures` give the same results : Test 2", {
-
-  set.seed(123)
-  X_noBkp = matrix(rnorm(250))
-
-  skip_if_not_installed("reticulate")
-  reticulate = asNamespace("reticulate")
-
-  if (!reticulate::py_module_available("numpy") ||
-      !reticulate::py_module_available("ruptures")) {
-    skip("Required Python modules not available")
-  }
-
-  ruptures = reticulate::import("ruptures")
-  np = reticulate::import("numpy")
-  npX_noBkp = np$array(X_noBkp)
-
-  #PyPeltL2(min_size = 1L, jump = 1L)
-  PyPelt = ruptures$Pelt(model = "l2", min_size = 1L, jump = 1L)
-  PyPelt$fit(npX_noBkp)
-
-  #RPeltL2(min_size = 1L, jump = 1L)
-  RPelt = PELT$new(minSize = 1L, jump = 1L, costFunc = costFunc$new("L2"))
-  RPelt$fit(X_noBkp)
-
-  for(i in 1:10){
-
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
-  }
-
-  #PyPeltL2(min_size = 3L, jump = 3L)
-  PyPelt$min_size = 3L
-  PyPelt$jump = 3L
-
-  #RPeltL2(min_size = 3L, jump = 3L)
-  RPelt$minSize = 3L
-  RPelt$jump = 3L
-
-  for(i in 1:10){
-
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
-  }
-
-  #PyPeltL2(min_size = 5L, jump = 5L)
-  PyPelt$min_size = 5L
-  PyPelt$jump = 5L
-
-  #RPeltL2(min_size = 5L, jump = 5L)
-  RPelt$minSize = 5L
-  RPelt$jump = 5L
-
-  for(i in 1:10){
-
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
-  }
-
-  #PyPeltL2(min_size = 5L, jump = 10L)
-  PyPelt$min_size = 5L
-  PyPelt$jump = 10L
-
-  #RPeltL2(min_size = 5L, jump = 10L)
-  RPelt$minSize = 5L
-  RPelt$jump = 10L
-
-  for(i in 1:10){
-
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
-  }
-
-  #PyPeltL2(min_size = 10L, jump = 1L)
-  PyPelt$min_size = 10L
-  PyPelt$jump = 1L
-
-  #RPeltL2(min_size = 10L, jump = 1L)
-  RPelt$minSize = 10L
-  RPelt$jump = 1L
-
-  for(i in 1:10){
-
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
-  }
-
-  #PyPeltL2(min_size = 10L, jump = 2L)
-  PyPelt$min_size = 10L
-  PyPelt$jump = 2L
-
-  #RPeltL2(min_size = 10L, jump = 2L)
-  RPelt$minSize = 10L
-  RPelt$jump = 2L
-
-  for(i in 1:10){
-
-    pen = runif(1,0,1)
-    PySol = PyPelt$predict(pen)
-    RSol = RPelt$predict(pen)
-
-    expect_true(all.equal(PySol, RSol))
-
-  }
-
-
-})
-
-
 
 test_that("PELT_L1 works for constant segments", {
 

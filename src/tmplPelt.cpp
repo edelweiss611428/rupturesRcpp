@@ -66,81 +66,78 @@ public:
   // predict() method: Perform PELT segmentation
   std::vector<int> predict(double penalty) {
 
-    costModule.resetWarning(true); // Only output warning once
+    costModule.resetWarning(true);
 
     if (penalty < 0) {
       Rcpp::stop("`penalty` must be non-negative!");
     }
 
-    // Initialization
+    const double inf = std::numeric_limits<double>::infinity();
+    const int never = std::numeric_limits<int>::max();
 
-    arma::vec socVec(nSamples + 1);     // Total cost up to each point
-
+    arma::vec socVec(nSamples + 1, arma::fill::value(inf));
     socVec[0] = -penalty;
+    arma::ivec pathVec = arma::zeros<arma::ivec>(nSamples + 1);
 
-    for (int k = 1; k < minSize; k++){
-      socVec[k] = std::numeric_limits<double>::infinity();
-    }
-
-    arma::ivec pathVec = arma::zeros<arma::ivec>(nSamples + 1);  // Backpointers
-    std::vector<int> admissibleBkps;             // Admissible previous breakpoints
-    std::vector<double> tmpCostVec;   // Temporary cost storage
-
-
-    // Build initial admissible set: all multiples of jump >= minSize
-    std::vector<int> all_ends;
-
+    std::vector<int> ends;
     for (int k = 0; k < nSamples; k += jump) {
-      if (k >= minSize) all_ends.push_back(k);
+      if (k >= minSize) ends.push_back(k);
     }
-    all_ends.push_back(nSamples);
+    ends.push_back(nSamples);
 
-    for (int i = 0; i < static_cast<int>(all_ends.size()); ++i) {
-      int end = all_ends[i];
+    std::vector<int> admissibleBkps, pruneTime, keepB, keepP;
+    std::vector<double> tmpCostVec;
+    int lastAdded = -1;
 
-      // Add new admissible point
-      int new_adm_pt = static_cast<int>(std::floor((end - minSize) / double(jump))) * jump;
-      admissibleBkps.push_back(new_adm_pt);
+    for (int end : ends) {
 
-      tmpCostVec.resize(admissibleBkps.size());
-      double minSoc = std::numeric_limits<double>::infinity();
+      int newPt = ((end - minSize) / jump) * jump;
+      if (newPt != lastAdded) {
+        admissibleBkps.push_back(newPt);
+        pruneTime.push_back(never);
+        lastAdded = newPt;
+      }
+
+      keepB.clear();
+      keepP.clear();
+      for (size_t j = 0; j < admissibleBkps.size(); ++j) {
+        if (pruneTime[j] > end - minSize) {
+          keepB.push_back(admissibleBkps[j]);
+          keepP.push_back(pruneTime[j]);
+        }
+      }
+      admissibleBkps.swap(keepB);
+      pruneTime.swap(keepP);
+
+      tmpCostVec.assign(admissibleBkps.size(), inf);
+      double minSoc = inf;
       int bestBkp = -1;
 
-      for (int j = 0; j < admissibleBkps.size(); ++j) {
-
-        int lastBkp = admissibleBkps[j];
-        // # nocov start
-        if (end - lastBkp < minSize) continue;
-        // # nocov end
-        double segCost = costModule.eval(lastBkp, end);
-        double totalCost = socVec[lastBkp] + segCost + penalty;
-        tmpCostVec[j] = segCost;
-
-        if (totalCost < minSoc) {
-          minSoc = totalCost;
-          bestBkp = lastBkp;
+      for (size_t j = 0; j < admissibleBkps.size(); ++j) {
+        int t = admissibleBkps[j];
+        if (socVec[t] == inf) continue;
+        tmpCostVec[j] = costModule.eval(t, end);
+        double total = socVec[t] + tmpCostVec[j] + penalty;
+        if (total < minSoc) {
+          minSoc = total;
+          bestBkp = t;
         }
       }
 
       socVec[end] = minSoc;
       pathVec[end] = bestBkp;
 
-      // Prune admissible set
-
-      std::vector<int> pruned_admissibleBkps;
       for (size_t j = 0; j < admissibleBkps.size(); ++j) {
-        int lastBkp = admissibleBkps[j];
-        if (socVec[lastBkp] + tmpCostVec[j] <= socVec[end]){
-          pruned_admissibleBkps.push_back(lastBkp);
+        if (pruneTime[j] == never &&
+            socVec[admissibleBkps[j]] + tmpCostVec[j] > socVec[end]) {
+          pruneTime[j] = end;
         }
       }
-      admissibleBkps = std::move(pruned_admissibleBkps);
-      tmpCostVec.resize(admissibleBkps.size());
     }
 
     costModule.resetWarning(false);
     return readPath(pathVec);
-  }
+  };
 
   //.eval() method
   double eval(int start, int end) {
@@ -170,11 +167,6 @@ public:
 // ========================================================
 //         L1 class based on coordinate-wise median
 // ========================================================
-
-static void L1_cwMedian() {
-  // intentionally empty
-}
-
 
 template<>
 PELTCppTmpl<Cost_L1_cwMed>::PELTCppTmpl(const arma::mat& tsMat, int minSize_, int jump_)
@@ -214,10 +206,6 @@ RCPP_EXPOSED_CLASS(PELTCpp_L1_cwMed)
 // ========================================================
 //                        L2 class
 // ========================================================
-
-static void L2() {
-  // intentionally empty
-}
 
 
 template<>
@@ -259,10 +247,6 @@ RCPP_EXPOSED_CLASS(PELTCpp_L2)
 // ========================================================
 //                        VAR class
 // ========================================================
-
-static void VAR() {
-  // intentionally empty
-}
 
 
 template<>
@@ -306,11 +290,6 @@ RCPP_EXPOSED_CLASS(PELTCpp_VAR)
 //                       SIGMA class
 // ========================================================
 
-static void SIGMA() {
-  // intentionally empty
-}
-
-
 template<>
 PELTCppTmpl<Cost_SIGMA>::PELTCppTmpl(const arma::mat& tsMat, bool addSmallDiag, double epsilon, int minSize_, int jump_)
   : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
@@ -350,10 +329,6 @@ RCPP_EXPOSED_CLASS(PELTCpp_SIGMA)
 // ========================================================
 //                     LinearL2 class
 // ========================================================
-
-static void LinearL2() {
-  // intentionally empty
-}
 
 
 template<>
