@@ -268,11 +268,6 @@ public:
 //            L1 class based on piecewise median
 // ========================================================
 
-static void L1_cwMedian() {
-  // intentionally empty
-}
-
-
 template<>
 binSegCppTmpl<Cost_L1_cwMed>::binSegCppTmpl(const arma::mat& tsMat, int minSize_, int jump_)
   : costModule(tsMat, true), minSize(minSize_), jump(jump_) {
@@ -312,11 +307,6 @@ RCPP_EXPOSED_CLASS(binSegCpp_L1_cwMed)
 // ========================================================
 //                        L2 class
 // ========================================================
-
-static void L2() {
-  // intentionally empty
-}
-
 
 template<>
 binSegCppTmpl<Cost_L2>::binSegCppTmpl(const arma::mat& tsMat, int minSize_, int jump_)
@@ -361,10 +351,6 @@ RCPP_EXPOSED_CLASS(binSegCpp_L2)
 //                        VAR class
 // ========================================================
 
-static void VAR() {
-  // intentionally empty
-}
-
 
 template<>
 binSegCppTmpl<Cost_VAR>::binSegCppTmpl(const arma::mat& tsMat, int pVAR, int minSize_, int jump_)
@@ -408,11 +394,6 @@ RCPP_EXPOSED_CLASS(binSegCpp_VAR)
 //                       SIGMA class
 // ========================================================
 
-static void SIGMA() {
-  // intentionally empty
-}
-
-
 template<>
 binSegCppTmpl<Cost_SIGMA>::binSegCppTmpl(const arma::mat& tsMat, bool addSmallDiag, double epsilon, int minSize_, int jump_)
   : costModule(tsMat, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
@@ -453,11 +434,6 @@ RCPP_EXPOSED_CLASS(binSegCpp_SIGMA)
 // ========================================================
 //                     LinearL2 class
 // ========================================================
-
-static void LinearL2() {
-  // intentionally empty
-}
-
 
 template<>
 binSegCppTmpl<Cost_LinearL2>::binSegCppTmpl(const arma::mat& tsMat,  const arma::mat& covariates,
