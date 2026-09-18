@@ -210,9 +210,6 @@ public:
 //            L1 class based on piecewise median
 // ========================================================
 
-static void L1_cwMedian() {
-  // intentionally empty
-}
 
 
 template<>
@@ -269,9 +266,6 @@ RCPP_EXPOSED_CLASS(windowCpp_L1_cwMed)
 //                        L2 class
 // ========================================================
 
-static void L2() {
-  // intentionally empty
-}
 
 
 template<>
@@ -322,10 +316,6 @@ RCPP_EXPOSED_CLASS(windowCpp_L2)
 // ========================================================
 //                        VAR class
 // ========================================================
-
-static void VAR() {
-  // intentionally empty
-}
 
 
 template<>
@@ -379,10 +369,6 @@ RCPP_EXPOSED_CLASS(windowCpp_VAR)
 //                       SIGMA class
 // ========================================================
 
-static void SIGMA() {
-  // intentionally empty
-}
-
 
 template<>
 windowCppTmpl<Cost_SIGMA>::windowCppTmpl(const arma::mat& tsMat, bool addSmallDiag, double epsilon, int minSize_, int jump_,
@@ -434,10 +420,6 @@ RCPP_EXPOSED_CLASS(windowCpp_SIGMA)
 // ========================================================
 //                     LinearL2 class
 // ========================================================
-
-static void LinearL2() {
-  // intentionally empty
-}
 
 
 template<>
