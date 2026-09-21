@@ -34,6 +34,7 @@ Collate:
     'PeltR6.R'
     'WindowR6.R'
     'binSegR6.R'
+    'costFactoryR6.R'
     'rupturesRcpp-package.R'
     'segSummary.R'
     'zzz.R'
