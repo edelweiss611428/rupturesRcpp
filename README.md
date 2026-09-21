@@ -105,6 +105,7 @@ All segmentation objects implement the following methods:
 - `$fit(tsMat, covariates)`: Constructs a `C++` detection module corresponding to the current configurations.
 - `$predict(pen)`: Performs change-point detection given a linear penalty value.
 - `$eval(a,b)`: Evaluates the cost of a segment (a,b].
+- `$summary(endPts)`: Summarises a segmentation: per-segment costs and parameter estimates (`endPts` defaults to the last `$predict()`).
 - `$plot(d, endPts,...)`: Plots change-point segmentation in `ggplot` style.
 
 Active bindings (such as `minSize` or `tsMat`) can be modified at any time—either before or after the object is created via the `$` operator. 
@@ -114,6 +115,18 @@ For consistency, if the object has already been fitted, modifying any active bin
 detectionObj$minSize = 2L #Before fitting
 detectionObj$fit(a_time_series_matrix) #Fitted
 detectionObj$minSize = 1L #After fitting - automatically trigger `$fit()`
+```
+
+### Interpreting a segmentation
+
+`$summary()` returns one entry per segment with its cost and fitted parameters (mean / median / covariance / regression coefficients, plus a variance estimate); `as.data.frame()` flattens it for tables. `costFactory` gives the same for any hand-made segmentation, without running a detection algorithm.
+
+```r
+s = binSegObj$summary()      # after $predict()
+s                            # pretty print
+as.data.frame(s)             # one row per segment
+cf = costFactory$new(costFunc$new("VAR", pVAR = 2), tsMat)
+cf$eval(0, 100); cf$estimate(0, 100)$coef
 ```
 
 ## Simulated data examples
@@ -227,8 +240,6 @@ binSegObj$plot(d = 1L,
 - Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility (see https://github.com/edelweiss611428/R6BinSeg/tree/main for an idea).
 - Implement additional cost functions (e.g., `"Poisson"` and `"Linear-L1"`). 
 - Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
-- Enhance existing `$eval()` methods for parameter estimation.
-- Develop a `costFactory` class for users focusing solely on fast cost computation and parameter estimation.
 - Improve `$plot()` method for models involving both dependent and independent variables.
 
 ## Contributing
