@@ -39,6 +39,7 @@ for detailed basic usage!
 \item{\code{$fit()}}{Constructs a \code{Window} module in \verb{C++}.}
 \item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$predict()}}{Performs \code{Window} given a linear penalty value.}
+\item{\code{$summary()}}{Summarises a segmentation: per-segment costs and parameter estimates.}
 \item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
 }
@@ -115,6 +116,7 @@ Modifying \code{covariates} will automatically trigger \verb{$fit()}.}
 \item \href{#method-Window-fit}{\code{Window$fit()}}
 \item \href{#method-Window-eval}{\code{Window$eval()}}
 \item \href{#method-Window-predict}{\code{Window$predict()}}
+\item \href{#method-Window-summary}{\code{Window$summary()}}
 \item \href{#method-Window-plot}{\code{Window$plot()}}
 \item \href{#method-Window-clone}{\code{Window$clone()}}
 }
@@ -309,6 +311,27 @@ specifying endpoints manually.
 \subsection{Returns}{
 An integer vector of regime end-points. By design, the last element is the
 number of observations.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Window-summary"></a>}}
+\if{latex}{\out{\hypertarget{method-Window-summary}{}}}
+\subsection{Method \code{summary()}}{
+Summarises a segmentation: one list per segment with \code{start}, \code{end}, \code{n}, \code{cost} and the
+fitted parameters of the cost function (see \link{segSummary}).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Window$summary(endPts)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{endPts}}{Integer vector. End points. Default: latest \code{endPts} obtained via \verb{$predict()}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+An object of class \code{segSummary}.
 }
 }
 \if{html}{\out{<hr>}}
