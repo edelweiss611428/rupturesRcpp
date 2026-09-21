@@ -12,7 +12,7 @@ Description: A collection of efficient implementations of popular offline change
 Encoding: UTF-8
 BugReports: https://github.com/edelweiss611428/rupturesRcpp/issues
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 License: CC BY 4.0
 LinkingTo: 
     Rcpp,
@@ -22,7 +22,8 @@ Imports:
     R6,
     ggplot2,
     patchwork,
-    methods
+    methods,
+    stats
 Suggests: 
     testthat (>= 3.0.0),
     reticulate,
@@ -34,5 +35,5 @@ Collate:
     'WindowR6.R'
     'binSegR6.R'
     'rupturesRcpp-package.R'
+    'segSummary.R'
     'zzz.R'
-
