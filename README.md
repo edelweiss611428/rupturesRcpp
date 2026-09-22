@@ -64,9 +64,9 @@ The following table shows the list of supported cost functions. Here, `n` is seg
 | `"L1"`            | Sum of `L1` distances to the segment-wise median; robust to outliers.                            | `costFunc`                               | `multi`        | `O(nlog(n))`                 |
 | `"L2"`            | Sum of squared `L2` distances to the segment-wise mean; faster but less robust than `L1`.        | `costFunc`                               | `multi`        | `O(1)`                 |
 | `"SIGMA"`         | Log-determinant of empirical covariance; models varying mean&variance.                           | `costFunc`, `addSmallDiag`, `epsilon`    | `multi`        | `O(1)`                 |
+| `"LinearL1"`      | Sum of `L1` residuals from a linear regression model, fit via Iteratively Reweighted Least Squares (IRLS); robust to outliers. | `costFunc`, `intercept`, `tol`, `maxIter` | `multi`        | not `O(1)`! |
 | `"LinearL2"`      | Sum of squared residuals from a linear regression model with constant noise variance.            | `costFunc`, `intercept`                  | `multi`        | `O(1)`                 |
 | `"LinearSIGMA"`   | Log-determinant of the residual covariance from a linear regression model; models varying noise covariance around a regression mean. | `costFunc`, `intercept`, `addSmallDiag`, `epsilon` | `multi`        | `O(1)`                 |
-| `"LinearL1"`      | Sum of `L1` residuals from a linear regression model, fit via Iteratively Reweighted Least Squares (IRLS); robust to outliers. | `costFunc`, `intercept`, `tol`, `maxIter` | `multi`        | not `O(1)` (re-fits IRLS per segment) |
 | `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | `O(1)`                 |
 
 If active binding `costFunc` is modified by assigning to `costFuncObj$costFunc` and the required parameters are missing, the default parameters will be used.
