@@ -111,8 +111,9 @@ protected:
   void precompute(const arma::mat& Z, const arma::mat& Y, int offset);
 
   double ssr(int start, int end) const;
-  Rcpp::List coef(int start, int end, int nEff) const;  // NA if nEff < J
-  arma::mat residualSSR(int start, int end) const;  // full R'R (q x q), R = Y - Z*coef
+  arma::mat solveCoef(int start, int end, int nEff) const;  // B_hat (J x pY), NA-filled if nEff < J
+  Rcpp::List coef(int start, int end, int nEff) const;  // {coef: solveCoef(...)}
+  arma::mat residualSSR(int start, int end, const arma::mat& B) const;  // R'R (q x q) given a precomputed B_hat
 
 private:
   const char* msgOnce_;
@@ -162,7 +163,38 @@ private:
   double epsilon_;
   double lbDet;  // nc * log(epsilon)
 
-  arma::mat residualCov(int start, int end) const;  // MLE residual covariance (+ epsilon * I if addSmallDiag)
+  // MLE residual covariance (+ epsilon * I if addSmallDiag) given a precomputed B_hat
+  arma::mat residualCov(int start, int end, const arma::mat& B) const;
+};
+
+// ========================================================
+//                     Cost_LinearL1
+// ========================================================
+
+// Piecewise linear regression under L1 (least absolute deviations) loss, fit per response
+// column via Iteratively Reweighted Least Squares (IRLS): at each iteration, observations are
+// weighted by 1/max(|residual|, delta) and a weighted least-squares problem is solved, which
+// converges to the L1 minimiser. Unlike the other regression costs, this has no O(1)-per-segment
+// closed form derivable from cumulative sums (the IRLS weights are segment- and fit-specific) --
+// each eval()/get_params() call re-fits IRLS on the segment's raw rows, costing
+// O(len * J^2 * iterations), not O(1).
+class Cost_LinearL1 : public CostBase {
+public:
+  Cost_LinearL1(const arma::mat& Y, const arma::mat& X, bool intercept = true,
+                double tol = 1e-6, int maxIter = 50, bool warnOnce = true);
+  double eval(int start, int end) const override;
+  Rcpp::List get_params(int start, int end) const override;  // coef: J x pY, intercept first
+
+private:
+  arma::mat Z;  // design matrix (intercept column prepended if requested)
+  arma::mat Y;  // response
+  int J;
+  double tol_;
+  int maxIter_;
+
+  // IRLS fit of one response column on rows [start, end); returns the coefficient vector and,
+  // if costOut is non-null, the resulting sum of absolute residuals.
+  arma::vec fitColumnIRLS(int start, int end, int col, double* costOut) const;
 };
 
 #endif // RUPTURES_COSTS_H

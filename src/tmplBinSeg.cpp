@@ -169,6 +169,10 @@ public:
   binSegCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
                 bool addSmallDiag, double epsilon, int minSize_, int jump_);
 
+  // For LinearL1: constructor with (tsMat, covariates, intercept, tol, maxIter, minSize, jump)
+  binSegCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
+                double tol, int maxIter, int minSize_, int jump_);
+
   //.fit() method
   void fit(){
 
@@ -512,4 +516,48 @@ RCPP_EXPOSED_CLASS(binSegCpp_LinearSIGMA)
     .method("predict", &binSegCppTmpl<Cost_LinearSIGMA>::predict)
     .method("eval", &binSegCppTmpl<Cost_LinearSIGMA>::eval)
     .method("get_params", &binSegCppTmpl<Cost_LinearSIGMA>::get_params);
+  }
+
+
+
+// ========================================================
+//                    LinearL1 class
+// ========================================================
+
+template<>
+binSegCppTmpl<Cost_LinearL1>::binSegCppTmpl(const arma::mat& tsMat, const arma::mat& covariates,
+                                             bool intercept_, double tol, int maxIter,
+                                             int minSize_, int jump_)
+  : costModule(tsMat, covariates, intercept_, tol, maxIter, true), minSize(minSize_), jump(jump_){
+  nSamples = costModule.nr;
+
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
+  }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+}
+
+RCPP_EXPOSED_CLASS(binSegCpp_LinearL1)
+  RCPP_MODULE(binSegCpp_LinearL1_module) {
+    Rcpp::class_<binSegCppTmpl<Cost_LinearL1>>("binSegCpp_LinearL1")
+    .constructor<arma::mat, arma::mat, bool, double, int, int, int>()  // mat, covariates, intercept, tol, maxIter, minSize, jump
+    .method("fit", &binSegCppTmpl<Cost_LinearL1>::fit)
+    .method("predict", &binSegCppTmpl<Cost_LinearL1>::predict)
+    .method("eval", &binSegCppTmpl<Cost_LinearL1>::eval)
+    .method("get_params", &binSegCppTmpl<Cost_LinearL1>::get_params);
   }

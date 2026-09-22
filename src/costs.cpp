@@ -85,6 +85,7 @@ double Cost_L1_cwMed::eval(int start, int end) const {
 }
 
 Rcpp::List Cost_L1_cwMed::get_params(int start, int end) const {
+  checkSegment(start, end);
   arma::rowvec med = arma::median(X.rows(start, end - 1), 0);
   return Rcpp::List::create(Rcpp::Named("median") = asNumeric(med));
 }
@@ -110,6 +111,7 @@ double Cost_L2::eval(int start, int end) const {
 }
 
 Rcpp::List Cost_L2::get_params(int start, int end) const {
+  checkSegment(start, end);
   arma::rowvec mu = (csX.row(end) - csX.row(start)) / (end - start);
   return Rcpp::List::create(Rcpp::Named("mean") = asNumeric(mu));
 }
@@ -151,6 +153,7 @@ double Cost_SIGMA::eval(int start, int end) const {
 }
 
 Rcpp::List Cost_SIGMA::get_params(int start, int end) const {
+  checkSegment(start, end);
   arma::rowvec mu = (csX.row(end) - csX.row(start)) / (end - start);
   return Rcpp::List::create(Rcpp::Named("mean") = asNumeric(mu),
                             Rcpp::Named("cov") = segmentCov(start, end));
@@ -198,22 +201,24 @@ double RegressionCost::ssr(int start, int end) const {
   return std::max(0.0, arma::trace(YtY) - arma::trace(B.t() * ZtY));
 }
 
-arma::mat RegressionCost::residualSSR(int start, int end) const {
-  arma::mat ZtZ = csZtZ.slice(end) - csZtZ.slice(start);
+arma::mat RegressionCost::residualSSR(int start, int end, const arma::mat& B) const {
   arma::mat ZtY = csZtY.slice(end) - csZtY.slice(start);
   arma::mat YtY = csYtY.slice(end) - csYtY.slice(start);
-  arma::mat B = solveSegment(ZtZ, ZtY);
   return YtY - B.t() * ZtY;
 }
 
-Rcpp::List RegressionCost::coef(int start, int end, int nEff) const {
+arma::mat RegressionCost::solveCoef(int start, int end, int nEff) const {
   arma::mat B(J, csZtY.n_cols);
   if (nEff < J) {
     B.fill(NA_REAL);
   } else {
     B = solveSegment(csZtZ.slice(end) - csZtZ.slice(start), csZtY.slice(end) - csZtY.slice(start));
   }
-  return Rcpp::List::create(Rcpp::Named("coef") = B);
+  return B;
+}
+
+Rcpp::List RegressionCost::coef(int start, int end, int nEff) const {
+  return Rcpp::List::create(Rcpp::Named("coef") = solveCoef(start, end, nEff));
 }
 
 // ========================================================
@@ -253,6 +258,7 @@ double Cost_LinearL2::eval(int start, int end) const {
 }
 
 Rcpp::List Cost_LinearL2::get_params(int start, int end) const {
+  checkSegment(start, end);
   return coef(start, end, end - start);
 }
 
@@ -294,6 +300,7 @@ double Cost_VAR::eval(int start, int end) const {
 }
 
 Rcpp::List Cost_VAR::get_params(int start, int end) const {
+  checkSegment(start, end);
   return coef(start, end, end - std::max(start, p));
 }
 
@@ -328,8 +335,8 @@ Cost_LinearSIGMA::Cost_LinearSIGMA(const arma::mat& Y, const arma::mat& X, bool 
   }
 }
 
-arma::mat Cost_LinearSIGMA::residualCov(int start, int end) const {
-  arma::mat covMat = residualSSR(start, end) / (end - start);
+arma::mat Cost_LinearSIGMA::residualCov(int start, int end, const arma::mat& B) const {
+  arma::mat covMat = residualSSR(start, end, B) / (end - start);
   if (addSmallDiag_) {
     covMat.diag() += epsilon_;
   }
@@ -340,19 +347,139 @@ double Cost_LinearSIGMA::eval(int start, int end) const {
   if (start >= end - 1 || end - start < J) {
     return 0.0;
   }
-  return logDetCost(residualCov(start, end), addSmallDiag_, epsilon_, lbDet, end - start);
+  arma::mat B = solveCoef(start, end, end - start);
+  return logDetCost(residualCov(start, end, B), addSmallDiag_, epsilon_, lbDet, end - start);
 }
 
 Rcpp::List Cost_LinearSIGMA::get_params(int start, int end) const {
-  Rcpp::List out = coef(start, end, end - start);
-  if (end - start < J) {
-    arma::mat covMat(nc, nc);
+  checkSegment(start, end);
+  int len = end - start;
+  arma::mat B = solveCoef(start, end, len);
+
+  arma::mat covMat(nc, nc);
+  if (len < J) {
     covMat.fill(NA_REAL);
-    out["cov"] = covMat;
   } else {
-    out["cov"] = residualCov(start, end);
+    covMat = residualCov(start, end, B);
   }
-  return out;
+
+  return Rcpp::List::create(Rcpp::Named("coef") = B, Rcpp::Named("cov") = covMat);
+}
+
+// ========================================================
+//                     Cost_LinearL1
+// ========================================================
+
+Cost_LinearL1::Cost_LinearL1(const arma::mat& Y_, const arma::mat& X, bool intercept,
+                              double tol, int maxIter, bool warnOnce)
+  : CostBase(warnOnce), tol_(tol), maxIter_(maxIter) {
+
+  if (Y_.n_rows != X.n_rows) {
+    Rcpp::stop("Number of observations in response and covariate matrices must match!");
+  }
+
+  nr = Y_.n_rows;
+  nc = Y_.n_cols;
+  J = X.n_cols + (intercept ? 1 : 0);
+
+  if (nr < J) {
+    Rcpp::stop("The full dataset contains not enough observations to fit a linear regression model!");
+  }
+  if (tol <= 0.0) {
+    Rcpp::stop("`tol` must be a single positive value!");
+  }
+  if (maxIter < 1) {
+    Rcpp::stop("`maxIter` must be at least 1!");
+  }
+
+  Y = Y_;
+  Z = intercept ? arma::join_rows(arma::ones(nr), X) : X;
+}
+
+arma::vec Cost_LinearL1::fitColumnIRLS(int start, int end, int col, double* costOut) const {
+  static const double kWeightFloor = 1e-6;
+
+  arma::mat Zseg = Z.rows(start, end - 1);
+  arma::vec yseg = Y.submat(start, col, end - 1, col);
+
+  arma::vec B;
+  if (!arma::solve(B, Zseg.t() * Zseg, Zseg.t() * yseg,
+                    arma::solve_opts::no_approx + arma::solve_opts::likely_sympd)) {
+    int level = warnLevel();
+    if (level) {
+      Rcpp::warning(level == 1 ? "System is singular. Switching to approximate solve."
+                                : "Singular system encountered. Using force_approx.");
+    }
+    arma::solve(B, Zseg.t() * Zseg, Zseg.t() * yseg, arma::solve_opts::force_approx);
+  }
+
+  arma::vec resid = yseg - Zseg * B;
+  double prevCost = arma::accu(arma::abs(resid));
+  bool converged = false;
+
+  for (int iter = 0; iter < maxIter_; ++iter) {
+    arma::vec w = 1.0 / arma::clamp(arma::abs(resid), kWeightFloor, arma::datum::inf);
+    arma::vec sqrtw = arma::sqrt(w);
+    arma::mat Zw = arma::diagmat(sqrtw) * Zseg;
+    arma::vec yw = sqrtw % yseg;
+
+    arma::vec Bnew;
+    if (!arma::solve(Bnew, Zw.t() * Zw, Zw.t() * yw,
+                      arma::solve_opts::no_approx + arma::solve_opts::likely_sympd)) {
+      arma::solve(Bnew, Zw.t() * Zw, Zw.t() * yw, arma::solve_opts::force_approx);
+    }
+
+    B = Bnew;
+    resid = yseg - Zseg * B;
+    double cost = arma::accu(arma::abs(resid));
+
+    if (std::abs(prevCost - cost) <= tol_ * (1.0 + prevCost)) {
+      prevCost = cost;
+      converged = true;
+      break;
+    }
+    prevCost = cost;
+  }
+
+  if (!converged) {
+    int level = warnLevel();
+    if (level) {
+      Rcpp::warning(level == 1
+        ? "IRLS did not converge within `maxIter`! Consider increasing `maxIter` or `tol`."
+        : "IRLS did not converge within `maxIter` for this segment!");
+    }
+  }
+
+  if (costOut) {
+    *costOut = prevCost;
+  }
+  return B;
+}
+
+double Cost_LinearL1::eval(int start, int end) const {
+  if (start >= end - 1 || end - start < J) {
+    return 0.0;
+  }
+  double total = 0.0;
+  for (int col = 0; col < nc; ++col) {
+    double colCost = 0.0;
+    fitColumnIRLS(start, end, col, &colCost);
+    total += colCost;
+  }
+  return total;
+}
+
+Rcpp::List Cost_LinearL1::get_params(int start, int end) const {
+  checkSegment(start, end);
+  arma::mat B(J, nc);
+  if (end - start < J) {
+    B.fill(NA_REAL);
+  } else {
+    for (int col = 0; col < nc; ++col) {
+      B.col(col) = fitColumnIRLS(start, end, col, nullptr);
+    }
+  }
+  return Rcpp::List::create(Rcpp::Named("coef") = B);
 }
 
 // ========================================================
@@ -365,6 +492,7 @@ RCPP_EXPOSED_CLASS(Cost_SIGMA)
 RCPP_EXPOSED_CLASS(Cost_LinearL2)
 RCPP_EXPOSED_CLASS(Cost_VAR)
 RCPP_EXPOSED_CLASS(Cost_LinearSIGMA)
+RCPP_EXPOSED_CLASS(Cost_LinearL1)
 
 RCPP_MODULE(Cost_L1_cwMed_module) {
   Rcpp::class_<Cost_L1_cwMed>("Cost_L1_cwMed")
@@ -412,4 +540,12 @@ RCPP_MODULE(Cost_LinearSIGMA_module) {
   .method("eval", &Cost_LinearSIGMA::eval, "Evaluate LinearSIGMA cost on interval (start, end]")
   .method("get_params", &Cost_LinearSIGMA::get_params, "Regression coefficients and residual covariance on (start, end]")
   .method("resetWarning", &resetWarningR<Cost_LinearSIGMA>, "Set the status of warnOnce_");
+}
+
+RCPP_MODULE(Cost_LinearL1_module) {
+  Rcpp::class_<Cost_LinearL1>("Cost_LinearL1")
+  .constructor<arma::mat, arma::mat, bool, double, int, bool>()
+  .method("eval", &Cost_LinearL1::eval, "Evaluate LinearL1 (IRLS) cost on interval (start, end]")
+  .method("get_params", &Cost_LinearL1::get_params, "Regression coefficients on (start, end]")
+  .method("resetWarning", &resetWarningR<Cost_LinearL1>, "Set the status of warnOnce_");
 }
