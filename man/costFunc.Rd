@@ -31,6 +31,10 @@ where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via 
 \item \strong{"LinearL2"} for piecewise linear regression process with \strong{constant noise variance}
 \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
 points needed for OLS, return 0.
+\item \strong{"LinearSIGMA"} for piecewise linear regression process with \strong{varying noise covariance}
+\deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
+is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
+the same way as in the SIGMA cost function (including the \code{addSmallDiag}/\code{epsilon} stabilisation and lower-bound fallback).
 }
 
 If active binding \verb{$costFunc} is modified (via assignment operator), the default parameters will be used.
@@ -121,6 +125,15 @@ For \code{"VAR"}, \code{pVAR} is required:
 For \code{"LinearL2"}, \code{intercept} is required:
 \describe{
 \item{\code{intercept}}{Logical. Whether to include the intercept in regression problems. Default: \code{TRUE}.}
+}
+
+For \code{"LinearSIGMA"}, supported parameters are:
+\describe{
+\item{\code{intercept}}{Logical. Whether to include the intercept in regression problems. Default: \code{TRUE}.}
+\item{\code{addSmallDiag}}{Logical. If \code{TRUE}, add a small value to the diagonal of estimated residual covariance matrices
+to stabilise matrix operations. Default: \code{TRUE}.}
+\item{\code{epsilon}}{Double. If \code{addSmallDiag = TRUE}, a small positive value added to the diagonal of estimated residual covariance matrices to stabilise
+matrix operations. Default: \code{1e-6}.}
 }}
 }
 \if{html}{\out{</div>}}
