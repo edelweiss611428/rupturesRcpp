@@ -197,4 +197,31 @@ private:
   arma::vec fitColumnIRLS(int start, int end, int col, double* costOut) const;
 };
 
+// ========================================================
+//                      Cost_RFunc
+// ========================================================
+
+// User-defined cost, backed by an R closure supplied at runtime. `costFun` is called as
+// costFun(segment, start, end): `segment` is the raw rows start, ..., end - 1 of `inputMat` (as an
+// R matrix), and `start`/`end` are the same 0-indexed, half-open (start, end] bounds passed to
+// eval() -- this lets a closure align `segment` against any externally-captured, position-indexed
+// data (e.g. `externalSeries[(start+1):end]`) without the package needing to know that data exists.
+// costFun must return a single numeric value; it is called as-is, with no special-casing of trivial
+// (length <= 1) segments. If `paramFun` is supplied, get_params() calls it the same way and wraps
+// its return value under "params"; otherwise get_params() returns an empty list. Because every call
+// to eval()/get_params() crosses back into R, this cost is substantially slower per call than the
+// built-in, closed-form costs -- expected, since the cost logic itself lives in R.
+class Cost_RFunc : public CostBase {
+public:
+  Cost_RFunc(const arma::mat& inputMat, Rcpp::Function costFun,
+             Rcpp::Nullable<Rcpp::Function> paramFun = R_NilValue, bool warnOnce = true);
+  double eval(int start, int end) const override;
+  Rcpp::List get_params(int start, int end) const override;
+
+private:
+  arma::mat X;
+  mutable Rcpp::Function costFun_;
+  Rcpp::Nullable<Rcpp::Function> paramFun_;
+};
+
 #endif // RUPTURES_COSTS_H

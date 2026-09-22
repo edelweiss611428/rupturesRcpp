@@ -7,7 +7,7 @@
 # initial OLS start, same 1e-6 weight floor, same convergence check), so
 # results can be compared to the C++ implementation with tight tolerance.
 
-R_fitColumnIRLS = function(y, Z, tol = 1e-6, maxIter = 50L){
+R_fitColumnIRLS = function(y, Z, tol = 1e-6, maxIter = 1000L){
 
   #`%*%`/solve() always return a matrix, even from vector inputs; as.vector()
   #keeps y/B/resid plain vectors throughout so elementwise ops below (which mix
@@ -39,7 +39,7 @@ R_fitColumnIRLS = function(y, Z, tol = 1e-6, maxIter = 50L){
   list(coef = as.vector(B), cost = prevCost)
 }
 
-R_LinearL1eval = function(Y, X, start, end, intercept = TRUE, tol = 1e-6, maxIter = 50L){
+R_LinearL1eval = function(Y, X, start, end, intercept = TRUE, tol = 1e-6, maxIter = 1000L){
 
   Z = X[(start+1):end, , drop = FALSE]
   if(intercept){
@@ -81,7 +81,7 @@ for(i in 1:nCases){
 
 test_that("Expect C++ .eval() method in LinearL1 cost module gives the correct results", {
 
-  LinearL1module = new(rupturesRcpp:::Cost_LinearL1, Y, X, TRUE, 1e-6, 50L, TRUE) # (intercept, tol, maxIter, warnOnce)
+  LinearL1module = new(rupturesRcpp:::Cost_LinearL1, Y, X, TRUE, 1e-6, 1000L, TRUE) # (intercept, tol, maxIter, warnOnce)
 
   for(i in 1:nCases){
     gs = R_LinearL1eval(Y, X, idx1[i], idx2[i])
@@ -106,7 +106,7 @@ test_that("Expect C++ .eval() method in LinearL1 cost module gives the correct r
 
 test_that("Expect $get_params() method in LinearL1 cost module gives the correct results", {
 
-  LinearL1module = new(rupturesRcpp:::Cost_LinearL1, Y, X, TRUE, 1e-6, 50L, TRUE)
+  LinearL1module = new(rupturesRcpp:::Cost_LinearL1, Y, X, TRUE, 1e-6, 1000L, TRUE)
 
   for(i in 1:nCases){
 
@@ -155,7 +155,7 @@ test_that("Expect $eval() method in PELT_LinearL1 gives the correct results/erro
 test_that("Expect .eval() method in C++ PELT_LinearL1 class gives the correct results/error message", {
 
   #.constructor<arma::mat, arma::mat, bool, double, int, int, int>()
-  PELTCppObj = new(PELTCpp_LinearL1, Y, X, TRUE, 1e-6, 50L, 1L, 1L)
+  PELTCppObj = new(PELTCpp_LinearL1, Y, X, TRUE, 1e-6, 1000L, 1L, 1L)
 
   for(i in 1:nCases){
     gs = R_LinearL1eval(Y, X, idx1[i], idx2[i])
@@ -205,7 +205,7 @@ test_that("Expect $eval() method in binSeg_LinearL1 gives the correct results/er
 test_that("Expect .eval() method in C++ binSeg_LinearL1 class gives the correct results/error message", {
 
   #.constructor<arma::mat, arma::mat, bool, double, int, int, int>()
-  binSegCppObj = new(binSegCpp_LinearL1, Y, X, TRUE, 1e-6, 50L, 1L, 1L)
+  binSegCppObj = new(binSegCpp_LinearL1, Y, X, TRUE, 1e-6, 1000L, 1L, 1L)
 
   for(i in 1:nCases){
     gs = R_LinearL1eval(Y, X, idx1[i], idx2[i])
@@ -255,7 +255,7 @@ test_that("Expect $eval() method in window_LinearL1 gives the correct results/er
 test_that("Expect .eval() method in C++ window_LinearL1 class gives the correct results/error message", {
 
   #.constructor<arma::mat, arma::mat, bool, double, int, int, int, int>()
-  windowCppObj = new(windowCpp_LinearL1, Y, X, TRUE, 1e-6, 50L, 1L, 1L, 10L)
+  windowCppObj = new(windowCpp_LinearL1, Y, X, TRUE, 1e-6, 1000L, 1L, 1L, 10L)
 
   idx1b = sample.int(nr-6, nCases)
   idx2b = integer(nCases)
@@ -292,19 +292,19 @@ test_that("Expect .eval() method in C++ window_LinearL1 class gives the correct 
 
 test_that("Expect correct error/warning messages when initialising C++ Cost_LinearL1 module", {
 
-  expect_error(new(rupturesRcpp:::Cost_LinearL1, Y, as.matrix(X[-1]), TRUE, 1e-6, 50L, TRUE),
+  expect_error(new(rupturesRcpp:::Cost_LinearL1, Y, as.matrix(X[-1]), TRUE, 1e-6, 1000L, TRUE),
                "Number of observations in response and covariate matrices must match!")
 
   X2 = matrix(1:5, nrow = 1)
   Y2 = matrix(1, nrow = 1)
 
-  expect_error(new(rupturesRcpp:::Cost_LinearL1, Y2, X2, TRUE, 1e-6, 50L, TRUE),
+  expect_error(new(rupturesRcpp:::Cost_LinearL1, Y2, X2, TRUE, 1e-6, 1000L, TRUE),
                "The full dataset contains not enough observations to fit a linear regression model!")
 
-  expect_error(new(rupturesRcpp:::Cost_LinearL1, Y, X, TRUE, 0, 50L, TRUE),
+  expect_error(new(rupturesRcpp:::Cost_LinearL1, Y, X, TRUE, 0, 1000L, TRUE),
                "`tol` must be a single positive value!")
 
-  expect_error(new(rupturesRcpp:::Cost_LinearL1, Y, X, TRUE, -1, 50L, TRUE),
+  expect_error(new(rupturesRcpp:::Cost_LinearL1, Y, X, TRUE, -1, 1000L, TRUE),
                "`tol` must be a single positive value!")
 
   expect_error(new(rupturesRcpp:::Cost_LinearL1, Y, X, TRUE, 1e-6, 0L, TRUE),
@@ -314,12 +314,12 @@ test_that("Expect correct error/warning messages when initialising C++ Cost_Line
   Xconst = matrix(rep(1,100))
   Y3 = matrix(rnorm(100))
 
-  LinearL1module = new(rupturesRcpp:::Cost_LinearL1, Y3, Xconst, TRUE, 1e-6, 50L, TRUE)
+  LinearL1module = new(rupturesRcpp:::Cost_LinearL1, Y3, Xconst, TRUE, 1e-6, 1000L, TRUE)
   #warnOnce_ = TRUE -> keepWarning = FALSE (expected behavior when running eval() inside segmentation methods)
   expect_warning(LinearL1module$eval(0, 100), "System is singular")
 
   #warnOnce_ = FALSE -> keepWarning = TRUE (expected behavior when running eval() outside segmentation methods)
-  LinearL1module = new(rupturesRcpp:::Cost_LinearL1, Y3, Xconst, TRUE, 1e-6, 50L, FALSE)
+  LinearL1module = new(rupturesRcpp:::Cost_LinearL1, Y3, Xconst, TRUE, 1e-6, 1000L, FALSE)
   expect_warning(LinearL1module$eval(0, 100), "Singular system encountered")
 
   #maxIter = 1L is (essentially) never enough to converge -> non-convergence warning
@@ -342,7 +342,7 @@ test_that("Active binding `costFunc` (LinearL1) works as intended for PELT/binSe
 
   expect_equal(costFuncObj$intercept, TRUE)
   expect_equal(costFuncObj$tol, 1e-6)
-  expect_equal(costFuncObj$maxIter, 50L)
+  expect_equal(costFuncObj$maxIter, 1000L)
 
   costFuncObj$tol = 1e-4
   costFuncObj$maxIter = 10L

@@ -515,6 +515,94 @@ test_that("`Window` does not collapse to 0 change point if `pen` is too large", 
 
 })
 
+test_that("`$getHistory()` returns a well-formed, non-increasing cost history", {
+
+  set.seed(12345)
+  tsMat = matrix(c(rnorm(50,0), rnorm(50,5)))
+  WindowObj = Window$new(minSize = 2L, radius = 15L)
+
+  expect_error(WindowObj$getHistory(), "must be run before") #not fitted yet
+
+  WindowObj$fit(tsMat)
+  hist = WindowObj$getHistory()
+
+  expect_s3_class(hist, "data.frame")
+  expect_identical(names(hist), c("k", "cost", "added_bkp"))
+  expect_equal(hist$k, 0:(nrow(hist) - 1))
+  expect_true(is.na(hist$added_bkp[1]))
+  expect_false(any(is.na(hist$added_bkp[-1])))
+  expect_true(all(diff(hist$cost) <= 1e-8)) #cost is non-increasing as k grows
+
+  #cost/added_bkp agree with the raw C++ fields
+  expect_equal(hist$cost, WindowObj$.__enclos_env__$private$.windowModule$costVec)
+  expect_equal(hist$added_bkp[-1], as.integer(WindowObj$.__enclos_env__$private$.windowModule$bkpsVec))
+
+  #cost at k=0 is the whole-series cost
+  expect_equal(hist$cost[1], WindowObj$eval(0, 100))
+
+  #row count matches the number of local maxima $fit() actually found (+1 for k=0)
+  expect_equal(nrow(hist), length(WindowObj$.__enclos_env__$private$.windowModule$bkpsVec) + 1L)
+
+})
+
+test_that("`$plotElbow()` returns a ggplot object and respects `maxK`", {
+
+  set.seed(12345)
+  tsMat = matrix(c(rnorm(50,0), rnorm(50,5)))
+  WindowObj = Window$new(minSize = 2L, radius = 15L)
+
+  expect_error(WindowObj$plotElbow(), "must be run before") #not fitted yet
+
+  WindowObj$fit(tsMat)
+
+  expect_no_error(WindowObj$plotElbow())
+  p = WindowObj$plotElbow()
+  expect_s3_class(p, "ggplot")
+
+  pCapped = WindowObj$plotElbow(maxK = 2)
+  expect_equal(nrow(pCapped$data), 3) #k = 0,1,2
+
+  expect_error(WindowObj$plotElbow(maxK = 0), "positive integer")
+  expect_error(WindowObj$plotElbow(maxK = "a"), "positive integer")
+
+})
+
+test_that("`$predict(nBkps=)` returns the exact prefix of `$getHistory()`'s `added_bkp`, capped and preferred over `pen`", {
+
+  set.seed(12345)
+  tsMat = matrix(c(rnorm(50,0), rnorm(50,5)))
+  WindowObj = Window$new(minSize = 2L, radius = 15L)
+  WindowObj$fit(tsMat)
+
+  hist = WindowObj$getHistory()
+  maxK = nrow(hist) - 1L
+  expect_gt(maxK, 0) #sanity: this fixture should find at least one local maximum
+
+  for(k in 0:min(4, maxK)){
+    bkps = WindowObj$predict(nBkps = k)
+    expect_length(bkps, k + 1L) #k change-points + n
+    expect_equal(tail(bkps, 1), 100)
+    if(k > 0){
+      expect_setequal(head(bkps, -1), hist$added_bkp[2:(k+1)])
+    }
+  }
+
+  #Requesting more than available is capped, not an error
+  expect_message(bkpsCapped <- WindowObj$predict(nBkps = maxK + 50), "Only .* available")
+  expect_length(bkpsCapped, maxK + 1L)
+  expect_identical(bkpsCapped, WindowObj$predict(nBkps = maxK))
+
+  #`nBkps` takes precedence over `pen` when both are supplied
+  expect_identical(WindowObj$predict(pen = 999999, nBkps = 2), WindowObj$predict(nBkps = 2))
+
+  #Validation
+  expect_error(WindowObj$predict(nBkps = -1), "non-negative integer")
+  expect_error(WindowObj$predict(nBkps = 1.5), "non-negative integer")
+  expect_error(WindowObj$predict(nBkps = "a"), "non-negative integer")
+  expect_no_error(WindowObj$predict(nBkps = 0))
+
+})
+
 #Lack of testing for C++ SW modules (to-be-updated)
 #Lack of comparision to gold-standard Slicing Window here (To-be-updated); however, testing has been done before
 

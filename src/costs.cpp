@@ -495,6 +495,30 @@ Rcpp::List Cost_LinearL1::get_params(int start, int end) const {
 }
 
 // ========================================================
+//                      Cost_RFunc
+// ========================================================
+
+Cost_RFunc::Cost_RFunc(const arma::mat& inputMat, Rcpp::Function costFun,
+                        Rcpp::Nullable<Rcpp::Function> paramFun, bool warnOnce)
+  : CostBase(warnOnce), X(inputMat), costFun_(costFun), paramFun_(paramFun) {
+  nr = X.n_rows;
+  nc = X.n_cols;
+}
+
+double Cost_RFunc::eval(int start, int end) const {
+  return Rcpp::as<double>(costFun_(X.rows(start, end - 1), start, end));
+}
+
+Rcpp::List Cost_RFunc::get_params(int start, int end) const {
+  checkSegment(start, end);
+  if (paramFun_.isNotNull()) {
+    Rcpp::Function pf(paramFun_.get());
+    return Rcpp::List::create(Rcpp::Named("params") = pf(X.rows(start, end - 1), start, end));
+  }
+  return Rcpp::List::create();
+}
+
+// ========================================================
 //                      Rcpp modules
 // ========================================================
 
@@ -560,4 +584,12 @@ RCPP_MODULE(Cost_LinearL1_module) {
   .method("eval", &Cost_LinearL1::eval, "Evaluate LinearL1 (IRLS) cost on interval (start, end]")
   .method("get_params", &Cost_LinearL1::get_params, "Regression coefficients on (start, end]")
   .method("resetWarning", &resetWarningR<Cost_LinearL1>, "Set the status of warnOnce_");
+}
+
+RCPP_MODULE(Cost_RFunc_module) {
+  Rcpp::class_<Cost_RFunc>("Cost_RFunc")
+  .constructor<arma::mat, Rcpp::Function, Rcpp::Nullable<Rcpp::Function>, bool>()
+  .method("eval", &Cost_RFunc::eval, "Evaluate a user-defined R cost function on interval (start, end]")
+  .method("get_params", &Cost_RFunc::get_params, "User-defined params function on (start, end], if supplied")
+  .method("resetWarning", &resetWarningR<Cost_RFunc>, "Set the status of warnOnce_");
 }

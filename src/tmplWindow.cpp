@@ -66,6 +66,9 @@ public:
   arma::uvec sortedPeaks;
   arma::vec cumGains;
 
+  IntegerVector bkpsVec;  // local maxima in descending-gain order (the order $predict() adds them)
+  NumericVector costVec;  // total cost after 0, 1, ..., nMaxima of those change-points; length nMaxima + 1
+
   // Declare generic constructors (empty here)
   // The actual definitions will be specialized outside.
 
@@ -88,6 +91,10 @@ public:
   // For LinearL1: constructor with (tsMat, covariates, intercept, tol, maxIter, minSize, jump, radius)
   windowCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
                 double tol, int maxIter, int minSize_, int jump_, int h_);
+
+  // For RFunc: constructor with (tsMat, costFun, paramFun, minSize, jump, radius)
+  windowCppTmpl(const arma::mat& tsMat, Rcpp::Function costFun,
+                Rcpp::Nullable<Rcpp::Function> paramFun, int minSize_, int jump_, int h_);
 
   //.fit() method
   void fit(){
@@ -143,6 +150,17 @@ public:
 
     // cumulative gains
     cumGains = arma::cumsum(sortedGains);
+
+    // Cost history: costVec[k] is the total cost after adding the top k change-points (by gain);
+    // bkpsVec[k-1] is the change-point added at that step. Same shape/semantics as binSeg's own
+    // bkpsVec/costVec, computed here from the (independently scored, not re-evaluated) gains above.
+    double baseCost = costModule.eval(0, nSamples);
+    bkpsVec = Rcpp::wrap(sortedPeaks);
+    costVec = NumericVector(nMaxima + 1);
+    costVec[0] = baseCost;
+    for (int kk = 1; kk <= nMaxima; kk++) {
+      costVec[kk] = baseCost - cumGains[kk - 1];
+    }
 
     costModule.resetWarning(false);
 
@@ -255,7 +273,9 @@ RCPP_EXPOSED_CLASS(windowCpp_L1_cwMed)
     .method("fit", &windowCppTmpl<Cost_L1_cwMed>::fit)
     .method("predict", &windowCppTmpl<Cost_L1_cwMed>::predict)
     .method("eval", &windowCppTmpl<Cost_L1_cwMed>::eval)
-    .method("get_params", &windowCppTmpl<Cost_L1_cwMed>::get_params);
+    .method("get_params", &windowCppTmpl<Cost_L1_cwMed>::get_params)
+    .field("bkpsVec", &windowCppTmpl<Cost_L1_cwMed>::bkpsVec)
+    .field("costVec", &windowCppTmpl<Cost_L1_cwMed>::costVec);
   }
 
 
@@ -306,7 +326,9 @@ RCPP_EXPOSED_CLASS(windowCpp_L2)
     .method("fit", &windowCppTmpl<Cost_L2>::fit)
     .method("predict", &windowCppTmpl<Cost_L2>::predict)
     .method("eval", &windowCppTmpl<Cost_L2>::eval)
-    .method("get_params", &windowCppTmpl<Cost_L2>::get_params);
+    .method("get_params", &windowCppTmpl<Cost_L2>::get_params)
+    .field("bkpsVec", &windowCppTmpl<Cost_L2>::bkpsVec)
+    .field("costVec", &windowCppTmpl<Cost_L2>::costVec);
   }
 
 
@@ -359,7 +381,9 @@ RCPP_EXPOSED_CLASS(windowCpp_VAR)
     .method("fit", &windowCppTmpl<Cost_VAR>::fit)
     .method("predict", &windowCppTmpl<Cost_VAR>::predict)
     .method("eval", &windowCppTmpl<Cost_VAR>::eval)
-    .method("get_params", &windowCppTmpl<Cost_VAR>::get_params);
+    .method("get_params", &windowCppTmpl<Cost_VAR>::get_params)
+    .field("bkpsVec", &windowCppTmpl<Cost_VAR>::bkpsVec)
+    .field("costVec", &windowCppTmpl<Cost_VAR>::costVec);
   }
 
 
@@ -412,7 +436,9 @@ RCPP_EXPOSED_CLASS(windowCpp_SIGMA)
     .method("fit", &windowCppTmpl<Cost_SIGMA>::fit)
     .method("predict", &windowCppTmpl<Cost_SIGMA>::predict)
     .method("eval", &windowCppTmpl<Cost_SIGMA>::eval)
-    .method("get_params", &windowCppTmpl<Cost_SIGMA>::get_params);
+    .method("get_params", &windowCppTmpl<Cost_SIGMA>::get_params)
+    .field("bkpsVec", &windowCppTmpl<Cost_SIGMA>::bkpsVec)
+    .field("costVec", &windowCppTmpl<Cost_SIGMA>::costVec);
   }
 
 
@@ -467,7 +493,9 @@ RCPP_EXPOSED_CLASS(windowCpp_LinearL2)
     .method("fit", &windowCppTmpl<Cost_LinearL2>::fit)
     .method("predict", &windowCppTmpl<Cost_LinearL2>::predict)
     .method("eval", &windowCppTmpl<Cost_LinearL2>::eval)
-    .method("get_params", &windowCppTmpl<Cost_LinearL2>::get_params);
+    .method("get_params", &windowCppTmpl<Cost_LinearL2>::get_params)
+    .field("bkpsVec", &windowCppTmpl<Cost_LinearL2>::bkpsVec)
+    .field("costVec", &windowCppTmpl<Cost_LinearL2>::costVec);
   }
 
 
@@ -522,7 +550,9 @@ RCPP_EXPOSED_CLASS(windowCpp_LinearSIGMA)
     .method("fit", &windowCppTmpl<Cost_LinearSIGMA>::fit)
     .method("predict", &windowCppTmpl<Cost_LinearSIGMA>::predict)
     .method("eval", &windowCppTmpl<Cost_LinearSIGMA>::eval)
-    .method("get_params", &windowCppTmpl<Cost_LinearSIGMA>::get_params);
+    .method("get_params", &windowCppTmpl<Cost_LinearSIGMA>::get_params)
+    .field("bkpsVec", &windowCppTmpl<Cost_LinearSIGMA>::bkpsVec)
+    .field("costVec", &windowCppTmpl<Cost_LinearSIGMA>::costVec);
   }
 
 
@@ -577,5 +607,61 @@ RCPP_EXPOSED_CLASS(windowCpp_LinearL1)
     .method("fit", &windowCppTmpl<Cost_LinearL1>::fit)
     .method("predict", &windowCppTmpl<Cost_LinearL1>::predict)
     .method("eval", &windowCppTmpl<Cost_LinearL1>::eval)
-    .method("get_params", &windowCppTmpl<Cost_LinearL1>::get_params);
+    .method("get_params", &windowCppTmpl<Cost_LinearL1>::get_params)
+    .field("bkpsVec", &windowCppTmpl<Cost_LinearL1>::bkpsVec)
+    .field("costVec", &windowCppTmpl<Cost_LinearL1>::costVec);
+  }
+
+
+
+// ========================================================
+//              RFunc class (user-defined cost)
+// ========================================================
+
+template<>
+windowCppTmpl<Cost_RFunc>::windowCppTmpl(const arma::mat& tsMat, Rcpp::Function costFun,
+                                          Rcpp::Nullable<Rcpp::Function> paramFun,
+                                          int minSize_, int jump_, int h_)
+  : costModule(tsMat, costFun, paramFun, true), minSize(minSize_), jump(jump_), h(h_){
+  nSamples = costModule.nr;
+
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
+  }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+  if(nSamples <= 2*h){
+    Rcpp::stop("Number of observations must be larger than `2*radius`!");
+  }
+
+  if(h < 1){
+    Rcpp::stop("Radius must be at least 1!");
+  }
+
+}
+
+RCPP_EXPOSED_CLASS(windowCpp_RFunc)
+  RCPP_MODULE(windowCpp_RFunc_module) {
+    Rcpp::class_<windowCppTmpl<Cost_RFunc>>("windowCpp_RFunc")
+    .constructor<arma::mat, Rcpp::Function, Rcpp::Nullable<Rcpp::Function>, int, int, int>()  // tsMat, costFun, paramFun, minSize, jump, h
+    .method("fit", &windowCppTmpl<Cost_RFunc>::fit)
+    .method("predict", &windowCppTmpl<Cost_RFunc>::predict)
+    .method("eval", &windowCppTmpl<Cost_RFunc>::eval)
+    .method("get_params", &windowCppTmpl<Cost_RFunc>::get_params)
+    .field("bkpsVec", &windowCppTmpl<Cost_RFunc>::bkpsVec)
+    .field("costVec", &windowCppTmpl<Cost_RFunc>::costVec);
   }

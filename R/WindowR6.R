@@ -5,7 +5,7 @@
 #' @include costFuncR6.R
 #' @docType class
 #' @importFrom R6 R6Class is.R6
-#' @importFrom ggplot2 aes ggplot geom_rect geom_line scale_fill_identity theme_minimal theme geom_vline labs element_blank element_text facet_wrap
+#' @import ggplot2
 #' @import patchwork
 #' @importFrom utils hasName
 #' @export
@@ -73,6 +73,8 @@
 #'   \item{\code{$fit()}}{Constructs a `Window` module in `C++`.}
 #'   \item{\code{$eval()}}{Evaluates the cost of a segment.}
 #'   \item{\code{$predict()}}{Performs `Window` given a linear penalty value.}
+#'   \item{\code{$getHistory()}}{Retrieves the full cost history and sequentially added breakpoints.}
+#'   \item{\code{$plotElbow()}}{Plots the elbow curve (Total Cost vs. Number of Change-Points).}
 #'   \item{\code{$plot()}}{Plots change-point segmentation in `ggplot` style.}
 #'   \item{\code{$clone()}}{Clones the `R6` object.}
 #' }
@@ -102,7 +104,8 @@ Window = R6Class(
     .n = NULL,
     .p = NULL,
     .tmpEndPts = NULL, #Temporary end points
-    .tmpPen = NULL #Temporary penalty value
+    .tmpPen = NULL, #Temporary penalty value
+    .tmpNBkps = NULL #Temporary nBkps value
 
   ),
 
@@ -317,7 +320,7 @@ Window = R6Class(
     #'   \item{\code{minSize}}{Minimum allowed segment length.}
     #'   \item{\code{jump}}{Search grid step size.}
     #'   \item{\code{radius}}{Radius of each sliding window.}
-    #'   \item{\code{costFunc}}{The `costFun` object.}
+    #'   \item{\code{costFunc}}{The `costFunc` object.}
     #'   \item{\code{fitted}}{Whether or not `$fit()` has been run.}
     #'   \item{\code{tsMat}}{Time series matrix.}
     #'   \item{\code{covariates}}{Covariate matrix (if exists).}
@@ -423,6 +426,20 @@ Window = R6Class(
         params[["intercept"]] = private$.costFunc$pass()[["intercept"]]
         params[["tol"]] = private$.costFunc$pass()[["tol"]]
         params[["maxIter"]] = private$.costFunc$pass()[["maxIter"]]
+
+      }
+
+      if(private$.costFunc$pass()[["costFunc"]] == "Custom"){
+
+        if(printConfig){
+
+          cat(sprintf("evalFun      : <function>\n"))
+          cat(sprintf("paramFun     : %s\n", if(is.null(private$.costFunc$pass()[["paramFun"]])) "NULL" else "<function>"))
+
+        }
+
+        params[["evalFun"]] = private$.costFunc$pass()[["evalFun"]]
+        params[["paramFun"]] = private$.costFunc$pass()[["paramFun"]]
 
       }
 
@@ -587,6 +604,13 @@ Window = R6Class(
                                     private$.costFunc$pass()[["maxIter"]],
                                     private$.minSize, private$.jump, private$.radius)
 
+      } else if(private$.costFunc$pass()[["costFunc"]] == "Custom"){
+
+        private$.windowModule = new(windowCpp_RFunc, private$.tsMat,
+                                    private$.costFunc$pass()[["evalFun"]],
+                                    private$.costFunc$pass()[["paramFun"]],
+                                    private$.minSize, private$.jump, private$.radius)
+
       } else{
         # nocov start
         stop("Cost function not supported!")
@@ -674,9 +698,15 @@ Window = R6Class(
 
     },
 
-    #' @description Performs `Window` given a linear penalty value.
+    #' @description Performs `Window` given a linear penalty value, or a target number of change-points.
     #'
-    #' @param pen Numeric. Penalty per change-point. Default: `0`.
+    #' @param pen Numeric. Penalty per change-point. Ignored if `nBkps` is supplied. Default: `0`.
+    #' @param nBkps Integer. If supplied, takes precedence over `pen`: returns the `nBkps` highest-gain
+    #' local maxima found by `$fit()` (see `$getHistory()`), i.e. `Window`'s own best answer for that
+    #' many change-points -- not necessarily the globally optimal one for that count (see `Dynp` for
+    #' that guarantee). Treated as an upper bound, not a strict requirement: `Window` only ever finds
+    #' finitely many local maxima, so if fewer than `nBkps` exist, all of them are returned and a
+    #' message reports the shortfall. Default: `NULL`.
     #'
     #' @return An integer vector of regime end-points. By design, the last element is the
     #' number of observations.
@@ -711,10 +741,40 @@ Window = R6Class(
     #' Temporary segment end-points are saved to `private$.tmpEndPoints` after `$predict()`, enabling users to call `$plot()` without
     #' specifying endpoints manually.
 
-    predict = function(pen = 0){
+    predict = function(pen = 0, nBkps = NULL){
 
       if(!private$.fitted){
         stop("`$fit()` must be run before `$predict()`!")
+      }
+
+      if(!is.null(nBkps)){
+
+        if(!is.numeric(nBkps) | length(nBkps) != 1){
+          stop("`nBkps` must be a single non-negative integer!")
+        }
+
+        if(any(nBkps < 0) | any(nBkps != round(nBkps))){
+          stop("`nBkps` must be a single non-negative integer!")
+        }
+
+        nBkps = as.integer(nBkps)
+        bkpsVec = private$.windowModule$bkpsVec
+        kUse = min(nBkps, length(bkpsVec))
+
+        if(kUse < nBkps){
+          message(sprintf(
+            "Only %dL change-point(s) available; using %dL instead of the requested `nBkps` (%dL).",
+            kUse, kUse, nBkps))
+        }
+
+        endPts = sort(c(head(bkpsVec, kUse), private$.n))
+
+        private$.tmpEndPts = endPts
+        private$.tmpPen = NULL
+        private$.tmpNBkps = nBkps
+
+        return(endPts)
+
       }
 
       if(is.null(pen)){
@@ -729,9 +789,70 @@ Window = R6Class(
 
       private$.tmpEndPts = endPts
       private$.tmpPen = pen
+      private$.tmpNBkps = NULL
 
       return(endPts)
 
+    },
+
+    #' @description Retrieves the full cost history and sequentially added breakpoints.
+    #'
+    #' @return A `data.frame` with three columns:
+    #' \describe{
+    #'   \item{\code{k}}{The number of change-points.}
+    #'   \item{\code{cost}}{The total unpenalised cost of the segmentation.}
+    #'   \item{\code{added_bkp}}{The breakpoint added at this step to achieve the cost.}
+    #' }
+    getHistory = function() {
+      if(!private$.fitted){
+        stop("`$fit()` must be run before `$getHistory()`!")
+      }
+
+      cost_vec = private$.windowModule$costVec
+      bkps_vec = private$.windowModule$bkpsVec
+
+      # The cost vector has length (max change-points + 1), bkp vector has length (max change-points)
+      # For k = 0, no breakpoint is added
+      history_df = data.frame(
+        k = 0:(length(cost_vec) - 1),
+        cost = cost_vec,
+        added_bkp = c(NA_integer_, as.integer(bkps_vec))
+      )
+
+      return(history_df)
+    },
+
+    #' @description Plots the elbow curve (Total Cost vs. Number of Change-Points).
+    #'
+    #' @param maxK Integer. The maximum number of change-points to display on the plot.
+    #' If `NULL`, displays the full history. Default: `NULL`.
+    #' @return A `ggplot` object.
+    plotElbow = function(maxK = NULL) {
+      if(!private$.fitted){
+        stop("`$fit()` must be run before `$plotElbow()`!")
+      }
+
+      hist_df = self$getHistory()
+
+      if(!is.null(maxK)) {
+        if(!is.numeric(maxK) || maxK < 1) stop("`maxK` must be a positive integer!")
+        hist_df = hist_df[hist_df$k <= maxK, ]
+      }
+
+      p = ggplot(hist_df, aes(x = k, y = cost)) +
+        geom_line(color = "#5B9BD5", linewidth = 0.8) +
+        geom_point(color = "#5B9BD5", size = 2) +
+        scale_x_continuous(breaks = hist_df$k) +
+        theme_minimal() +
+        theme(panel.grid.minor.x = element_blank()) +
+        labs(
+          title = "Slicing Window Elbow Plot",
+          subtitle = paste("Cost Function:", private$.costFunc$pass()[["costFunc"]]),
+          x = "Number of Change-Points (k)",
+          y = "Total Cost"
+        )
+
+      return(p)
     },
 
 

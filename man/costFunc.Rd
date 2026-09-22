@@ -40,6 +40,13 @@ the same way as in the SIGMA cost function (including the \code{addSmallDiag}/\c
 fit column-by-column via Iteratively Reweighted Least Squares (IRLS), iterated until the change in the fit's cost
 is within \code{tol} or \code{maxIter} iterations are reached. Unlike the other regression cost functions, this has no
 \eqn{O(1)}-per-segment closed form, since IRLS must be re-run on each queried segment.
+\item \strong{"Custom"} for a user-defined cost function supplied from R
+\deqn{c_{\text{Custom}}(y_{(a+1):b}) := \text{evalFun}(y_{(a+1):b}, a, b)} where \code{evalFun} is a
+user-supplied function called on the raw segment matrix, plus the segment's own \verb{(a,b]} bounds --
+the latter let \code{evalFun} align the segment against any externally-captured, position-indexed data
+(e.g. a weight vector or exogenous series \code{evalFun} closes over) without the package needing to know
+that data exists. Because each call crosses back into R, this is substantially slower per call than
+the built-in costs above; see \verb{$evalFun} and \verb{$paramFun}.
 }
 
 If active binding \verb{$costFunc} is modified (via assignment operator), the default parameters will be used.
@@ -88,6 +95,18 @@ and required parameters are missing, the default parameters are used.}
 \code{tol}. Can be accessed or modified via \verb{$tol}.}
 
 \item{\code{maxIter}}{Integer. Maximum number of IRLS iterations. Can be accessed or modified via \verb{$maxIter}.}
+
+\item{\code{evalFun}}{Function. Required for \code{costFunc = "Custom"}. A user-defined cost function, called
+as \code{evalFun(segment, a, b)}, where \code{segment} is the numeric matrix of rows \code{(a+1):b} for the
+queried segment \verb{(a,b]} (0-indexed, same convention as \verb{$eval(a, b)}). \code{a} and \code{b} let \code{evalFun}
+align \code{segment} against externally-captured, position-indexed data it closes over (e.g.
+\code{externalSeries[(a+1):b]}), which the package itself never needs to see. Must return a single
+numeric value. Can be accessed or modified via \verb{$evalFun}.}
+
+\item{\code{paramFun}}{Function or \code{NULL}. Optional for \code{costFunc = "Custom"}. A user-defined function
+called as \code{paramFun(segment, a, b)} (same convention as \code{evalFun}), used by \verb{$get_params()} to
+report segment-level estimates. If \code{NULL} (default), \verb{$get_params()} returns an empty list for
+\code{"Custom"}. Can be accessed or modified via \verb{$paramFun}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -151,7 +170,13 @@ For \code{"LinearL1"}, supported parameters are:
 \item{\code{intercept}}{Logical. Whether to include the intercept in regression problems. Default: \code{TRUE}.}
 \item{\code{tol}}{Double. IRLS convergence tolerance: iteration stops once the change in the fit's cost falls
 below \code{tol}. Default: \code{1e-6}.}
-\item{\code{maxIter}}{Integer. Maximum number of IRLS iterations. Default: \code{50L}.}
+\item{\code{maxIter}}{Integer. Maximum number of IRLS iterations. Default: \code{1000L}.}
+}
+
+For \code{"Custom"}, supported parameters are:
+\describe{
+\item{\code{evalFun}}{Function. Required. See \verb{$evalFun} for details.}
+\item{\code{paramFun}}{Function or \code{NULL}. Optional. See \verb{$paramFun} for details.}
 }}
 }
 \if{html}{\out{</div>}}
