@@ -32,6 +32,11 @@
 #' \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
 #' points needed for OLS, return 0.
 #'
+#' - **"LinearSIGMA"** for piecewise linear regression process with **varying noise covariance**
+#' \deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
+#' is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
+#' the same way as in the SIGMA cost function (including the `addSmallDiag`/`epsilon` stabilisation and lower-bound fallback).
+#'
 #' If active binding `$costFunc` is modified (via assignment operator), the default parameters will be used.
 #'
 #'
@@ -82,7 +87,7 @@ costFunc <- R6::R6Class(
         return(private$.costFunc)
       }
 
-      if(any(!charVal %in% c("L1", "L2", "SIGMA", "VAR", "LinearL2"))){
+      if(any(!charVal %in% c("L1", "L2", "SIGMA", "VAR", "LinearL2", "LinearSIGMA"))){
         stop("Cost function not supported!")
       }
 
@@ -111,6 +116,18 @@ costFunc <- R6::R6Class(
       if (charVal == "LinearL2") {
         if (is.null(private$.params[["intercept"]])) {
           private$.params[["intercept"]] = TRUE
+        }
+      }
+
+      if (charVal == "LinearSIGMA") {
+        if (is.null(private$.params[["intercept"]])) {
+          private$.params[["intercept"]] = TRUE
+        }
+        if (is.null(private$.params[["addSmallDiag"]])) {
+          private$.params[["addSmallDiag"]] = TRUE
+        }
+        if (is.null(private$.params[["epsilon"]])) {
+          private$.params[["epsilon"]] = 1e-6
         }
       }
     },
@@ -205,6 +222,15 @@ costFunc <- R6::R6Class(
     #' \describe{
     #'   \item{`intercept`}{Logical. Whether to include the intercept in regression problems. Default: `TRUE`.}
     #' }
+    #'
+    #' For \code{"LinearSIGMA"}, supported parameters are:
+    #' \describe{
+    #'   \item{`intercept`}{Logical. Whether to include the intercept in regression problems. Default: `TRUE`.}
+    #'   \item{`addSmallDiag`}{Logical. If \code{TRUE}, add a small value to the diagonal of estimated residual covariance matrices
+    #'   to stabilise matrix operations. Default: `TRUE`.}
+    #'   \item{`epsilon`}{Double. If `addSmallDiag = TRUE`, a small positive value added to the diagonal of estimated residual covariance matrices to stabilise
+    #'   matrix operations. Default: `1e-6`.}
+    #' }
 
     initialize = function(costFunc, ...) {
 
@@ -255,6 +281,33 @@ costFunc <- R6::R6Class(
         }
       }
 
+      if (private$.costFunc == "LinearSIGMA") {
+
+        self$intercept = if (hasName(args, "intercept") & !is.null(args$intercept)) {
+          args$intercept
+
+        } else {
+          TRUE
+
+        }
+
+        self$addSmallDiag = if (hasName(args, "addSmallDiag") & !is.null(args$addSmallDiag)) {
+          args$addSmallDiag
+
+        } else {
+          TRUE
+
+        }
+
+        self$epsilon = if (hasName(args, "epsilon") & !is.null(args$epsilon)) {
+          args$epsilon
+
+        } else {
+          1e-6
+
+        }
+      }
+
     },
 
     #' @description Returns a list of configuration parameters to initialise `detection` modules.
@@ -279,6 +332,12 @@ costFunc <- R6::R6Class(
       } else if(private$.costFunc == "LinearL2"){
         return(list(costFunc = "LinearL2",
                     intercept = private$.params[["intercept"]]))
+
+      } else if(private$.costFunc == "LinearSIGMA"){
+        return(list(costFunc = "LinearSIGMA",
+                    intercept = private$.params[["intercept"]],
+                    addSmallDiag = private$.params[["addSmallDiag"]],
+                    epsilon = private$.params[["epsilon"]]))
 
       }
     }
