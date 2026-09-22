@@ -1,12 +1,7 @@
 #include <RcppArmadillo.h>
 #include <queue>
 #include <limits>
-#include "VAR.h"
-#include "L2.h"
-#include "SIGMA.h"
-#include "L1_cwMed.h"
-#include "LinearL2.h"
-#include "baseClass.h"
+#include "costs.h"
 
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -183,23 +178,16 @@ public:
 
   //.eval() method
   double eval(int start, int end) {
-
     costModule.resetWarning(false);
-
-    if(start >= end){
-      Rcpp::stop("`start < end` must be true!");
-    }
-
-    if(start >= nSamples or start < 0){
-      Rcpp::stop("`0 <= start < nSamples` must be true!");
-    }
-
-    if(end > nSamples or end <= 0){
-      Rcpp::stop("`0 < end <= nSamples` must be true!");
-    }
-
+    costModule.checkSegment(start, end);
     return costModule.eval(start, end);
+  }
 
+  //.get_params() method
+  Rcpp::List get_params(int start, int end) {
+    costModule.resetWarning(false);
+    costModule.checkSegment(start, end);
+    return costModule.get_params(start, end);
   }
 
 };
@@ -258,7 +246,8 @@ RCPP_EXPOSED_CLASS(windowCpp_L1_cwMed)
     .constructor<arma::mat, int, int, int>()       // mat, minSize, jump, h
     .method("fit", &windowCppTmpl<Cost_L1_cwMed>::fit)
     .method("predict", &windowCppTmpl<Cost_L1_cwMed>::predict)
-    .method("eval", &windowCppTmpl<Cost_L1_cwMed>::eval);
+    .method("eval", &windowCppTmpl<Cost_L1_cwMed>::eval)
+    .method("get_params", &windowCppTmpl<Cost_L1_cwMed>::get_params);
   }
 
 
@@ -308,7 +297,8 @@ RCPP_EXPOSED_CLASS(windowCpp_L2)
     .constructor<arma::mat, int, int, int>()       // mat, minSize, jump, h
     .method("fit", &windowCppTmpl<Cost_L2>::fit)
     .method("predict", &windowCppTmpl<Cost_L2>::predict)
-    .method("eval", &windowCppTmpl<Cost_L2>::eval);
+    .method("eval", &windowCppTmpl<Cost_L2>::eval)
+    .method("get_params", &windowCppTmpl<Cost_L2>::get_params);
   }
 
 
@@ -360,7 +350,8 @@ RCPP_EXPOSED_CLASS(windowCpp_VAR)
     .constructor<arma::mat, int, int, int, int>()  // mat, pVAR, minSize, jump, h
     .method("fit", &windowCppTmpl<Cost_VAR>::fit)
     .method("predict", &windowCppTmpl<Cost_VAR>::predict)
-    .method("eval", &windowCppTmpl<Cost_VAR>::eval);
+    .method("eval", &windowCppTmpl<Cost_VAR>::eval)
+    .method("get_params", &windowCppTmpl<Cost_VAR>::get_params);
   }
 
 
@@ -412,7 +403,8 @@ RCPP_EXPOSED_CLASS(windowCpp_SIGMA)
     .constructor<arma::mat, bool, double, int, int, int>()  // mat, addSmallDiag, epsilon, minSize, jump, h
     .method("fit", &windowCppTmpl<Cost_SIGMA>::fit)
     .method("predict", &windowCppTmpl<Cost_SIGMA>::predict)
-    .method("eval", &windowCppTmpl<Cost_SIGMA>::eval);
+    .method("eval", &windowCppTmpl<Cost_SIGMA>::eval)
+    .method("get_params", &windowCppTmpl<Cost_SIGMA>::get_params);
   }
 
 
@@ -466,5 +458,6 @@ RCPP_EXPOSED_CLASS(windowCpp_LinearL2)
     .constructor<arma::mat, arma::mat, bool, int, int, int>()  // mat, covariates, intercept, minSize, jump, h
     .method("fit", &windowCppTmpl<Cost_LinearL2>::fit)
     .method("predict", &windowCppTmpl<Cost_LinearL2>::predict)
-    .method("eval", &windowCppTmpl<Cost_LinearL2>::eval);
+    .method("eval", &windowCppTmpl<Cost_LinearL2>::eval)
+    .method("get_params", &windowCppTmpl<Cost_LinearL2>::get_params);
   }

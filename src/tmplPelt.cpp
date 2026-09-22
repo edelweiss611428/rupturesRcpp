@@ -1,10 +1,5 @@
 #include <RcppArmadillo.h>
-#include "VAR.h"
-#include "L2.h"
-#include "SIGMA.h"
-#include "L1_cwMed.h"
-#include "LinearL2.h"
-#include "baseClass.h"
+#include "costs.h"
 
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -141,23 +136,16 @@ public:
 
   //.eval() method
   double eval(int start, int end) {
-
     costModule.resetWarning(false);
-
-    if(start >= end){
-      Rcpp::stop("`start < end` must be true!");
-    }
-
-    if(start >= nSamples or start < 0){
-      Rcpp::stop("`0 <= start < nSamples` must be true!");
-    }
-
-    if(end > nSamples or end <= 0){
-      Rcpp::stop("`0 < end <= nSamples` must be true!");
-    }
-
+    costModule.checkSegment(start, end);
     return costModule.eval(start, end);
+  }
 
+  //.get_params() method
+  Rcpp::List get_params(int start, int end) {
+    costModule.resetWarning(false);
+    costModule.checkSegment(start, end);
+    return costModule.get_params(start, end);
   }
 
 };
@@ -199,7 +187,8 @@ RCPP_EXPOSED_CLASS(PELTCpp_L1_cwMed)
     Rcpp::class_<PELTCppTmpl<Cost_L1_cwMed>>("PELTCpp_L1_cwMed")
     .constructor<arma::mat, int, int>()       // tsMat, minSize, jump
     .method("predict", &PELTCppTmpl<Cost_L1_cwMed>::predict)
-    .method("eval", &PELTCppTmpl<Cost_L1_cwMed>::eval);
+    .method("eval", &PELTCppTmpl<Cost_L1_cwMed>::eval)
+    .method("get_params", &PELTCppTmpl<Cost_L1_cwMed>::get_params);
   }
 
 
@@ -239,7 +228,8 @@ RCPP_EXPOSED_CLASS(PELTCpp_L2)
     Rcpp::class_<PELTCppTmpl<Cost_L2>>("PELTCpp_L2")
     .constructor<arma::mat, int, int>()       // tsMat, minSize, jump
     .method("predict", &PELTCppTmpl<Cost_L2>::predict)
-    .method("eval", &PELTCppTmpl<Cost_L2>::eval);
+    .method("eval", &PELTCppTmpl<Cost_L2>::eval)
+    .method("get_params", &PELTCppTmpl<Cost_L2>::get_params);
   }
 
 
@@ -281,7 +271,8 @@ RCPP_EXPOSED_CLASS(PELTCpp_VAR)
     Rcpp::class_<PELTCppTmpl<Cost_VAR>>("PELTCpp_VAR")
     .constructor<arma::mat, int, int, int>()  // tsMat, pVAR, minSize, jump
     .method("predict", &PELTCppTmpl<Cost_VAR>::predict)
-    .method("eval", &PELTCppTmpl<Cost_VAR>::eval);
+    .method("eval", &PELTCppTmpl<Cost_VAR>::eval)
+    .method("get_params", &PELTCppTmpl<Cost_VAR>::get_params);
   }
 
 
@@ -321,7 +312,8 @@ RCPP_EXPOSED_CLASS(PELTCpp_SIGMA)
     Rcpp::class_<PELTCppTmpl<Cost_SIGMA>>("PELTCpp_SIGMA")
     .constructor<arma::mat, bool, double, int, int>()  // tsMat, addSmallDiag, epsilon, minSize, jump
     .method("predict", &PELTCppTmpl<Cost_SIGMA>::predict)
-    .method("eval", &PELTCppTmpl<Cost_SIGMA>::eval);
+    .method("eval", &PELTCppTmpl<Cost_SIGMA>::eval)
+    .method("get_params", &PELTCppTmpl<Cost_SIGMA>::get_params);
   }
 
 
@@ -365,5 +357,6 @@ RCPP_EXPOSED_CLASS(PELTCpp_LinearL2)
     Rcpp::class_<PELTCppTmpl<Cost_LinearL2>>("PELTCpp_LinearL2")
     .constructor<arma::mat, arma::mat, bool, int, int>()  // mat, covariates, intercept, minSize, jump
     .method("predict", &PELTCppTmpl<Cost_LinearL2>::predict)
-    .method("eval", &PELTCppTmpl<Cost_LinearL2>::eval);
+    .method("eval", &PELTCppTmpl<Cost_LinearL2>::eval)
+    .method("get_params", &PELTCppTmpl<Cost_LinearL2>::get_params);
   }
