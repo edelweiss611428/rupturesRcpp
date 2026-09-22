@@ -153,7 +153,7 @@ costFunc <- R6::R6Class(
           private$.params[["tol"]] = 1e-6
         }
         if (is.null(private$.params[["maxIter"]])) {
-          private$.params[["maxIter"]] = 50L
+          private$.params[["maxIter"]] = 1000L
         }
       }
     },
@@ -335,7 +335,7 @@ costFunc <- R6::R6Class(
     #'   \item{`intercept`}{Logical. Whether to include the intercept in regression problems. Default: `TRUE`.}
     #'   \item{`tol`}{Double. IRLS convergence tolerance: iteration stops once the change in the fit's cost falls
     #'   below `tol`. Default: `1e-6`.}
-    #'   \item{`maxIter`}{Integer. Maximum number of IRLS iterations. Default: `50L`.}
+    #'   \item{`maxIter`}{Integer. Maximum number of IRLS iterations. Default: `1000L`.}
     #' }
     #'
     #' For \code{"Custom"}, supported parameters are:
@@ -442,7 +442,7 @@ costFunc <- R6::R6Class(
           args$maxIter
 
         } else {
-          50L
+          1000L
 
         }
       }
