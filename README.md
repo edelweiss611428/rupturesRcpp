@@ -66,6 +66,7 @@ The following table shows the list of supported cost functions. Here, `n` is seg
 | `"SIGMA"`         | Log-determinant of empirical covariance; models varying mean&variance.                           | `costFunc`, `addSmallDiag`, `epsilon`    | `multi`        | `O(1)`                 |
 | `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | `O(1)`                 |
 | `"LinearL2"`      | Sum of squared residuals from a linear regression model with constant noise variance.            | `costFunc`, `intercept`                  | `multi`        | `O(1)`                 |
+| `"LinearSIGMA"`   | Log-determinant of the residual covariance from a linear regression model; models varying noise covariance around a regression mean. | `costFunc`, `intercept`, `addSmallDiag`, `epsilon` | `multi`        | `O(1)`                 |
 
 If active binding `costFunc` is modified by assigning to `costFuncObj$costFunc` and the required parameters are missing, the default parameters will be used.
 ```r
@@ -91,7 +92,7 @@ After initialising a `costFunc` object, create a segmentation object such as `bi
 | `Window`         | Slicing Window            | Detects change-points using local gains over sliding windows.                  | `minSize`, `jump`, `radius`, `costFunc`,`tsMat`, `covariates` |
 | `PELT`           | Pruned Exact Linear Time  | Optimal segmentation with pruning for linear-time performance.                 | `minSize`, `jump`, `costFunc`, `tsMat`, `covariates`          |
 
-The `covariates` argument is optional and only required for models involving both dependent and independent variables (e.g., `"LinearL2"`). If not provided, the model is force-fitted using only 
+The `covariates` argument is optional and only required for models involving both dependent and independent variables (e.g., `"LinearL2"`, `"LinearSIGMA"`). If not provided, the model is force-fitted using only 
 an intercept term (i.e., a column of ones).
 
 A `PELT` object, for example, can be initialised as follows:
