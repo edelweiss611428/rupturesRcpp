@@ -229,7 +229,6 @@ binSegObj$plot(d = 1L,
 - Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility (see https://github.com/edelweiss611428/R6BinSeg/tree/main for an idea).
 - Implement additional cost functions (e.g., `"Poisson"`). 
 - Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
-- Enhance existing `$eval()` methods for parameter estimation.
 - Develop a `costFactory` class for users focusing solely on fast cost computation and parameter estimation.
 - Improve `$plot()` method for models involving both dependent and independent variables.
 
