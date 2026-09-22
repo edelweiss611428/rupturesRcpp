@@ -23,10 +23,11 @@ Imports:
     ggplot2,
     patchwork,
     methods
-Suggests: 
+Suggests:
     testthat (>= 3.0.0),
     reticulate,
-    binsegRcpp
+    binsegRcpp,
+    covr
 Config/testthat/edition: 3
 Collate: 
     'costFuncR6.R'
