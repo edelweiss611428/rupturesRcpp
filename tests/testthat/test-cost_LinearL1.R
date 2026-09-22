@@ -9,8 +9,13 @@
 
 R_fitColumnIRLS = function(y, Z, tol = 1e-6, maxIter = 50L){
 
-  B = solve(t(Z)%*%Z, t(Z)%*%y)
-  resid = y - Z%*%B
+  #`%*%`/solve() always return a matrix, even from vector inputs; as.vector()
+  #keeps y/B/resid plain vectors throughout so elementwise ops below (which mix
+  #an n-length vector with the n x J matrix Z) don't hit R's stricter
+  #array-vs-array conformability check that a stray n x 1 matrix would trigger.
+  y = as.vector(y)
+  B = as.vector(solve(t(Z)%*%Z, t(Z)%*%y))
+  resid = y - as.vector(Z%*%B)
   prevCost = sum(abs(resid))
 
   for(iter in seq_len(maxIter)){
@@ -20,8 +25,8 @@ R_fitColumnIRLS = function(y, Z, tol = 1e-6, maxIter = 50L){
     Zw = sqrtw*Z
     yw = sqrtw*y
 
-    B = solve(t(Zw)%*%Zw, t(Zw)%*%yw)
-    resid = y - Z%*%B
+    B = as.vector(solve(t(Zw)%*%Zw, t(Zw)%*%yw))
+    resid = y - as.vector(Z%*%B)
     cost = sum(abs(resid))
 
     if(abs(prevCost - cost) <= tol*(1+prevCost)){
