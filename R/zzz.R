@@ -12,6 +12,7 @@ NULL
   Rcpp::loadModule("Cost_LinearL2_module", TRUE)
   Rcpp::loadModule("Cost_LinearSIGMA_module", TRUE)
   Rcpp::loadModule("Cost_LinearL1_module", TRUE)
+  Rcpp::loadModule("Cost_RFunc_module", TRUE)
 
   #Pelt
   Rcpp::loadModule("PELTCpp_L1_cwMed_module", TRUE)
@@ -21,6 +22,7 @@ NULL
   Rcpp::loadModule("PELTCpp_LinearL2_module", TRUE)
   Rcpp::loadModule("PELTCpp_LinearSIGMA_module", TRUE)
   Rcpp::loadModule("PELTCpp_LinearL1_module", TRUE)
+  Rcpp::loadModule("PELTCpp_RFunc_module", TRUE)
 
   #binSeg
   Rcpp::loadModule("binSegCpp_L1_cwMed_module", TRUE)
@@ -30,6 +32,7 @@ NULL
   Rcpp::loadModule("binSegCpp_LinearL2_module", TRUE)
   Rcpp::loadModule("binSegCpp_LinearSIGMA_module", TRUE)
   Rcpp::loadModule("binSegCpp_LinearL1_module", TRUE)
+  Rcpp::loadModule("binSegCpp_RFunc_module", TRUE)
 
   #Window
   Rcpp::loadModule("windowCpp_L1_cwMed_module", TRUE)
@@ -39,6 +42,7 @@ NULL
   Rcpp::loadModule("windowCpp_LinearL2_module", TRUE)
   Rcpp::loadModule("windowCpp_LinearSIGMA_module", TRUE)
   Rcpp::loadModule("windowCpp_LinearL1_module", TRUE)
+  Rcpp::loadModule("windowCpp_RFunc_module", TRUE)
 
 }
 

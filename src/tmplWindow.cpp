@@ -89,6 +89,10 @@ public:
   windowCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
                 double tol, int maxIter, int minSize_, int jump_, int h_);
 
+  // For RFunc: constructor with (tsMat, costFun, paramFun, minSize, jump, radius)
+  windowCppTmpl(const arma::mat& tsMat, Rcpp::Function costFun,
+                Rcpp::Nullable<Rcpp::Function> paramFun, int minSize_, int jump_, int h_);
+
   //.fit() method
   void fit(){
 
@@ -578,4 +582,56 @@ RCPP_EXPOSED_CLASS(windowCpp_LinearL1)
     .method("predict", &windowCppTmpl<Cost_LinearL1>::predict)
     .method("eval", &windowCppTmpl<Cost_LinearL1>::eval)
     .method("get_params", &windowCppTmpl<Cost_LinearL1>::get_params);
+  }
+
+
+
+// ========================================================
+//              RFunc class (user-defined cost)
+// ========================================================
+
+template<>
+windowCppTmpl<Cost_RFunc>::windowCppTmpl(const arma::mat& tsMat, Rcpp::Function costFun,
+                                          Rcpp::Nullable<Rcpp::Function> paramFun,
+                                          int minSize_, int jump_, int h_)
+  : costModule(tsMat, costFun, paramFun, true), minSize(minSize_), jump(jump_), h(h_){
+  nSamples = costModule.nr;
+
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
+  }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+  if(nSamples <= 2*h){
+    Rcpp::stop("Number of observations must be larger than `2*radius`!");
+  }
+
+  if(h < 1){
+    Rcpp::stop("Radius must be at least 1!");
+  }
+
+}
+
+RCPP_EXPOSED_CLASS(windowCpp_RFunc)
+  RCPP_MODULE(windowCpp_RFunc_module) {
+    Rcpp::class_<windowCppTmpl<Cost_RFunc>>("windowCpp_RFunc")
+    .constructor<arma::mat, Rcpp::Function, Rcpp::Nullable<Rcpp::Function>, int, int, int>()  // tsMat, costFun, paramFun, minSize, jump, h
+    .method("fit", &windowCppTmpl<Cost_RFunc>::fit)
+    .method("predict", &windowCppTmpl<Cost_RFunc>::predict)
+    .method("eval", &windowCppTmpl<Cost_RFunc>::eval)
+    .method("get_params", &windowCppTmpl<Cost_RFunc>::get_params);
   }

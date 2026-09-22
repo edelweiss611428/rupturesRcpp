@@ -282,7 +282,7 @@ PELT = R6Class(
     #' \describe{
     #'   \item{\code{minSize}}{Minimum allowed segment length.}
     #'   \item{\code{jump}}{Search grid step size.}
-    #'   \item{\code{costFunc}}{The `costFun` object.}
+    #'   \item{\code{costFunc}}{The `costFunc` object.}
     #'   \item{\code{fitted}}{Whether or not `$fit()` has been run.}
     #'   \item{\code{tsMat}}{Time series matrix.}
     #'   \item{\code{covariates}}{Covariate matrix (if exists).}
@@ -386,6 +386,20 @@ PELT = R6Class(
         params[["intercept"]] = private$.costFunc$pass()[["intercept"]]
         params[["tol"]] = private$.costFunc$pass()[["tol"]]
         params[["maxIter"]] = private$.costFunc$pass()[["maxIter"]]
+
+      }
+
+      if(private$.costFunc$pass()[["costFunc"]] == "Custom"){
+
+        if(printConfig){
+
+          cat(sprintf("evalFun      : <function>\n"))
+          cat(sprintf("paramFun     : %s\n", if(is.null(private$.costFunc$pass()[["paramFun"]])) "NULL" else "<function>"))
+
+        }
+
+        params[["evalFun"]] = private$.costFunc$pass()[["evalFun"]]
+        params[["paramFun"]] = private$.costFunc$pass()[["paramFun"]]
 
       }
 
@@ -543,6 +557,13 @@ PELT = R6Class(
                                   private$.costFunc$pass()[["intercept"]],
                                   private$.costFunc$pass()[["tol"]],
                                   private$.costFunc$pass()[["maxIter"]],
+                                  private$.minSize, private$.jump)
+
+      } else if(private$.costFunc$pass()[["costFunc"]] == "Custom"){
+
+        private$.PELTModule = new(PELTCpp_RFunc, private$.tsMat,
+                                  private$.costFunc$pass()[["evalFun"]],
+                                  private$.costFunc$pass()[["paramFun"]],
                                   private$.minSize, private$.jump)
 
       } else{

@@ -160,7 +160,7 @@ Invisibly returns a list storing at least the following fields:
 \describe{
 \item{\code{minSize}}{Minimum allowed segment length.}
 \item{\code{jump}}{Search grid step size.}
-\item{\code{costFunc}}{The \code{costFun} object.}
+\item{\code{costFunc}}{The \code{costFunc} object.}
 \item{\code{fitted}}{Whether or not \verb{$fit()} has been run.}
 \item{\code{tsMat}}{Time series matrix.}
 \item{\code{covariates}}{Covariate matrix (if exists).}
