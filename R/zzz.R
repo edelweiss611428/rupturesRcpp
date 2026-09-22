@@ -10,6 +10,8 @@ NULL
   Rcpp::loadModule("Cost_SIGMA_module", TRUE)
   Rcpp::loadModule("Cost_L1_cwMed_module", TRUE)
   Rcpp::loadModule("Cost_LinearL2_module", TRUE)
+  Rcpp::loadModule("Cost_LinearSIGMA_module", TRUE)
+  Rcpp::loadModule("Cost_LinearL1_module", TRUE)
 
   #Pelt
   Rcpp::loadModule("PELTCpp_L1_cwMed_module", TRUE)
@@ -17,6 +19,8 @@ NULL
   Rcpp::loadModule("PELTCpp_VAR_module", TRUE)
   Rcpp::loadModule("PELTCpp_SIGMA_module", TRUE)
   Rcpp::loadModule("PELTCpp_LinearL2_module", TRUE)
+  Rcpp::loadModule("PELTCpp_LinearSIGMA_module", TRUE)
+  Rcpp::loadModule("PELTCpp_LinearL1_module", TRUE)
 
   #binSeg
   Rcpp::loadModule("binSegCpp_L1_cwMed_module", TRUE)
@@ -24,6 +28,8 @@ NULL
   Rcpp::loadModule("binSegCpp_VAR_module", TRUE)
   Rcpp::loadModule("binSegCpp_SIGMA_module", TRUE)
   Rcpp::loadModule("binSegCpp_LinearL2_module", TRUE)
+  Rcpp::loadModule("binSegCpp_LinearSIGMA_module", TRUE)
+  Rcpp::loadModule("binSegCpp_LinearL1_module", TRUE)
 
   #Window
   Rcpp::loadModule("windowCpp_L1_cwMed_module", TRUE)
@@ -31,6 +37,8 @@ NULL
   Rcpp::loadModule("windowCpp_VAR_module", TRUE)
   Rcpp::loadModule("windowCpp_SIGMA_module", TRUE)
   Rcpp::loadModule("windowCpp_LinearL2_module", TRUE)
+  Rcpp::loadModule("windowCpp_LinearSIGMA_module", TRUE)
+  Rcpp::loadModule("windowCpp_LinearL1_module", TRUE)
 
 }
 
@@ -46,7 +54,7 @@ NULL
 |  | |  | |_| | |_) | |_| |_| | | |  __/\__ \  _ < (__| |_) | |_) |  |
 |  |_|   \__,_| .__/ \__|\__,_|_|  \___||___/_| \_\___| .__/| .__/   |
 |             |_|                                     |_|   |_|      |
-|                                               version 1.0.3        |
+|                                               version 2.0.0        |
 +--------------------------------------------------------------------+
 
 See https://github.com/edelweiss611428/rupturesRcpp/blob/main/README.md

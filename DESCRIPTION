@@ -1,7 +1,7 @@
 Package: rupturesRcpp
 Type: Package
 Title: Object-Oriented Interface for Offline Change-Point Detection 
-Version: 1.0.3
+Version: 2.0.0
 Authors@R: 
     c(
       person("Minh Long", "Nguyen", , "edelweiss611428@gmail.com", role = c("aut", "cre")),
@@ -23,10 +23,11 @@ Imports:
     ggplot2,
     patchwork,
     methods
-Suggests: 
+Suggests:
     testthat (>= 3.0.0),
     reticulate,
-    binsegRcpp
+    binsegRcpp,
+    covr
 Config/testthat/edition: 3
 Collate: 
     'costFuncR6.R'

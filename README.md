@@ -66,6 +66,8 @@ The following table shows the list of supported cost functions. Here, `n` is seg
 | `"SIGMA"`         | Log-determinant of empirical covariance; models varying mean&variance.                           | `costFunc`, `addSmallDiag`, `epsilon`    | `multi`        | `O(1)`                 |
 | `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | `O(1)`                 |
 | `"LinearL2"`      | Sum of squared residuals from a linear regression model with constant noise variance.            | `costFunc`, `intercept`                  | `multi`        | `O(1)`                 |
+| `"LinearSIGMA"`   | Log-determinant of the residual covariance from a linear regression model; models varying noise covariance around a regression mean. | `costFunc`, `intercept`, `addSmallDiag`, `epsilon` | `multi`        | `O(1)`                 |
+| `"LinearL1"`      | Sum of `L1` residuals from a linear regression model, fit via Iteratively Reweighted Least Squares (IRLS); robust to outliers. | `costFunc`, `intercept`, `tol`, `maxIter` | `multi`        | not `O(1)` (re-fits IRLS per segment) |
 
 If active binding `costFunc` is modified by assigning to `costFuncObj$costFunc` and the required parameters are missing, the default parameters will be used.
 ```r
@@ -91,7 +93,7 @@ After initialising a `costFunc` object, create a segmentation object such as `bi
 | `Window`         | Slicing Window            | Detects change-points using local gains over sliding windows.                  | `minSize`, `jump`, `radius`, `costFunc`,`tsMat`, `covariates` |
 | `PELT`           | Pruned Exact Linear Time  | Optimal segmentation with pruning for linear-time performance.                 | `minSize`, `jump`, `costFunc`, `tsMat`, `covariates`          |
 
-The `covariates` argument is optional and only required for models involving both dependent and independent variables (e.g., `"LinearL2"`). If not provided, the model is force-fitted using only 
+The `covariates` argument is optional and only required for models involving both dependent and independent variables (e.g., `"LinearL2"`, `"LinearSIGMA"`, `"LinearL1"`). If not provided, the model is force-fitted using only 
 an intercept term (i.e., a column of ones).
 
 A `PELT` object, for example, can be initialised as follows:
@@ -225,7 +227,7 @@ binSegObj$plot(d = 1L,
 
 - Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using data structures such as a persistent segment tree with `O(nlog(n))` precomputation.
 - Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility (see https://github.com/edelweiss611428/R6BinSeg/tree/main for an idea).
-- Implement additional cost functions (e.g., `"Poisson"` and `"Linear-L1"`). 
+- Implement additional cost functions (e.g., `"Poisson"`). 
 - Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
 - Enhance existing `$eval()` methods for parameter estimation.
 - Develop a `costFactory` class for users focusing solely on fast cost computation and parameter estimation.

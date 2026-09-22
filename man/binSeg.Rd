@@ -17,6 +17,8 @@ splits the data at locations that minimise the cost function.
 \item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
 \item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant noise variance}
 \item \code{"LinearL2"}: for piecewise linear regression process with \strong{constant noise variance}
+\item \code{"LinearSIGMA"}: for piecewise linear regression process with \strong{varying noise covariance}
+\item \code{"LinearL1"}: for piecewise linear regression process under \strong{L1 (least absolute deviations) loss}
 }
 
 See \verb{$eval()} method for more details on computation of cost.
@@ -242,6 +244,14 @@ where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via 
 \item \strong{"LinearL2"} for piecewise linear regression process with \strong{constant noise variance}
 \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
 points needed for OLS, return 0.
+\item \strong{"LinearSIGMA"} for piecewise linear regression process with \strong{varying noise covariance}
+\deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
+is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
+the same way as in the SIGMA cost function.
+\item \strong{"LinearL1"} for piecewise linear regression process under \strong{L1 (least absolute deviations) loss}
+\deqn{c_{\text{LinearL1}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_1} where \eqn{\hat{\beta}}
+is fit column-by-column via IRLS on segment \eqn{(a+1):b}, iterated until convergence (\code{tol}) or \code{maxIter}.
+Unlike the other regression costs, this has no \eqn{O(1)}-per-segment closed form.
 }
 }
 
