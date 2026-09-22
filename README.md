@@ -292,9 +292,9 @@ PELT$new(costFunc = costFunc$new("L2"))$fit(tsMat)$eval(0, 150)
 </pre>
 exactly.
 
-**Remark.** The actual use case is closing over data the package was never told about. Below,
-`externalSeries` is captured purely by lexical scope -- it is never passed to
-`$fit()` -- and `evalFun` aligns it to each candidate segment using `a`/`b`:
+**Risk of data mismatch**. The segmentation logic of existing modules only depends on being able to compute the cost for an arbitrary segment \((a,b]\); it does not depend on how the data are stored. Therefore, with a custom cost function, a mismatch can occur if the function relies on external data that are not part of the object passed to `$fit()`.
+
+**Implicit external data example**. The actual use case is a custom cost function that closes over data the package was never explicitly given. For example, below, `externalSeries` is captured purely through lexical scope—it is never passed to `$fit()`—and `evalFun` uses `a` and `b` to align it with each candidate segment:
 
 ```r
 set.seed(1)
