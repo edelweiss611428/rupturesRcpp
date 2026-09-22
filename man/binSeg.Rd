@@ -109,6 +109,8 @@ Modifying \code{covariates} will automatically trigger \verb{$fit()}.}
 \item \href{#method-binSeg-fit}{\code{binSeg$fit()}}
 \item \href{#method-binSeg-eval}{\code{binSeg$eval()}}
 \item \href{#method-binSeg-predict}{\code{binSeg$predict()}}
+\item \href{#method-binSeg-getHistory}{\code{binSeg$getHistory()}}
+\item \href{#method-binSeg-plotElbow}{\code{binSeg$plotElbow()}}
 \item \href{#method-binSeg-plot}{\code{binSeg$plot()}}
 \item \href{#method-binSeg-clone}{\code{binSeg$clone()}}
 }
@@ -304,6 +306,45 @@ specifying endpoints manually.
 \subsection{Returns}{
 An integer vector of regime end-points. By design, the last element is the
 number of observations.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-binSeg-getHistory"></a>}}
+\if{latex}{\out{\hypertarget{method-binSeg-getHistory}{}}}
+\subsection{Method \code{getHistory()}}{
+Retrieves the full cost history and sequentially added breakpoints.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$getHistory()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A \code{data.frame} with three columns:
+\describe{
+\item{\code{k}}{The number of change-points.}
+\item{\code{cost}}{The total unpenalised cost of the segmentation.}
+\item{\code{added_bkp}}{The breakpoint added at this step to achieve the cost.}
+}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-binSeg-plotElbow"></a>}}
+\if{latex}{\out{\hypertarget{method-binSeg-plotElbow}{}}}
+\subsection{Method \code{plotElbow()}}{
+Plots the elbow curve (Total Cost vs. Number of Change-Points).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$plotElbow(maxK = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{maxK}}{Integer. The maximum number of change-points to display on the plot.
+If \code{NULL}, displays the full history. Default: \code{NULL}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \code{ggplot} object.
 }
 }
 \if{html}{\out{<hr>}}

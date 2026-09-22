@@ -170,7 +170,7 @@ For \code{"LinearL1"}, supported parameters are:
 \item{\code{intercept}}{Logical. Whether to include the intercept in regression problems. Default: \code{TRUE}.}
 \item{\code{tol}}{Double. IRLS convergence tolerance: iteration stops once the change in the fit's cost falls
 below \code{tol}. Default: \code{1e-6}.}
-\item{\code{maxIter}}{Integer. Maximum number of IRLS iterations. Default: \code{50L}.}
+\item{\code{maxIter}}{Integer. Maximum number of IRLS iterations. Default: \code{1000L}.}
 }
 
 For \code{"Custom"}, supported parameters are:

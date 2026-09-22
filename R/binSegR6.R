@@ -5,7 +5,7 @@
 #' @include costFuncR6.R
 #' @docType class
 #' @importFrom R6 R6Class is.R6
-#' @importFrom ggplot2 aes ggplot geom_rect geom_line scale_fill_identity theme_minimal theme geom_vline labs element_blank element_text facet_wrap
+#' @import ggplot2
 #' @import patchwork
 #' @importFrom utils hasName
 #' @export
@@ -705,6 +705,66 @@ binSeg = R6Class(
 
       return(endPts)
 
+    },
+
+    #' @description Retrieves the full cost history and sequentially added breakpoints.
+    #'
+    #' @return A `data.frame` with three columns:
+    #' \describe{
+    #'   \item{\code{k}}{The number of change-points.}
+    #'   \item{\code{cost}}{The total unpenalised cost of the segmentation.}
+    #'   \item{\code{added_bkp}}{The breakpoint added at this step to achieve the cost.}
+    #' }
+    getHistory = function() {
+      if(!private$.fitted){
+        stop("`$fit()` must be run before `$getHistory()`!")
+      }
+
+      cost_vec = private$.binSegModule$costVec
+      bkps_vec = private$.binSegModule$bkpsVec
+
+      # The cost vector has length (max segments), bkp vector has length (max segments - 1)
+      # For k = 0, no breakpoint is added
+      history_df = data.frame(
+        k = 0:(length(cost_vec) - 1),
+        cost = cost_vec,
+        added_bkp = c(NA_integer_, as.integer(bkps_vec))
+      )
+
+      return(history_df)
+    },
+
+    #' @description Plots the elbow curve (Total Cost vs. Number of Change-Points).
+    #'
+    #' @param maxK Integer. The maximum number of change-points to display on the plot.
+    #' If `NULL`, displays the full history. Default: `NULL`.
+    #' @return A `ggplot` object.
+    plotElbow = function(maxK = NULL) {
+      if(!private$.fitted){
+        stop("`$fit()` must be run before `$plotElbow()`!")
+      }
+
+      hist_df = self$getHistory()
+
+      if(!is.null(maxK)) {
+        if(!is.numeric(maxK) || maxK < 1) stop("`maxK` must be a positive integer!")
+        hist_df = hist_df[hist_df$k <= maxK, ]
+      }
+
+      p = ggplot(hist_df, aes(x = k, y = cost)) +
+        geom_line(color = "#5B9BD5", linewidth = 0.8) +
+        geom_point(color = "#5B9BD5", size = 2) +
+        scale_x_continuous(breaks = hist_df$k) +
+        theme_minimal() +
+        theme(panel.grid.minor.x = element_blank()) +
+        labs(
+          title = "Binary Segmentation Elbow Plot",
+          subtitle = paste("Cost Function:", private$.costFunc$pass()[["costFunc"]]),
+          x = "Number of Change-Points (k)",
+          y = "Total Cost"
+        )
+
+      return(p)
     },
 
 
