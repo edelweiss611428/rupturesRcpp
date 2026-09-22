@@ -1,4 +1,4 @@
-# Welcome to rupturesRcpp
+# Welcome to `rupturesRcpp`
 
 [![R-CMD-check](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/edelweiss611428/rupturesRcpp/graphs/commit-activity) [![rupturesRcpp status badge](https://edelweiss611428.r-universe.dev/rupturesRcpp/badges/version)](https://edelweiss611428.r-universe.dev/rupturesRcpp)
 [![CRAN Version](https://www.r-pkg.org/badges/version/rupturesRcpp)](https://CRAN.R-project.org/package=rupturesRcpp) 
@@ -68,8 +68,9 @@ The following table shows the list of supported cost functions. Here, `n` is seg
 | `"LinearL2"`      | Sum of squared residuals from a linear regression model with constant noise variance.            | `costFunc`, `intercept`                  | `multi`        | `O(1)`                 |
 | `"LinearSIGMA"`   | Log-determinant of the residual covariance from a linear regression model; models varying noise covariance around a regression mean. | `costFunc`, `intercept`, `addSmallDiag`, `epsilon` | `multi`        | `O(1)`                 |
 | `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | `O(1)`                 |
+| `"Custom"`        | User-defined cost, supplied as a plain R function -- see *User-defined cost functions* below.    | `costFunc`, `evalFun`, `paramFun`        | `multi`        | depends on `evalFun`  |
 
-If active binding `costFunc` is modified by assigning to `costFuncObj$costFunc` and the required parameters are missing, the default parameters will be used.
+If active binding `costFunc` is modified by assigning to `costFuncObj$costFunc` and the required parameters are missing, the default parameters will be used. This does not apply to `"Custom"`: there is no sensible default `evalFun`, so `$pass()`/`$fit()` will error until one is set (see below).
 ```r
 costFuncObj$costFunc = "VAR"
 costFuncObj$pass()
@@ -227,6 +228,115 @@ binSegObj$plot(d = 1L,
 ```
 <img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/f677f835-1a99-41b3-a244-6b4e5de25f93" />
 
+
+### User-defined cost functions: `costFunc = "Custom"`
+
+If none of the built-in cost functions fit, `costFunc = "Custom"` lets you supply
+your own as a plain R function -- no C++ required. It takes two active bindings:
+
+- `evalFun` (required): called as `evalFun(segment, a, b)`, where `segment` is the
+  raw matrix of rows `(a+1):b` of the fitted `tsMat`, and `a`/`b` are the same
+  0-indexed `(a,b]` bounds `$eval(a, b)` uses. Must return a single numeric value.
+- `paramFun` (optional, default `NULL`): same calling convention, used by internal
+  parameter reporting; if omitted, `"Custom"` simply reports no parameters.
+
+Passing `a`/`b` through -- not just `segment` -- is what makes this more than a
+convenience wrapper: `evalFun` can use them to align `segment` against any other
+externally-captured, position-indexed data (e.g. an exogenous series or weight
+vector) that the package itself is never told about. Because each call crosses
+back into R, it is substantially slower per call than the built-in costs -- prefer
+one of those when it fits.
+
+As a sanity check, re-implementing `"L2"` as a `"Custom"` cost gives identical numbers:
+
+```r
+myL2eval = function(segment, a, b){
+  segment = as.matrix(segment)
+  cm = colMeans(segment)
+  sum(sweep(segment, 2, cm, FUN = "-")^2)
+}
+
+customCF = costFunc$new("Custom", evalFun = myL2eval)
+customCF$pass()
+```
+<pre>
+$costFunc
+[1] "Custom"
+
+$evalFun
+function (segment, a, b) 
+{
+    segment = as.matrix(segment)
+    cm = colMeans(segment)
+    sum(sweep(segment, 2, cm, FUN = "-")^2)
+}
+
+$paramFun
+NULL
+</pre>
+
+```r
+customObj = PELT$new(minSize = 1L, jump = 1L, costFunc = customCF)
+customObj$fit(tsMat) # tsMat from the 2-regime SIGMA example above
+customObj$eval(0, 150)
+```
+<pre>
+[1] 3943.78
+</pre>
+which matches `PELT$new(costFunc = costFunc$new("L2"))$fit(tsMat)$eval(0, 150)` exactly.
+
+The actual use case is closing over data the package was never told about. Below,
+`externalSeries` is captured purely by lexical scope -- it is never passed to
+`$fit()` -- and `evalFun` aligns it to each candidate segment using `a`/`b`:
+
+```r
+set.seed(1)
+tsMat2 = cbind(c(rnorm(100, 0), rnorm(100, 4)))
+externalSeries = as.matrix(rnorm(200)) # captured by closure, never passed to `$fit()`
+
+externalRegCost = function(segment, a, b){
+  x = externalSeries[(a+1):b, , drop = FALSE]
+  sum(lm(segment ~ x)$residuals^2)
+}
+
+customObj2 = PELT$new(minSize = 2L, jump = 1L,
+                       costFunc = costFunc$new("Custom", evalFun = externalRegCost))
+customObj2$fit(tsMat2)
+customObj2$predict(pen = 15)
+```
+<pre>
+[1] 100 200
+</pre>
+
+This matches the built-in `"LinearL2"` cost told about `externalSeries` directly, via `covariates`:
+
+```r
+linObj = PELT$new(minSize = 2L, jump = 1L, costFunc = costFunc$new("LinearL2"))
+linObj$fit(tsMat2, externalSeries)
+linObj$predict(pen = 15)
+```
+<pre>
+[1] 100 200
+</pre>
+
+`$describe()` reports `evalFun`/`paramFun` as `<function>`/`NULL` rather than printing the closure itself:
+
+```r
+customObj2$describe(printConfig = TRUE)
+```
+<pre>
+Pruned Exact Linear Time (PELT) 
+minSize      : 2L
+jump         : 1L
+costFunc     : "Custom"
+evalFun      : <function>
+paramFun     : NULL
+fitted       : TRUE
+n            : 200L
+p            : 1L
+</pre>
+
+`"Custom"` is supported by `PELT`, `binSeg`, and `Window` alike.
 
 ### Elbow-method model selection: `$getHistory()`, `$plotElbow()`, and `$predict(nBkps = ...)`
 
