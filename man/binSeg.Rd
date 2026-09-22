@@ -265,15 +265,22 @@ The segment cost.
 \if{html}{\out{<a id="method-binSeg-predict"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-predict}{}}}
 \subsection{Method \code{predict()}}{
-Performs \code{binSeg} given a linear penalty value.
+Performs \code{binSeg} given a linear penalty value, or a target number of change-points.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{binSeg$predict(pen = 0)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$predict(pen = 0, nBkps = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{pen}}{Numeric. Penalty per change-point. Default: \code{0}.}
+\item{\code{pen}}{Numeric. Penalty per change-point. Ignored if \code{nBkps} is supplied. Default: \code{0}.}
+
+\item{\code{nBkps}}{Integer. If supplied, takes precedence over \code{pen}: returns the first \code{nBkps}
+change-points \code{binSeg}'s greedy splitting added (see \verb{$getHistory()}), i.e. its own best
+answer for that many change-points -- not necessarily the globally optimal one for that count
+(see \code{Dynp} for that guarantee). Treated as an upper bound, not a strict requirement: if fewer
+than \code{nBkps} change-points were found (e.g. \code{minSize} leaves no further valid split), all of
+them are returned and a message reports the shortfall. Default: \code{NULL}.}
 }
 \if{html}{\out{</div>}}
 }

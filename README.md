@@ -105,9 +105,14 @@ All segmentation objects implement the following methods:
 
 - `$describe(printConfig)`: Views the (current) configurations of the object.
 - `$fit(tsMat, covariates)`: Constructs a `C++` detection module corresponding to the current configurations.
-- `$predict(pen)`: Performs change-point detection given a linear penalty value.
+- `$predict(pen, nBkps)`: Performs change-point detection given a linear penalty value, or a target number of change-points via `nBkps` (which takes precedence over `pen` when both are supplied).
 - `$eval(a,b)`: Evaluates the cost of a segment (a,b].
 - `$plot(d, endPts,...)`: Plots change-point segmentation in `ggplot` style.
+
+`binSeg` and `Window` additionally implement:
+
+- `$getHistory()`: Returns a `data.frame` of the cost after `0, 1, 2, ...` change-points and which breakpoint was added at each step -- the same search both algorithms already do internally, just exposed.
+- `$plotElbow(maxK)`: Plots `$getHistory()`'s cost trajectory against the number of change-points, for choosing `nBkps` via the "elbow method" instead of tuning `pen` directly.
 
 Active bindings (such as `minSize` or `tsMat`) can be modified at any time—either before or after the object is created via the `$` operator. 
 For consistency, if the object has already been fitted, modifying any active bindings will automatically trigger the re-fitting process.
@@ -222,6 +227,55 @@ binSegObj$plot(d = 1L,
 ```
 <img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/f677f835-1a99-41b3-a244-6b4e5de25f93" />
 
+
+### Elbow-method model selection: `$getHistory()`, `$plotElbow()`, and `$predict(nBkps = ...)`
+
+`binSeg` and `Window` both build up their segmentation by adding one change-point
+at a time -- `binSeg` by recursively splitting the segment that most reduces
+cost, `Window` by ranking candidate local maxima by gain. `$getHistory()`
+exposes that trajectory directly, so you can inspect it, or choose the number
+of change-points via the "elbow method", instead of only tuning `pen`.
+
+Continuing with the `binSegObj` (`"VAR"` cost) from the previous example:
+
+```r
+binSegObj$getHistory()
+```
+<pre>
+   k     cost added_bkp
+1  0 533.9504        NA
+2  1 165.2573        99
+3  2 159.6331       111
+4  3 154.7607       159
+5  4 149.1974       180
+...
+</pre>
+
+`$plotElbow()` renders this as a `ggplot` object (cost vs. number of
+change-points); look for where the marginal decrease in cost flattens out to
+pick `k`.
+
+```r
+binSegObj$plotElbow()
+```
+
+Once a `k` is chosen, `$predict()` accepts it directly via `nBkps`, which
+takes precedence over `pen` when both are supplied:
+
+```r
+binSegObj$predict(nBkps = 1)
+```
+<pre>
+[1]  99 200
+</pre>
+
+`nBkps` is treated as an upper bound, not a strict requirement: for `binSeg`
+it returns its own best answer among the splits it already explored, and for
+`Window` the `nBkps` highest-gain local maxima it found -- neither is
+guaranteed to be the *globally* optimal segmentation for that count. `Window`
+in particular can only ever offer as many change-points as it found local
+maxima for; if you ask for more, `$predict()` returns what's available and
+reports the shortfall via a message rather than erroring.
 
 ## Future development
 

@@ -43,6 +43,8 @@ for detailed basic usage!
 \item{\code{$fit()}}{Constructs a \code{Window} module in \verb{C++}.}
 \item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$predict()}}{Performs \code{Window} given a linear penalty value.}
+\item{\code{$getHistory()}}{Retrieves the full cost history and sequentially added breakpoints.}
+\item{\code{$plotElbow()}}{Plots the elbow curve (Total Cost vs. Number of Change-Points).}
 \item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
 }
@@ -119,6 +121,8 @@ Modifying \code{covariates} will automatically trigger \verb{$fit()}.}
 \item \href{#method-Window-fit}{\code{Window$fit()}}
 \item \href{#method-Window-eval}{\code{Window$eval()}}
 \item \href{#method-Window-predict}{\code{Window$predict()}}
+\item \href{#method-Window-getHistory}{\code{Window$getHistory()}}
+\item \href{#method-Window-plotElbow}{\code{Window$plotElbow()}}
 \item \href{#method-Window-plot}{\code{Window$plot()}}
 \item \href{#method-Window-clone}{\code{Window$clone()}}
 }
@@ -276,15 +280,22 @@ The segment cost.
 \if{html}{\out{<a id="method-Window-predict"></a>}}
 \if{latex}{\out{\hypertarget{method-Window-predict}{}}}
 \subsection{Method \code{predict()}}{
-Performs \code{Window} given a linear penalty value.
+Performs \code{Window} given a linear penalty value, or a target number of change-points.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Window$predict(pen = 0)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Window$predict(pen = 0, nBkps = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{pen}}{Numeric. Penalty per change-point. Default: \code{0}.}
+\item{\code{pen}}{Numeric. Penalty per change-point. Ignored if \code{nBkps} is supplied. Default: \code{0}.}
+
+\item{\code{nBkps}}{Integer. If supplied, takes precedence over \code{pen}: returns the \code{nBkps} highest-gain
+local maxima found by \verb{$fit()} (see \verb{$getHistory()}), i.e. \code{Window}'s own best answer for that
+many change-points -- not necessarily the globally optimal one for that count (see \code{Dynp} for
+that guarantee). Treated as an upper bound, not a strict requirement: \code{Window} only ever finds
+finitely many local maxima, so if fewer than \code{nBkps} exist, all of them are returned and a
+message reports the shortfall. Default: \code{NULL}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -321,6 +332,45 @@ specifying endpoints manually.
 \subsection{Returns}{
 An integer vector of regime end-points. By design, the last element is the
 number of observations.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Window-getHistory"></a>}}
+\if{latex}{\out{\hypertarget{method-Window-getHistory}{}}}
+\subsection{Method \code{getHistory()}}{
+Retrieves the full cost history and sequentially added breakpoints.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Window$getHistory()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A \code{data.frame} with three columns:
+\describe{
+\item{\code{k}}{The number of change-points.}
+\item{\code{cost}}{The total unpenalised cost of the segmentation.}
+\item{\code{added_bkp}}{The breakpoint added at this step to achieve the cost.}
+}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Window-plotElbow"></a>}}
+\if{latex}{\out{\hypertarget{method-Window-plotElbow}{}}}
+\subsection{Method \code{plotElbow()}}{
+Plots the elbow curve (Total Cost vs. Number of Change-Points).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Window$plotElbow(maxK = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{maxK}}{Integer. The maximum number of change-points to display on the plot.
+If \code{NULL}, displays the full history. Default: \code{NULL}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \code{ggplot} object.
 }
 }
 \if{html}{\out{<hr>}}

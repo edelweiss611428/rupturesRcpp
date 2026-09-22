@@ -97,7 +97,8 @@ binSeg = R6Class(
     .n = NULL,
     .p = NULL,
     .tmpEndPts = NULL, #Temporary end points
-    .tmpPen = NULL #Temporary penalty value
+    .tmpPen = NULL, #Temporary penalty value
+    .tmpNBkps = NULL #Temporary nBkps value
 
   ),
 
@@ -653,9 +654,15 @@ binSeg = R6Class(
 
     },
 
-    #' @description Performs `binSeg` given a linear penalty value.
+    #' @description Performs `binSeg` given a linear penalty value, or a target number of change-points.
     #'
-    #' @param pen Numeric. Penalty per change-point. Default: `0`.
+    #' @param pen Numeric. Penalty per change-point. Ignored if `nBkps` is supplied. Default: `0`.
+    #' @param nBkps Integer. If supplied, takes precedence over `pen`: returns the first `nBkps`
+    #' change-points `binSeg`'s greedy splitting added (see `$getHistory()`), i.e. its own best
+    #' answer for that many change-points -- not necessarily the globally optimal one for that count
+    #' (see `Dynp` for that guarantee). Treated as an upper bound, not a strict requirement: if fewer
+    #' than `nBkps` change-points were found (e.g. `minSize` leaves no further valid split), all of
+    #' them are returned and a message reports the shortfall. Default: `NULL`.
     #'
     #' @return An integer vector of regime end-points. By design, the last element is the
     #' number of observations.
@@ -684,10 +691,40 @@ binSeg = R6Class(
     #' Temporary segment end-points are saved to `private$.tmpEndPoints` after `$predict()`, enabling users to call `$plot()` without
     #' specifying endpoints manually.
 
-    predict = function(pen = 0){
+    predict = function(pen = 0, nBkps = NULL){
 
       if(!private$.fitted){
         stop("`$fit()` must be run before `$predict()`!")
+      }
+
+      if(!is.null(nBkps)){
+
+        if(!is.numeric(nBkps) | length(nBkps) != 1){
+          stop("`nBkps` must be a single non-negative integer!")
+        }
+
+        if(any(nBkps < 0) | any(nBkps != round(nBkps))){
+          stop("`nBkps` must be a single non-negative integer!")
+        }
+
+        nBkps = as.integer(nBkps)
+        bkpsVec = private$.binSegModule$bkpsVec
+        kUse = min(nBkps, length(bkpsVec))
+
+        if(kUse < nBkps){
+          message(sprintf(
+            "Only %dL change-point(s) available; using %dL instead of the requested `nBkps` (%dL).",
+            kUse, kUse, nBkps))
+        }
+
+        endPts = sort(c(head(bkpsVec, kUse), private$.n))
+
+        private$.tmpEndPts = endPts
+        private$.tmpPen = NULL
+        private$.tmpNBkps = nBkps
+
+        return(endPts)
+
       }
 
       if(is.null(pen)){
@@ -702,6 +739,7 @@ binSeg = R6Class(
 
       private$.tmpEndPts = endPts
       private$.tmpPen = pen
+      private$.tmpNBkps = NULL
 
       return(endPts)
 
