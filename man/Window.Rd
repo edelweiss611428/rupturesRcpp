@@ -17,6 +17,7 @@ Currently supports the following cost functions:
 \item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant noise variance}
 \item \code{"LinearL2"}: for piecewise linear regression process with \strong{constant noise variance}
 \item \code{"LinearSIGMA"}: for piecewise linear regression process with \strong{varying noise covariance}
+\item \code{"LinearL1"}: for piecewise linear regression process under \strong{L1 (least absolute deviations) loss}
 }
 
 \code{Window} requires  a \code{R6} object of class \code{costFunc}, which can be created via \code{costFunc$new()}. Currently, the following cost functions are supported:
@@ -26,6 +27,7 @@ Currently supports the following cost functions:
 \item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant noise variance}
 \item \code{"LinearL2"}: for piecewise linear regression process with \strong{constant noise variance}
 \item \code{"LinearSIGMA"}: for piecewise linear regression process with \strong{varying noise covariance}
+\item \code{"LinearL1"}: for piecewise linear regression process under \strong{L1 (least absolute deviations) loss}
 }
 
 See \verb{$eval()} method for more details on computation of cost.
@@ -259,6 +261,10 @@ points needed for OLS, return 0.
 \deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
 is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
 the same way as in the SIGMA cost function.
+\item \strong{"LinearL1"} for piecewise linear regression process under \strong{L1 (least absolute deviations) loss}
+\deqn{c_{\text{LinearL1}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_1} where \eqn{\hat{\beta}}
+is fit column-by-column via IRLS on segment \eqn{(a+1):b}, iterated until convergence (\code{tol}) or \code{maxIter}.
+Unlike the other regression costs, this has no \eqn{O(1)}-per-segment closed form.
 }
 }
 
