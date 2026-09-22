@@ -17,21 +17,25 @@ RcppExport SEXP _rcpp_module_boot_Cost_L2_module();
 RcppExport SEXP _rcpp_module_boot_Cost_LinearL2_module();
 RcppExport SEXP _rcpp_module_boot_Cost_SIGMA_module();
 RcppExport SEXP _rcpp_module_boot_Cost_VAR_module();
+RcppExport SEXP _rcpp_module_boot_Cost_LinearSIGMA_module();
 RcppExport SEXP _rcpp_module_boot_binSegCpp_L1_cwMed_module();
 RcppExport SEXP _rcpp_module_boot_binSegCpp_L2_module();
 RcppExport SEXP _rcpp_module_boot_binSegCpp_VAR_module();
 RcppExport SEXP _rcpp_module_boot_binSegCpp_SIGMA_module();
 RcppExport SEXP _rcpp_module_boot_binSegCpp_LinearL2_module();
+RcppExport SEXP _rcpp_module_boot_binSegCpp_LinearSIGMA_module();
 RcppExport SEXP _rcpp_module_boot_PELTCpp_L1_cwMed_module();
 RcppExport SEXP _rcpp_module_boot_PELTCpp_L2_module();
 RcppExport SEXP _rcpp_module_boot_PELTCpp_VAR_module();
 RcppExport SEXP _rcpp_module_boot_PELTCpp_SIGMA_module();
 RcppExport SEXP _rcpp_module_boot_PELTCpp_LinearL2_module();
+RcppExport SEXP _rcpp_module_boot_PELTCpp_LinearSIGMA_module();
 RcppExport SEXP _rcpp_module_boot_windowCpp_L1_cwMed_module();
 RcppExport SEXP _rcpp_module_boot_windowCpp_L2_module();
 RcppExport SEXP _rcpp_module_boot_windowCpp_VAR_module();
 RcppExport SEXP _rcpp_module_boot_windowCpp_SIGMA_module();
 RcppExport SEXP _rcpp_module_boot_windowCpp_LinearL2_module();
+RcppExport SEXP _rcpp_module_boot_windowCpp_LinearSIGMA_module();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rcpp_module_boot_Cost_L1_cwMed_module", (DL_FUNC) &_rcpp_module_boot_Cost_L1_cwMed_module, 0},
@@ -39,21 +43,25 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rcpp_module_boot_Cost_LinearL2_module", (DL_FUNC) &_rcpp_module_boot_Cost_LinearL2_module, 0},
     {"_rcpp_module_boot_Cost_SIGMA_module", (DL_FUNC) &_rcpp_module_boot_Cost_SIGMA_module, 0},
     {"_rcpp_module_boot_Cost_VAR_module", (DL_FUNC) &_rcpp_module_boot_Cost_VAR_module, 0},
+    {"_rcpp_module_boot_Cost_LinearSIGMA_module", (DL_FUNC) &_rcpp_module_boot_Cost_LinearSIGMA_module, 0},
     {"_rcpp_module_boot_binSegCpp_L1_cwMed_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_L1_cwMed_module, 0},
     {"_rcpp_module_boot_binSegCpp_L2_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_L2_module, 0},
     {"_rcpp_module_boot_binSegCpp_VAR_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_VAR_module, 0},
     {"_rcpp_module_boot_binSegCpp_SIGMA_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_SIGMA_module, 0},
     {"_rcpp_module_boot_binSegCpp_LinearL2_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_LinearL2_module, 0},
+    {"_rcpp_module_boot_binSegCpp_LinearSIGMA_module", (DL_FUNC) &_rcpp_module_boot_binSegCpp_LinearSIGMA_module, 0},
     {"_rcpp_module_boot_PELTCpp_L1_cwMed_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_L1_cwMed_module, 0},
     {"_rcpp_module_boot_PELTCpp_L2_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_L2_module, 0},
     {"_rcpp_module_boot_PELTCpp_VAR_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_VAR_module, 0},
     {"_rcpp_module_boot_PELTCpp_SIGMA_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_SIGMA_module, 0},
     {"_rcpp_module_boot_PELTCpp_LinearL2_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_LinearL2_module, 0},
+    {"_rcpp_module_boot_PELTCpp_LinearSIGMA_module", (DL_FUNC) &_rcpp_module_boot_PELTCpp_LinearSIGMA_module, 0},
     {"_rcpp_module_boot_windowCpp_L1_cwMed_module", (DL_FUNC) &_rcpp_module_boot_windowCpp_L1_cwMed_module, 0},
     {"_rcpp_module_boot_windowCpp_L2_module", (DL_FUNC) &_rcpp_module_boot_windowCpp_L2_module, 0},
     {"_rcpp_module_boot_windowCpp_VAR_module", (DL_FUNC) &_rcpp_module_boot_windowCpp_VAR_module, 0},
     {"_rcpp_module_boot_windowCpp_SIGMA_module", (DL_FUNC) &_rcpp_module_boot_windowCpp_SIGMA_module, 0},
     {"_rcpp_module_boot_windowCpp_LinearL2_module", (DL_FUNC) &_rcpp_module_boot_windowCpp_LinearL2_module, 0},
+    {"_rcpp_module_boot_windowCpp_LinearSIGMA_module", (DL_FUNC) &_rcpp_module_boot_windowCpp_LinearSIGMA_module, 0},
     {NULL, NULL, 0}
 };
 

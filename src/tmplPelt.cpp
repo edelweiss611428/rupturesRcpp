@@ -57,6 +57,10 @@ public:
   // For LinearL2: constructor with (tsMat, covariates, intercept, minSize, jump)
   PELTCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_, int minSize_, int jump_);
 
+  // For LinearSIGMA: constructor with (tsMat, covariates, intercept, addSmallDiag, epsilon, minSize, jump)
+  PELTCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
+              bool addSmallDiag, double epsilon, int minSize_, int jump_);
+
 
   // predict() method: Perform PELT segmentation
   std::vector<int> predict(double penalty) {
@@ -359,4 +363,48 @@ RCPP_EXPOSED_CLASS(PELTCpp_LinearL2)
     .method("predict", &PELTCppTmpl<Cost_LinearL2>::predict)
     .method("eval", &PELTCppTmpl<Cost_LinearL2>::eval)
     .method("get_params", &PELTCppTmpl<Cost_LinearL2>::get_params);
+  }
+
+
+
+// ========================================================
+//                   LinearSIGMA class
+// ========================================================
+
+
+template<>
+PELTCppTmpl<Cost_LinearSIGMA>::PELTCppTmpl(const arma::mat& tsMat, const arma::mat& covariates,
+                                            bool intercept_, bool addSmallDiag, double epsilon,
+                                            int minSize_, int jump_)
+  : costModule(tsMat, covariates, intercept_, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
+  nSamples = costModule.nr;
+
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
+  }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+}
+
+RCPP_EXPOSED_CLASS(PELTCpp_LinearSIGMA)
+  RCPP_MODULE(PELTCpp_LinearSIGMA_module) {
+    Rcpp::class_<PELTCppTmpl<Cost_LinearSIGMA>>("PELTCpp_LinearSIGMA")
+    .constructor<arma::mat, arma::mat, bool, bool, double, int, int>()  // mat, covariates, intercept, addSmallDiag, epsilon, minSize, jump
+    .method("predict", &PELTCppTmpl<Cost_LinearSIGMA>::predict)
+    .method("eval", &PELTCppTmpl<Cost_LinearSIGMA>::eval)
+    .method("get_params", &PELTCppTmpl<Cost_LinearSIGMA>::get_params);
   }

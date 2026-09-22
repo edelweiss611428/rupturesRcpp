@@ -165,6 +165,10 @@ public:
   // For LinearL2: constructor with (tsMat, covariates, intercept, minSize, jump)
   binSegCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_, int minSize_, int jump_);
 
+  // For LinearSIGMA: constructor with (tsMat, covariates, intercept, addSmallDiag, epsilon, minSize, jump)
+  binSegCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
+                bool addSmallDiag, double epsilon, int minSize_, int jump_);
+
   //.fit() method
   void fit(){
 
@@ -464,4 +468,48 @@ RCPP_EXPOSED_CLASS(binSegCpp_LinearL2)
     .method("predict", &binSegCppTmpl<Cost_LinearL2>::predict)
     .method("eval", &binSegCppTmpl<Cost_LinearL2>::eval)
     .method("get_params", &binSegCppTmpl<Cost_LinearL2>::get_params);
+  }
+
+
+
+// ========================================================
+//                   LinearSIGMA class
+// ========================================================
+
+template<>
+binSegCppTmpl<Cost_LinearSIGMA>::binSegCppTmpl(const arma::mat& tsMat, const arma::mat& covariates,
+                                                bool intercept_, bool addSmallDiag, double epsilon,
+                                                int minSize_, int jump_)
+  : costModule(tsMat, covariates, intercept_, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
+  nSamples = costModule.nr;
+
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
+  }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+}
+
+RCPP_EXPOSED_CLASS(binSegCpp_LinearSIGMA)
+  RCPP_MODULE(binSegCpp_LinearSIGMA_module) {
+    Rcpp::class_<binSegCppTmpl<Cost_LinearSIGMA>>("binSegCpp_LinearSIGMA")
+    .constructor<arma::mat, arma::mat, bool, bool, double, int, int>()  // mat, covariates, intercept, addSmallDiag, epsilon, minSize, jump
+    .method("fit", &binSegCppTmpl<Cost_LinearSIGMA>::fit)
+    .method("predict", &binSegCppTmpl<Cost_LinearSIGMA>::predict)
+    .method("eval", &binSegCppTmpl<Cost_LinearSIGMA>::eval)
+    .method("get_params", &binSegCppTmpl<Cost_LinearSIGMA>::get_params);
   }
