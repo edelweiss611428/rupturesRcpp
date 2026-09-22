@@ -45,6 +45,25 @@ int CostBase::warnLevel() const {
   return keepWarning ? 2 : 0;
 }
 
+double CostBase::logDetCost(const arma::mat& covMat, bool addSmallDiag, double epsilon,
+                             double lbDet, int len) const {
+  double logDet = 0.0;
+
+  if (arma::log_det_sympd(logDet, covMat)) {
+    return (addSmallDiag ? std::max(logDet, lbDet) : logDet) * len;
+  }
+
+  if (addSmallDiag && epsilon > 0.0) {
+    if (warnLevel()) {
+      Rcpp::warning("`covMat` is singular! Consider increasing either `epsilon` or `minSize`");
+      Rcpp::warning("Return the lower-bound `p*log(epsilon)*segLen`!");
+    }
+    return lbDet * len;
+  }
+
+  Rcpp::stop("`covMat` is singular! Consider using `addSmallDiag` option or increasing `minSize`!");
+}
+
 // ========================================================
 //                     Cost_L1_cwMed
 // ========================================================
@@ -128,22 +147,7 @@ arma::mat Cost_SIGMA::segmentCov(int start, int end) const {
 }
 
 double Cost_SIGMA::eval(int start, int end) const {
-  arma::mat covMat = segmentCov(start, end);
-  double logDet = 0.0;
-
-  if (arma::log_det_sympd(logDet, covMat)) {
-    return (addSmallDiag_ ? std::max(logDet, lbDet) : logDet) * (end - start);
-  }
-
-  if (addSmallDiag_ && epsilon_ > 0.0) {
-    if (warnLevel()) {
-      Rcpp::warning("`covMat` is singular! Consider increasing either `epsilon` or `minSize`");
-      Rcpp::warning("Return the lower-bound `p*log(epsilon)*segLen`!");
-    }
-    return lbDet * (end - start);
-  }
-
-  Rcpp::stop("`covMat` is singular! Consider using `addSmallDiag` option or increasing `minSize`!");
+  return logDetCost(segmentCov(start, end), addSmallDiag_, epsilon_, lbDet, end - start);
 }
 
 Rcpp::List Cost_SIGMA::get_params(int start, int end) const {
@@ -192,6 +196,14 @@ double RegressionCost::ssr(int start, int end) const {
   arma::mat YtY = csYtY.slice(end) - csYtY.slice(start);
   arma::mat B = solveSegment(ZtZ, ZtY);
   return std::max(0.0, arma::trace(YtY) - arma::trace(B.t() * ZtY));
+}
+
+arma::mat RegressionCost::residualSSR(int start, int end) const {
+  arma::mat ZtZ = csZtZ.slice(end) - csZtZ.slice(start);
+  arma::mat ZtY = csZtY.slice(end) - csZtY.slice(start);
+  arma::mat YtY = csYtY.slice(end) - csYtY.slice(start);
+  arma::mat B = solveSegment(ZtZ, ZtY);
+  return YtY - B.t() * ZtY;
 }
 
 Rcpp::List RegressionCost::coef(int start, int end, int nEff) const {
@@ -286,6 +298,64 @@ Rcpp::List Cost_VAR::get_params(int start, int end) const {
 }
 
 // ========================================================
+//                    Cost_LinearSIGMA
+// ========================================================
+
+Cost_LinearSIGMA::Cost_LinearSIGMA(const arma::mat& Y, const arma::mat& X, bool intercept_,
+                                    bool addSmallDiag, double epsilon, bool warnOnce)
+  : RegressionCost(warnOnce,
+                   "System is singular. Switching to approximate solve.",
+                   "Singular system encountered. Using force_approx."),
+    intercept(intercept_), addSmallDiag_(addSmallDiag), epsilon_(epsilon) {
+
+  if (Y.n_rows != X.n_rows) {
+    Rcpp::stop("Number of observations in response and covariate matrices must match!");
+  }
+
+  nr = Y.n_rows;
+  nc = Y.n_cols;
+  J = X.n_cols + (intercept ? 1 : 0);
+  lbDet = nc * std::log(epsilon);
+
+  if (nr < J) {
+    Rcpp::stop("The full dataset contains not enough observations to fit a linear regression model!");
+  }
+
+  if (intercept) {
+    precompute(arma::join_rows(arma::ones(nr), X), Y, 0);
+  } else {
+    precompute(X, Y, 0);
+  }
+}
+
+arma::mat Cost_LinearSIGMA::residualCov(int start, int end) const {
+  arma::mat covMat = residualSSR(start, end) / (end - start);
+  if (addSmallDiag_) {
+    covMat.diag() += epsilon_;
+  }
+  return covMat;
+}
+
+double Cost_LinearSIGMA::eval(int start, int end) const {
+  if (start >= end - 1 || end - start < J) {
+    return 0.0;
+  }
+  return logDetCost(residualCov(start, end), addSmallDiag_, epsilon_, lbDet, end - start);
+}
+
+Rcpp::List Cost_LinearSIGMA::get_params(int start, int end) const {
+  Rcpp::List out = coef(start, end, end - start);
+  if (end - start < J) {
+    arma::mat covMat(nc, nc);
+    covMat.fill(NA_REAL);
+    out["cov"] = covMat;
+  } else {
+    out["cov"] = residualCov(start, end);
+  }
+  return out;
+}
+
+// ========================================================
 //                      Rcpp modules
 // ========================================================
 
@@ -294,6 +364,7 @@ RCPP_EXPOSED_CLASS(Cost_L2)
 RCPP_EXPOSED_CLASS(Cost_SIGMA)
 RCPP_EXPOSED_CLASS(Cost_LinearL2)
 RCPP_EXPOSED_CLASS(Cost_VAR)
+RCPP_EXPOSED_CLASS(Cost_LinearSIGMA)
 
 RCPP_MODULE(Cost_L1_cwMed_module) {
   Rcpp::class_<Cost_L1_cwMed>("Cost_L1_cwMed")
@@ -333,4 +404,12 @@ RCPP_MODULE(Cost_VAR_module) {
   .method("eval", &Cost_VAR::eval, "Evaluate VAR cost on interval (start, end]")
   .method("get_params", &Cost_VAR::get_params, "VAR coefficients on (start, end]")
   .method("resetWarning", &resetWarningR<Cost_VAR>, "Set the status of warnOnce_");
+}
+
+RCPP_MODULE(Cost_LinearSIGMA_module) {
+  Rcpp::class_<Cost_LinearSIGMA>("Cost_LinearSIGMA")
+  .constructor<arma::mat, arma::mat, bool, bool, double, bool>()
+  .method("eval", &Cost_LinearSIGMA::eval, "Evaluate LinearSIGMA cost on interval (start, end]")
+  .method("get_params", &Cost_LinearSIGMA::get_params, "Regression coefficients and residual covariance on (start, end]")
+  .method("resetWarning", &resetWarningR<Cost_LinearSIGMA>, "Set the status of warnOnce_");
 }

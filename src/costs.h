@@ -34,6 +34,12 @@ protected:
 
   // 0 = silent, 1 = first warning since resetWarning(true), 2 = warn on every call
   int warnLevel() const;
+
+  // len * log|covMat|, falling back to len * lbDet (with a warning) when covMat is singular
+  // and addSmallDiag/epsilon allow it; stops otherwise. `covMat` must already include epsilon
+  // regularization if addSmallDiag is true. Shared by Cost_SIGMA and Cost_LinearSIGMA.
+  double logDetCost(const arma::mat& covMat, bool addSmallDiag, double epsilon,
+                     double lbDet, int len) const;
 };
 
 // ========================================================
@@ -106,6 +112,7 @@ protected:
 
   double ssr(int start, int end) const;
   Rcpp::List coef(int start, int end, int nEff) const;  // NA if nEff < J
+  arma::mat residualSSR(int start, int end) const;  // full R'R (q x q), R = Y - Z*coef
 
 private:
   const char* msgOnce_;
@@ -133,6 +140,29 @@ public:
 
 private:
   int p;
+};
+
+// ========================================================
+//                    Cost_LinearSIGMA
+// ========================================================
+
+// Piecewise linear regression with a segment-varying noise covariance: like Cost_LinearL2,
+// but the cost is (b-a)*log|Sigma_hat| on the OLS residual covariance (like Cost_SIGMA),
+// instead of the residual sum of squares.
+class Cost_LinearSIGMA : public RegressionCost {
+public:
+  Cost_LinearSIGMA(const arma::mat& Y, const arma::mat& X, bool intercept = true,
+                    bool addSmallDiag = true, double epsilon = 1e-6, bool warnOnce = true);
+  double eval(int start, int end) const override;
+  Rcpp::List get_params(int start, int end) const override;  // coef, cov
+
+private:
+  bool intercept;
+  bool addSmallDiag_;
+  double epsilon_;
+  double lbDet;  // nc * log(epsilon)
+
+  arma::mat residualCov(int start, int end) const;  // MLE residual covariance (+ epsilon * I if addSmallDiag)
 };
 
 #endif // RUPTURES_COSTS_H
