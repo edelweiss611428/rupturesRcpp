@@ -292,7 +292,7 @@ PELT$new(costFunc = costFunc$new("L2"))$fit(tsMat)$eval(0, 150)
 </pre>
 exactly.
 
-The actual use case is closing over data the package was never told about. Below,
+**Remark.** The actual use case is closing over data the package was never told about. Below,
 `externalSeries` is captured purely by lexical scope -- it is never passed to
 `$fit()` -- and `evalFun` aligns it to each candidate segment using `a`/`b`:
 
