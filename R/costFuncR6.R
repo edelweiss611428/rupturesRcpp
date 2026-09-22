@@ -37,6 +37,12 @@
 #' is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
 #' the same way as in the SIGMA cost function (including the `addSmallDiag`/`epsilon` stabilisation and lower-bound fallback).
 #'
+#' - **"LinearL1"** for piecewise linear regression process under **L1 (least absolute deviations) loss**
+#' \deqn{c_{\text{LinearL1}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_1} where \eqn{\hat{\beta}} is
+#' fit column-by-column via Iteratively Reweighted Least Squares (IRLS), iterated until the change in the fit's cost
+#' is within `tol` or `maxIter` iterations are reached. Unlike the other regression cost functions, this has no
+#' \eqn{O(1)}-per-segment closed form, since IRLS must be re-run on each queried segment.
+#'
 #' If active binding `$costFunc` is modified (via assignment operator), the default parameters will be used.
 #'
 #'
@@ -87,7 +93,7 @@ costFunc <- R6::R6Class(
         return(private$.costFunc)
       }
 
-      if(any(!charVal %in% c("L1", "L2", "SIGMA", "VAR", "LinearL2", "LinearSIGMA"))){
+      if(any(!charVal %in% c("L1", "L2", "SIGMA", "VAR", "LinearL2", "LinearSIGMA", "LinearL1"))){
         stop("Cost function not supported!")
       }
 
@@ -128,6 +134,18 @@ costFunc <- R6::R6Class(
         }
         if (is.null(private$.params[["epsilon"]])) {
           private$.params[["epsilon"]] = 1e-6
+        }
+      }
+
+      if (charVal == "LinearL1") {
+        if (is.null(private$.params[["intercept"]])) {
+          private$.params[["intercept"]] = TRUE
+        }
+        if (is.null(private$.params[["tol"]])) {
+          private$.params[["tol"]] = 1e-6
+        }
+        if (is.null(private$.params[["maxIter"]])) {
+          private$.params[["maxIter"]] = 50L
         }
       }
     },
@@ -190,6 +208,37 @@ costFunc <- R6::R6Class(
       }
       private$.params[["intercept"]] = boolVal
 
+    },
+
+    #' @field tol Double. IRLS convergence tolerance: iteration stops once the change in the fit's cost falls below
+    #' `tol`. Can be accessed or modified via `$tol`.
+    tol = function(doubleVal) {
+
+      if (missing(doubleVal)) {
+        return(private$.params[["tol"]])
+      }
+
+      if (!is.numeric(doubleVal) | length(doubleVal) != 1L | any(doubleVal <= 0)) {
+        stop("`tol` must be a single positive value!")
+
+      }
+      private$.params[["tol"]] = doubleVal
+
+    },
+
+    #' @field maxIter Integer. Maximum number of IRLS iterations. Can be accessed or modified via `$maxIter`.
+    maxIter = function(intVal) {
+
+      if (missing(intVal)) {
+        return(private$.params[["maxIter"]])
+      }
+
+      if (!is.numeric(intVal) | length(intVal) != 1L | any(as.integer(intVal) < 1L)) {
+        stop("`maxIter` must be a single positive integer!")
+
+      }
+      private$.params[["maxIter"]] = as.integer(intVal)
+
     }
 
   ),
@@ -230,6 +279,14 @@ costFunc <- R6::R6Class(
     #'   to stabilise matrix operations. Default: `TRUE`.}
     #'   \item{`epsilon`}{Double. If `addSmallDiag = TRUE`, a small positive value added to the diagonal of estimated residual covariance matrices to stabilise
     #'   matrix operations. Default: `1e-6`.}
+    #' }
+    #'
+    #' For \code{"LinearL1"}, supported parameters are:
+    #' \describe{
+    #'   \item{`intercept`}{Logical. Whether to include the intercept in regression problems. Default: `TRUE`.}
+    #'   \item{`tol`}{Double. IRLS convergence tolerance: iteration stops once the change in the fit's cost falls
+    #'   below `tol`. Default: `1e-6`.}
+    #'   \item{`maxIter`}{Integer. Maximum number of IRLS iterations. Default: `50L`.}
     #' }
 
     initialize = function(costFunc, ...) {
@@ -308,6 +365,33 @@ costFunc <- R6::R6Class(
         }
       }
 
+      if (private$.costFunc == "LinearL1") {
+
+        self$intercept = if (hasName(args, "intercept") & !is.null(args$intercept)) {
+          args$intercept
+
+        } else {
+          TRUE
+
+        }
+
+        self$tol = if (hasName(args, "tol") & !is.null(args$tol)) {
+          args$tol
+
+        } else {
+          1e-6
+
+        }
+
+        self$maxIter = if (hasName(args, "maxIter") & !is.null(args$maxIter)) {
+          args$maxIter
+
+        } else {
+          50L
+
+        }
+      }
+
     },
 
     #' @description Returns a list of configuration parameters to initialise `detection` modules.
@@ -338,6 +422,12 @@ costFunc <- R6::R6Class(
                     intercept = private$.params[["intercept"]],
                     addSmallDiag = private$.params[["addSmallDiag"]],
                     epsilon = private$.params[["epsilon"]]))
+
+      } else if(private$.costFunc == "LinearL1"){
+        return(list(costFunc = "LinearL1",
+                    intercept = private$.params[["intercept"]],
+                    tol = private$.params[["tol"]],
+                    maxIter = private$.params[["maxIter"]]))
 
       }
     }
