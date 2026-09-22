@@ -283,7 +283,14 @@ customObj$eval(0, 150)
 <pre>
 [1] 3943.78
 </pre>
-which matches `PELT$new(costFunc = costFunc$new("L2"))$fit(tsMat)$eval(0, 150)` exactly.
+which matches 
+```r
+PELT$new(costFunc = costFunc$new("L2"))$fit(tsMat)$eval(0, 150)
+```
+<pre>
+[1] 3943.78
+</pre>
+exactly.
 
 The actual use case is closing over data the package was never told about. Below,
 `externalSeries` is captured purely by lexical scope -- it is never passed to
