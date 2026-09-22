@@ -320,6 +320,11 @@ binSegObj$fit(counts2)
 binSegObj$predict(nBkps = 1)
 ```
 
+<pre>
+[1] 250 500
+</pre>
+
+
 Here, `counts` contains a change-point at 250, but `counts2` does not. Since `poissonCost` implicitly uses `counts` rather than `counts2`, the detected segmentation can be inconsistent with the data supplied to `$fit()`.
 
 
