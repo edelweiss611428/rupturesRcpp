@@ -292,7 +292,36 @@ PELT$new(costFunc = costFunc$new("L2"))$fit(tsMat)$eval(0, 150)
 </pre>
 exactly.
 
-**Risk of data mismatch**. The segmentation logic of existing modules only depends on being able to compute the cost for an arbitrary segment \((a,b]\); it does not depend on how the data are stored. Therefore, with a custom cost function, a mismatch can occur if the function relies on external data that are not part of the object passed to `$fit()`.
+#### Risk of data mismatch
+
+The segmentation logic of existing modules only depends on being able to compute the cost for an arbitrary segment \((a,b]\); it does not depend on how the data are stored. Therefore, with a custom cost function, a mismatch can occur if the function relies on external data that are not part of the object passed to `$fit()`.
+
+**Data mismatch example**
+
+For example, a custom Poisson cost can silently use externally captured data that do not match the data passed to `$fit()`:
+
+```r
+set.seed(1)
+counts = as.matrix(c(rpois(250, 5), rpois(250, 0)))
+counts2 = as.matrix(rpois(500, 5))
+
+poissonCost = function(segment, a, b) {
+  y = as.vector(counts[(a + 1):b])
+  lambda_hat = mean(y)
+  if (lambda_hat <= 0) return(0)
+  -2 * sum(dpois(y, lambda_hat, log = TRUE))
+}
+
+binSegObj = binSeg$new(
+  minSize = 5L,
+  costFunc = costFunc$new("Custom", evalFun = poissonCost)
+)
+binSegObj$fit(counts2)
+binSegObj$predict(nBkps = 1)
+```
+
+Here, `counts` contains a change-point at 250, but `counts2` does not. Since `poissonCost` implicitly uses `counts` rather than `counts2`, the detected segmentation can be inconsistent with the data supplied to `$fit()`.
+
 
 **Implicit external data example**. The actual use case is a custom cost function that closes over data the package was never explicitly given. For example, below, `externalSeries` is captured purely through lexical scope—it is never passed to `$fit()`—and `evalFun` uses `a` and `b` to align it with each candidate segment:
 
