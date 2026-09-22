@@ -303,7 +303,7 @@ For example, a custom Poisson cost can silently use externally captured data tha
 ```r
 set.seed(1)
 counts = as.matrix(c(rpois(250, 5), rpois(250, 0)))
-counts2 = as.matrix(rpois(500, 5)) # No change-point!
+counts2 = as.matrix(rpois(500, 5)) 
 
 poissonCost = function(segment, a, b) {
   y = as.vector(counts[(a + 1):b])
@@ -324,8 +324,13 @@ binSegObj$predict(nBkps = 1)
 [1] 250 500
 </pre>
 
-
 Here, `counts` contains a change-point at 250, but `counts2` does not. Since `poissonCost` implicitly uses `counts` rather than `counts2`, the detected segmentation can be inconsistent with the data supplied to `$fit()`.
+
+```{r}
+
+binSegObj$plot()
+```
+<img width="2516" height="1403" alt="image" src="https://github.com/user-attachments/assets/c85c24fa-2742-4cb8-9563-4f47337ba9dd" />
 
 
 **Implicit external data example**. The actual use case is a custom cost function that closes over data the package was never explicitly given. For example, below, `externalSeries` is captured purely through lexical scope—it is never passed to `$fit()`—and `evalFun` uses `a` and `b` to align it with each candidate segment:
