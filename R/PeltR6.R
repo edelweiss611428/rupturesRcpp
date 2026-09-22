@@ -5,7 +5,7 @@
 #' @include costFuncR6.R
 #' @docType class
 #' @importFrom R6 R6Class is.R6
-#' @importFrom ggplot2 aes ggplot geom_rect geom_line scale_fill_identity theme_minimal theme geom_vline labs element_blank element_text facet_wrap
+#' @import ggplot2
 #' @import patchwork
 #' @importFrom utils hasName
 #' @export
