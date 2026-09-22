@@ -402,14 +402,17 @@ arma::vec Cost_LinearL1::fitColumnIRLS(int start, int end, int col, double* cost
   arma::mat Zseg = Z.rows(start, end - 1);
   arma::vec yseg = Y.submat(start, col, end - 1, col);
 
+  // Tracked across the initial solve and every IRLS iteration so a singular system is
+  // reported once per call (like the other regression costs), not once per iteration --
+  // up to maxIter warnings from a single eval() would be excessive, but staying fully
+  // silent after the first iteration (unlike every other cost's singular-system handling)
+  // would hide a real degradation even in "warn every call" mode.
+  bool anySingular = false;
+
   arma::vec B;
   if (!arma::solve(B, Zseg.t() * Zseg, Zseg.t() * yseg,
                     arma::solve_opts::no_approx + arma::solve_opts::likely_sympd)) {
-    int level = warnLevel();
-    if (level) {
-      Rcpp::warning(level == 1 ? "System is singular. Switching to approximate solve."
-                                : "Singular system encountered. Using force_approx.");
-    }
+    anySingular = true;
     arma::solve(B, Zseg.t() * Zseg, Zseg.t() * yseg, arma::solve_opts::force_approx);
   }
 
@@ -426,6 +429,7 @@ arma::vec Cost_LinearL1::fitColumnIRLS(int start, int end, int col, double* cost
     arma::vec Bnew;
     if (!arma::solve(Bnew, Zw.t() * Zw, Zw.t() * yw,
                       arma::solve_opts::no_approx + arma::solve_opts::likely_sympd)) {
+      anySingular = true;
       arma::solve(Bnew, Zw.t() * Zw, Zw.t() * yw, arma::solve_opts::force_approx);
     }
 
@@ -439,6 +443,14 @@ arma::vec Cost_LinearL1::fitColumnIRLS(int start, int end, int col, double* cost
       break;
     }
     prevCost = cost;
+  }
+
+  if (anySingular) {
+    int level = warnLevel();
+    if (level) {
+      Rcpp::warning(level == 1 ? "System is singular. Switching to approximate solve."
+                                : "Singular system encountered. Using force_approx.");
+    }
   }
 
   if (!converged) {

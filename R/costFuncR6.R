@@ -233,7 +233,10 @@ costFunc <- R6::R6Class(
         return(private$.params[["maxIter"]])
       }
 
-      if (!is.numeric(intVal) | length(intVal) != 1L | any(as.integer(intVal) < 1L)) {
+      valid = is.numeric(intVal) && length(intVal) == 1L && !anyNA(intVal) &&
+        intVal >= 1 && intVal == round(intVal) && intVal <= .Machine$integer.max
+
+      if (!isTRUE(valid)) {
         stop("`maxIter` must be a single positive integer!")
 
       }
