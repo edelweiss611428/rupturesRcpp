@@ -21,6 +21,7 @@
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
 #' - `"LinearL2"`: for piecewise linear regression process with **constant noise variance**
 #' - `"LinearSIGMA"`: for piecewise linear regression process with **varying noise covariance**
+#' - `"LinearL1"`: for piecewise linear regression process under **L1 (least absolute deviations) loss**
 #'
 #' See `$eval()` method for more details on computation of cost.
 #'
@@ -231,7 +232,7 @@ binSeg = R6Class(
 
       private$.covariates = numMat
 
-      if(private$.costFunc$pass()[["costFunc"]] %in% c("LinearL2", "LinearSIGMA")){
+      if(private$.costFunc$pass()[["costFunc"]] %in% c("LinearL2", "LinearSIGMA", "LinearL1")){
         if (!is.null(private$.tsMat) & private$.fitted) {
           self$fit()
         }
@@ -370,6 +371,22 @@ binSeg = R6Class(
 
       }
 
+      if(private$.costFunc$pass()[["costFunc"]] == "LinearL1"){
+
+        if(printConfig){
+
+          cat(sprintf("intercept    : %sL\n", private$.costFunc$pass()[["intercept"]]))
+          cat(sprintf("tol          : %s\n", private$.costFunc$pass()[["tol"]]))
+          cat(sprintf("maxIter      : %sL\n", private$.costFunc$pass()[["maxIter"]]))
+
+        }
+
+        params[["intercept"]] = private$.costFunc$pass()[["intercept"]]
+        params[["tol"]] = private$.costFunc$pass()[["tol"]]
+        params[["maxIter"]] = private$.costFunc$pass()[["maxIter"]]
+
+      }
+
       if(printConfig){
 
         cat(sprintf("fitted       : %s\n", private$.fitted))
@@ -425,7 +442,7 @@ binSeg = R6Class(
 
       }
 
-      if(private$.costFunc$pass()[["costFunc"]] %in% c("LinearL2", "LinearSIGMA")){
+      if(private$.costFunc$pass()[["costFunc"]] %in% c("LinearL2", "LinearSIGMA", "LinearL1")){
 
         if(!is.null(covariates)){
 
@@ -460,6 +477,14 @@ binSeg = R6Class(
                                           FALSE, #no intercept
                                           private$.costFunc$pass()[["addSmallDiag"]],
                                           private$.costFunc$pass()[["epsilon"]],
+                                          private$.minSize, private$.jump)
+
+            } else if(private$.costFunc$pass()[["costFunc"]] == "LinearL1"){
+
+              private$.binSegModule = new(binSegCpp_LinearL1, private$.tsMat, matrix(1, nrow = private$.n, ncol = 1),
+                                          FALSE, #no intercept
+                                          private$.costFunc$pass()[["tol"]],
+                                          private$.costFunc$pass()[["maxIter"]],
                                           private$.minSize, private$.jump)
 
             }
@@ -511,6 +536,14 @@ binSeg = R6Class(
                                     private$.costFunc$pass()[["intercept"]],
                                     private$.costFunc$pass()[["addSmallDiag"]],
                                     private$.costFunc$pass()[["epsilon"]],
+                                    private$.minSize, private$.jump)
+
+      } else if(private$.costFunc$pass()[["costFunc"]] == "LinearL1"){
+
+        private$.binSegModule = new(binSegCpp_LinearL1, private$.tsMat, private$.covariates,
+                                    private$.costFunc$pass()[["intercept"]],
+                                    private$.costFunc$pass()[["tol"]],
+                                    private$.costFunc$pass()[["maxIter"]],
                                     private$.minSize, private$.jump)
 
       } else{
@@ -565,6 +598,11 @@ binSeg = R6Class(
     #' \deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
     #' is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
     #' the same way as in the SIGMA cost function.
+    #'
+    #' - **"LinearL1"** for piecewise linear regression process under **L1 (least absolute deviations) loss**
+    #' \deqn{c_{\text{LinearL1}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_1} where \eqn{\hat{\beta}}
+    #' is fit column-by-column via IRLS on segment \eqn{(a+1):b}, iterated until convergence (`tol`) or `maxIter`.
+    #' Unlike the other regression costs, this has no \eqn{O(1)}-per-segment closed form.
     eval = function(a, b){
 
       if(!private$.fitted){
