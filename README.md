@@ -303,7 +303,7 @@ For example, a custom Poisson cost can silently use externally captured data tha
 ```r
 set.seed(1)
 counts = as.matrix(c(rpois(250, 5), rpois(250, 0)))
-counts2 = as.matrix(rpois(500, 5))
+counts2 = as.matrix(rpois(500, 5)) # No change-point!
 
 poissonCost = function(segment, a, b) {
   y = as.vector(counts[(a + 1):b])
@@ -316,7 +316,7 @@ binSegObj = binSeg$new(
   minSize = 5L,
   costFunc = costFunc$new("Custom", evalFun = poissonCost)
 )
-binSegObj$fit(counts2)
+binSegObj$fit(counts2) # counts2 has NO change-point by design.
 binSegObj$predict(nBkps = 1)
 ```
 
