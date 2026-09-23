@@ -3,26 +3,28 @@
 #' @description An `R6` class for fast segment-cost evaluation and parameter estimation, without a detection algorithm.
 #'
 #' @details
-#' `costFactory` builds the `C++` cost module selected by a `costFunc` object and exposes `$eval()` (segment cost),
-#' `$estimate()` (fitted parameters of one segment) and `$summary()` (a `segSummary` for a given segmentation, see
-#' [segSummary]). Costs are identical to those used by `PELT`, `binSeg` and `Window`. Parameters are estimated in `R`
-#' on the same model:
+#' `costFactory` builds the `C++` cost module selected by a `costFunc` object once, at initialisation, and keeps it, so
+#' every query reuses the module's precomputations (e.g. cumulative sums), as `PELT`, `binSeg` and `Window` do.
+#' `$eval()` returns the cost of a segment and `$get_params()` the module's `get_params()` output, unchanged:
 #'
-#' - **L1**: coordinate-wise median \eqn{\tilde y} and scale \eqn{\frac{1}{n}\sum_t |y_t - \tilde y|}.
-#' - **L2**: mean \eqn{\bar y} and variance \eqn{\frac{1}{n}\sum_t (y_t - \bar y)^2}.
-#' - **SIGMA**: mean and covariance \eqn{\frac{1}{n}\sum_t (y_t - \bar y)(y_t - \bar y)^\top} (without `epsilon`).
-#' - **VAR(r)**: OLS coefficients \eqn{\hat B} of \eqn{y_t} on \eqn{(1, y_{t-1}, \dots, y_{t-r})} and residual variance.
-#' - **LinearL2**: OLS coefficients of \eqn{y_t} on \eqn{(1, x_t)} and residual variance. With no `covariates`,
-#'   an intercept-only model is fitted, as in `$fit()` of the detection classes.
+#' - `"L1"`: `median`, the coordinate-wise median.
+#' - `"L2"`: `mean`.
+#' - `"SIGMA"`: `mean` and `cov`, the empirical covariance (divisor `n`), plus `epsilon` on the diagonal if
+#'   `addSmallDiag = TRUE`.
+#' - `"VAR"`: `coef`, a \eqn{(1 + rp) \times p} matrix: intercept, then lags `1, ..., r`.
+#' - `"LinearL2"` and `"LinearL1"`: `coef`, a \eqn{J \times p} matrix, intercept first (if any).
+#' - `"LinearSIGMA"`: `coef` and `cov`, the residual covariance (as for `"SIGMA"`).
+#' - `"Custom"`: `params`, the output of `paramFun`; an empty list if `paramFun` is `NULL`.
 #'
-#' Coefficients are `NA` when a segment is too short or the system is rank deficient.
+#' Vectors and matrices are returned as computed, without names. Coefficients (and `cov` for `"LinearSIGMA"`) are `NA`
+#' when the segment has fewer observations than coefficients; singular systems fall back to an approximate solve, with
+#' a warning.
 #'
 #' @section Methods:
 #' \describe{
 #'   \item{\code{$new()}}{Initialises a `costFactory` object.}
 #'   \item{\code{$eval()}}{Evaluates the cost of a segment.}
-#'   \item{\code{$estimate()}}{Estimates the parameters of a segment.}
-#'   \item{\code{$summary()}}{Summarises a segmentation.}
+#'   \item{\code{$get_params()}}{Returns the parameter estimates of a segment.}
 #'   \item{\code{$clone()}}{Clones the `R6` object.}
 #' }
 #'
@@ -36,18 +38,15 @@
 #' tsMat = cbind(c(rnorm(100, 0), rnorm(100, 5, 5)), c(rnorm(100, 0), rnorm(100, 5, 5)))
 #' cf = costFactory$new(costFunc$new("SIGMA"), tsMat)
 #' cf$eval(0, 100)
-#' cf$estimate(0, 100)
-#' cf$summary(c(100, 200))
+#' cf$get_params(0, 100)
 #' @export
 costFactory = R6Class(
   "costFactory",
 
   private = list(
 
-    .costFunc = costFunc$new("L2"),   # default set here, not as an argument default (see initialize)
+    .spec = list(costFunc = "L2"),   # costFunc$new("L2")$pass(); captured once so later edits to the costFunc object cannot desync the module
     .module = NULL,
-    .tsMat = NULL,
-    .covariates = NULL,
     .n = NULL,
 
     .checkAB = function(a, b) {
@@ -76,8 +75,7 @@ costFactory = R6Class(
     #'
     #' @param costFunc A `R6` object of class `costFunc`. Default: `costFunc$new("L2")`.
     #' @param tsMat Numeric matrix. Time series of size \eqn{n \times p}.
-    #' @param covariates Numeric matrix with `n` rows. Required for `"LinearL2"`; if `NULL`, the model is
-    #' force-fitted with only an intercept. Default: `NULL`.
+    #' @param covariates Numeric matrix with `n` rows. Used by `"LinearL2"`, `"LinearSIGMA"` and `"LinearL1"`; if `NULL`, the model is force-fitted with only an intercept. Default: `NULL`.
     #'
     #' @return Invisibly returns `NULL`.
     initialize = function(costFunc, tsMat, covariates = NULL) {
@@ -86,7 +84,7 @@ costFactory = R6Class(
         if (!inherits(costFunc, "costFunc") || !is.R6(costFunc)) {
           stop("`costFunc` must be a `R6` object of class `costFunc` - can be created via costFunc$new()!")
         }
-        private$.costFunc = costFunc
+        private$.spec = costFunc$pass()
       }
 
       if (missing(tsMat) || is.null(tsMat)) {
@@ -98,42 +96,39 @@ costFactory = R6Class(
       if (anyNA(tsMat)) {
         stop("`tsMat` contains NAs!")
       }
-      private$.tsMat = tsMat
       private$.n = nrow(tsMat)
 
-      spec = private$.costFunc$pass()
+      spec = private$.spec
 
-      if (spec$costFunc == "LinearL2") {
+      if (spec$costFunc %in% c("LinearL2", "LinearSIGMA", "LinearL1")) {
 
         if (is.null(covariates)) {
           warning("No `covariates` found! Force-fitting with only an intercept!")
-          private$.module = new(Cost_LinearL2, tsMat, matrix(1, private$.n, 1), FALSE, FALSE)
-          return(invisible(NULL))
+          covariates = matrix(1, private$.n, 1)
+          intercept = FALSE
+        } else {
+          if (!is.numeric(covariates) || !is.matrix(covariates)) {
+            stop("`covariates` must be a numeric time series matrix!")
+          }
+          if (anyNA(covariates)) {
+            stop("`covariates` contains NAs!")
+          }
+          if (nrow(covariates) != private$.n) {
+            stop("Numbers of observations in `covariates` and `tsMat` do not match!")
+          }
+          intercept = spec$intercept
         }
-        if (!is.numeric(covariates) || !is.matrix(covariates)) {
-          stop("`covariates` must be a numeric time series matrix!")
-        }
-        if (anyNA(covariates)) {
-          stop("`covariates` contains NAs!")
-        }
-        if (nrow(covariates) != private$.n) {
-          stop("Numbers of observations in `covariates` and `tsMat` do not match!")
-        }
-        private$.covariates = covariates
-        private$.module = new(Cost_LinearL2, tsMat, covariates, spec$intercept, FALSE)
-
-      } else if (spec$costFunc == "L2") {
-        private$.module = new(Cost_L2, tsMat, FALSE)
-
-      } else if (spec$costFunc == "L1") {
-        private$.module = new(Cost_L1_cwMed, tsMat, FALSE)
-
-      } else if (spec$costFunc == "SIGMA") {
-        private$.module = new(Cost_SIGMA, tsMat, spec$addSmallDiag, spec$epsilon, FALSE)
-
-      } else if (spec$costFunc == "VAR") {
-        private$.module = new(Cost_VAR, tsMat, spec$pVAR, FALSE)
       }
+
+      private$.module = switch(spec$costFunc,
+        L1          = new(Cost_L1_cwMed, tsMat, FALSE),
+        L2          = new(Cost_L2, tsMat, FALSE),
+        SIGMA       = new(Cost_SIGMA, tsMat, spec$addSmallDiag, spec$epsilon, FALSE),
+        VAR         = new(Cost_VAR, tsMat, spec$pVAR, FALSE),
+        LinearL2    = new(Cost_LinearL2, tsMat, covariates, intercept, FALSE),
+        LinearSIGMA = new(Cost_LinearSIGMA, tsMat, covariates, intercept, spec$addSmallDiag, spec$epsilon, FALSE),
+        LinearL1    = new(Cost_LinearL1, tsMat, covariates, intercept, spec$tol, spec$maxIter, FALSE),
+        Custom      = new(Cost_RFunc, tsMat, spec$evalFun, spec$paramFun, FALSE))
 
       invisible(NULL)
     },
@@ -147,20 +142,13 @@ costFactory = R6Class(
       private$.module$eval(ab[1L], ab[2L])
     },
 
-    #' @description Estimates the parameters of the segment (a, b].
+    #' @description Returns the parameter estimates of the segment (a, b]: the `get_params()` output of the `C++` cost module.
     #' @param a Integer. Start index (exclusive).
     #' @param b Integer. End index (inclusive). Must satisfy `a < b`.
-    #' @return A named list; entries depend on the cost function, see [segSummary].
-    estimate = function(a, b) {
+    #' @return A named list; fields depend on the cost function, see Details.
+    get_params = function(a, b) {
       ab = private$.checkAB(a, b)
-      .segEstimate(private$.costFunc$pass(), private$.tsMat, private$.covariates, ab[1L], ab[2L])
-    },
-
-    #' @description Summarises a segmentation: cost and parameters of every segment.
-    #' @param endPts Integer vector. Sorted end points; the last element must be `n`.
-    #' @return An object of class `segSummary`, see [segSummary].
-    summary = function(endPts) {
-      .segSummary(self$eval, private$.costFunc$pass(), private$.tsMat, private$.covariates, endPts)
+      private$.module$get_params(ab[1L], ab[2L])
     }
   )
 )

@@ -8,28 +8,30 @@
 An \code{R6} class for fast segment-cost evaluation and parameter estimation, without a detection algorithm.
 }
 \details{
-\code{costFactory} builds the \verb{C++} cost module selected by a \code{costFunc} object and exposes \verb{$eval()} (segment cost),
-\verb{$estimate()} (fitted parameters of one segment) and \verb{$summary()} (a \code{segSummary} for a given segmentation, see
-\link{segSummary}). Costs are identical to those used by \code{PELT}, \code{binSeg} and \code{Window}. Parameters are estimated in \code{R}
-on the same model:
+\code{costFactory} builds the \verb{C++} cost module selected by a \code{costFunc} object once, at initialisation, and keeps it, so
+every query reuses the module's precomputations (e.g. cumulative sums), as \code{PELT}, \code{binSeg} and \code{Window} do.
+\verb{$eval()} returns the cost of a segment and \verb{$get_params()} the module's \code{get_params()} output, unchanged:
 \itemize{
-\item \strong{L1}: coordinate-wise median \eqn{\tilde y} and scale \eqn{\frac{1}{n}\sum_t |y_t - \tilde y|}.
-\item \strong{L2}: mean \eqn{\bar y} and variance \eqn{\frac{1}{n}\sum_t (y_t - \bar y)^2}.
-\item \strong{SIGMA}: mean and covariance \eqn{\frac{1}{n}\sum_t (y_t - \bar y)(y_t - \bar y)^\top} (without \code{epsilon}).
-\item \strong{VAR(r)}: OLS coefficients \eqn{\hat B} of \eqn{y_t} on \eqn{(1, y_{t-1}, \dots, y_{t-r})} and residual variance.
-\item \strong{LinearL2}: OLS coefficients of \eqn{y_t} on \eqn{(1, x_t)} and residual variance. With no \code{covariates},
-an intercept-only model is fitted, as in \verb{$fit()} of the detection classes.
+\item \code{"L1"}: \code{median}, the coordinate-wise median.
+\item \code{"L2"}: \code{mean}.
+\item \code{"SIGMA"}: \code{mean} and \code{cov}, the empirical covariance (divisor \code{n}), plus \code{epsilon} on the diagonal if
+\code{addSmallDiag = TRUE}.
+\item \code{"VAR"}: \code{coef}, a \eqn{(1 + rp) \times p} matrix: intercept, then lags \verb{1, ..., r}.
+\item \code{"LinearL2"} and \code{"LinearL1"}: \code{coef}, a \eqn{J \times p} matrix, intercept first (if any).
+\item \code{"LinearSIGMA"}: \code{coef} and \code{cov}, the residual covariance (as for \code{"SIGMA"}).
+\item \code{"Custom"}: \code{params}, the output of \code{paramFun}; an empty list if \code{paramFun} is \code{NULL}.
 }
 
-Coefficients are \code{NA} when a segment is too short or the system is rank deficient.
+Vectors and matrices are returned as computed, without names. Coefficients (and \code{cov} for \code{"LinearSIGMA"}) are \code{NA}
+when the segment has fewer observations than coefficients; singular systems fall back to an approximate solve, with
+a warning.
 }
 \section{Methods}{
 
 \describe{
 \item{\code{$new()}}{Initialises a \code{costFactory} object.}
 \item{\code{$eval()}}{Evaluates the cost of a segment.}
-\item{\code{$estimate()}}{Estimates the parameters of a segment.}
-\item{\code{$summary()}}{Summarises a segmentation.}
+\item{\code{$get_params()}}{Returns the parameter estimates of a segment.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
 }
 }
@@ -39,8 +41,7 @@ set.seed(1)
 tsMat = cbind(c(rnorm(100, 0), rnorm(100, 5, 5)), c(rnorm(100, 0), rnorm(100, 5, 5)))
 cf = costFactory$new(costFunc$new("SIGMA"), tsMat)
 cf$eval(0, 100)
-cf$estimate(0, 100)
-cf$summary(c(100, 200))
+cf$get_params(0, 100)
 }
 \author{
 Minh Long Nguyen \email{edelweiss611428@gmail.com}
@@ -50,8 +51,7 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \itemize{
 \item \href{#method-costFactory-new}{\code{costFactory$new()}}
 \item \href{#method-costFactory-eval}{\code{costFactory$eval()}}
-\item \href{#method-costFactory-estimate}{\code{costFactory$estimate()}}
-\item \href{#method-costFactory-summary}{\code{costFactory$summary()}}
+\item \href{#method-costFactory-get_params}{\code{costFactory$get_params()}}
 \item \href{#method-costFactory-clone}{\code{costFactory$clone()}}
 }
 }
@@ -71,8 +71,7 @@ Initialises a \code{costFactory} object and builds the \verb{C++} cost module.
 
 \item{\code{tsMat}}{Numeric matrix. Time series of size \eqn{n \times p}.}
 
-\item{\code{covariates}}{Numeric matrix with \code{n} rows. Required for \code{"LinearL2"}; if \code{NULL}, the model is
-force-fitted with only an intercept. Default: \code{NULL}.}
+\item{\code{covariates}}{Numeric matrix with \code{n} rows. Used by \code{"LinearL2"}, \code{"LinearSIGMA"} and \code{"LinearL1"}; if \code{NULL}, the model is force-fitted with only an intercept. Default: \code{NULL}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -103,12 +102,12 @@ The segment cost.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-costFactory-estimate"></a>}}
-\if{latex}{\out{\hypertarget{method-costFactory-estimate}{}}}
-\subsection{Method \code{estimate()}}{
-Estimates the parameters of the segment (a, b].
+\if{html}{\out{<a id="method-costFactory-get_params"></a>}}
+\if{latex}{\out{\hypertarget{method-costFactory-get_params}{}}}
+\subsection{Method \code{get_params()}}{
+Returns the parameter estimates of the segment (a, b]: the \code{get_params()} output of the \verb{C++} cost module.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{costFactory$estimate(a, b)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{costFactory$get_params(a, b)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -121,27 +120,7 @@ Estimates the parameters of the segment (a, b].
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A named list; entries depend on the cost function, see \link{segSummary}.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-costFactory-summary"></a>}}
-\if{latex}{\out{\hypertarget{method-costFactory-summary}{}}}
-\subsection{Method \code{summary()}}{
-Summarises a segmentation: cost and parameters of every segment.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{costFactory$summary(endPts)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{endPts}}{Integer vector. Sorted end points; the last element must be \code{n}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-An object of class \code{segSummary}, see \link{segSummary}.
+A named list; fields depend on the cost function, see Details.
 }
 }
 \if{html}{\out{<hr>}}

@@ -45,7 +45,6 @@ for detailed basic usage!
 \item{\code{$predict()}}{Performs \code{Window} given a linear penalty value.}
 \item{\code{$getHistory()}}{Retrieves the full cost history and sequentially added breakpoints.}
 \item{\code{$plotElbow()}}{Plots the elbow curve (Total Cost vs. Number of Change-Points).}
-\item{\code{$summary()}}{Summarises a segmentation: per-segment costs and parameter estimates.}
 \item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
 }
@@ -124,7 +123,6 @@ Modifying \code{covariates} will automatically trigger \verb{$fit()}.}
 \item \href{#method-Window-predict}{\code{Window$predict()}}
 \item \href{#method-Window-getHistory}{\code{Window$getHistory()}}
 \item \href{#method-Window-plotElbow}{\code{Window$plotElbow()}}
-\item \href{#method-Window-summary}{\code{Window$summary()}}
 \item \href{#method-Window-plot}{\code{Window$plot()}}
 \item \href{#method-Window-clone}{\code{Window$clone()}}
 }
@@ -373,27 +371,6 @@ If \code{NULL}, displays the full history. Default: \code{NULL}.}
 }
 \subsection{Returns}{
 A \code{ggplot} object.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Window-summary"></a>}}
-\if{latex}{\out{\hypertarget{method-Window-summary}{}}}
-\subsection{Method \code{summary()}}{
-Summarises a segmentation: one list per segment with \code{start}, \code{end}, \code{n}, \code{cost} and the
-fitted parameters of the cost function (see \link{segSummary}).
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Window$summary(endPts)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{endPts}}{Integer vector. End points. Default: latest \code{endPts} obtained via \verb{$predict()}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-An object of class \code{segSummary}.
 }
 }
 \if{html}{\out{<hr>}}

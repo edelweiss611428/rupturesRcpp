@@ -66,7 +66,6 @@
 #'   \item{\code{$fit()}}{Constructs a `PELT` module in `C++`.}
 #'   \item{\code{$eval()}}{Evaluates the cost of a segment.}
 #'   \item{\code{$predict()}}{Performs `PELT` given a linear penalty value.}
-#'   \item{\code{$summary()}}{Summarises a segmentation: per-segment costs and parameter estimates.}
 #'   \item{\code{$plot()}}{Plots change-point segmentation in `ggplot` style.}
 #'   \item{\code{$clone()}}{Clones the `R6` object.}
 #' }
@@ -701,27 +700,6 @@ PELT = R6Class(
 
     },
 
-    #' @description Summarises a segmentation: one list per segment with `start`, `end`, `n`, `cost` and the
-    #' fitted parameters of the cost function (see [segSummary]).
-    #'
-    #' @param endPts Integer vector. End points. Default: latest `endPts` obtained via `$predict()`.
-    #'
-    #' @return An object of class `segSummary`.
-    summary = function(endPts) {
-
-      if (!private$.fitted) {
-        stop("$fit() must be run before $summary()!")
-      }
-
-      if (missing(endPts)) {
-        if (is.null(private$.tmpEndPts)) {
-          stop("Temporary `endPts` is null. Must run `$predict()` to initialise this!")
-        }
-        endPts = private$.tmpEndPts
-      }
-
-      .segSummary(self$eval, private$.costFunc$pass(), private$.tsMat, private$.covariates, endPts)
-    },
 
     #' @description Plots change-point segmentation
     #'

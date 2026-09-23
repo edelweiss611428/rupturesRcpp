@@ -108,7 +108,6 @@ All segmentation objects implement the following methods:
 - `$fit(tsMat, covariates)`: Constructs a `C++` detection module corresponding to the current configurations.
 - `$predict(pen, nBkps)`: Performs change-point detection given a linear penalty value, or a target number of change-points via `nBkps` (which takes precedence over `pen` when both are supplied).
 - `$eval(a,b)`: Evaluates the cost of a segment (a,b].
-- `$summary(endPts)`: Summarises a segmentation: per-segment costs and parameter estimates (`endPts` defaults to the last `$predict()`).
 - `$plot(d, endPts,...)`: Plots change-point segmentation in `ggplot` style.
 
 `binSeg` and `Window` additionally implement:
@@ -125,16 +124,15 @@ detectionObj$fit(a_time_series_matrix) #Fitted
 detectionObj$minSize = 1L #After fitting - automatically trigger `$fit()`
 ```
 
-### Interpreting a segmentation
+### Cost evaluation and parameter estimation: `costFactory`
 
-`$summary()` returns one entry per segment with its cost and fitted parameters (mean / median / covariance / regression coefficients, plus a variance estimate); `as.data.frame()` flattens it for tables. `costFactory` gives the same for any hand-made segmentation, without running a detection algorithm.
+`costFactory` builds the `C++` cost module of a `costFunc` once and reuses its precomputations for every query, without running a detection algorithm. `$eval(a, b)` returns the cost of the segment `(a, b]` and `$get_params(a, b)` the module's `get_params()` output (e.g. `mean`, `median`, `cov`, regression `coef`).
 
 ```r
-s = binSegObj$summary()      # after $predict()
-s                            # pretty print
-as.data.frame(s)             # one row per segment
 cf = costFactory$new(costFunc$new("VAR", pVAR = 2), tsMat)
-cf$eval(0, 100); cf$estimate(0, 100)$coef
+cf$eval(0, 100)
+cf$get_params(0, 100)$coef
+Map(cf$get_params, c(0, head(endPts, -1)), endPts) # every segment of a segmentation, e.g. endPts from $predict()
 ```
 
 ## Simulated data examples

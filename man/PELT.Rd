@@ -35,7 +35,6 @@ for detailed basic usage!
 \item{\code{$fit()}}{Constructs a \code{PELT} module in \verb{C++}.}
 \item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$predict()}}{Performs \code{PELT} given a linear penalty value.}
-\item{\code{$summary()}}{Summarises a segmentation: per-segment costs and parameter estimates.}
 \item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
 }
@@ -112,7 +111,6 @@ Modifying \code{covariates} will automatically trigger \verb{$fit()}.}
 \item \href{#method-PELT-fit}{\code{PELT$fit()}}
 \item \href{#method-PELT-eval}{\code{PELT$eval()}}
 \item \href{#method-PELT-predict}{\code{PELT$predict()}}
-\item \href{#method-PELT-summary}{\code{PELT$summary()}}
 \item \href{#method-PELT-plot}{\code{PELT$plot()}}
 \item \href{#method-PELT-clone}{\code{PELT$clone()}}
 }
@@ -302,27 +300,6 @@ specifying endpoints manually.
 \subsection{Returns}{
 An integer vector of regime end-points. By design, the last element is the
 number of observations.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-PELT-summary"></a>}}
-\if{latex}{\out{\hypertarget{method-PELT-summary}{}}}
-\subsection{Method \code{summary()}}{
-Summarises a segmentation: one list per segment with \code{start}, \code{end}, \code{n}, \code{cost} and the
-fitted parameters of the cost function (see \link{segSummary}).
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PELT$summary(endPts)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{endPts}}{Integer vector. End points. Default: latest \code{endPts} obtained via \verb{$predict()}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-An object of class \code{segSummary}.
 }
 }
 \if{html}{\out{<hr>}}

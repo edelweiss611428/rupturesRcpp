@@ -17,13 +17,12 @@ License: CC BY 4.0
 LinkingTo: 
     Rcpp,
     RcppArmadillo
-Imports:
+Imports: 
     Rcpp,
     R6,
     ggplot2,
     patchwork,
-    methods,
-    stats
+    methods
 Suggests:
     testthat (>= 3.0.0),
     reticulate,
@@ -37,5 +36,4 @@ Collate:
     'binSegR6.R'
     'costFactoryR6.R'
     'rupturesRcpp-package.R'
-    'segSummary.R'
     'zzz.R'

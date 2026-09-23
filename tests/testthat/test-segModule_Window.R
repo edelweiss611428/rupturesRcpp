@@ -606,18 +606,3 @@ test_that("`$predict(nBkps=)` returns the exact prefix of `$getHistory()`'s `add
 #Lack of testing for C++ SW modules (to-be-updated)
 #Lack of comparision to gold-standard Slicing Window here (To-be-updated); however, testing has been done before
 
-
-test_that("$summary() works after $predict()", {
-  set.seed(12345)
-  tsMat = matrix(c(rnorm(50, 0), rnorm(50, 5)))
-  obj = Window$new(costFunc = costFunc$new("L2"))
-  expect_error(obj$summary(), "must be run before")
-  obj$fit(tsMat)
-  expect_error(obj$summary(), "Temporary `endPts` is null")
-  endPts = obj$predict(pen = 10)
-  s = obj$summary()
-  expect_s3_class(s, "segSummary")
-  expect_equal(vapply(s, function(x) x$end, integer(1)), endPts)
-  expect_equal(s[[1]]$cost, obj$eval(0, endPts[1]))
-  expect_equal(obj$summary(c(50, 100))[[2]]$start, 50L)
-})

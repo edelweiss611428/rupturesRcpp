@@ -34,7 +34,6 @@ for detailed basic usage!
 \item{\code{$fit()}}{Constructs a \code{binSeg} module in \verb{C++}.}
 \item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$predict()}}{Performs \code{binSeg} given a linear penalty value.}
-\item{\code{$summary()}}{Summarises a segmentation: per-segment costs and parameter estimates.}
 \item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
 }
@@ -112,7 +111,6 @@ Modifying \code{covariates} will automatically trigger \verb{$fit()}.}
 \item \href{#method-binSeg-predict}{\code{binSeg$predict()}}
 \item \href{#method-binSeg-getHistory}{\code{binSeg$getHistory()}}
 \item \href{#method-binSeg-plotElbow}{\code{binSeg$plotElbow()}}
-\item \href{#method-binSeg-summary}{\code{binSeg$summary()}}
 \item \href{#method-binSeg-plot}{\code{binSeg$plot()}}
 \item \href{#method-binSeg-clone}{\code{binSeg$clone()}}
 }
@@ -354,27 +352,6 @@ If \code{NULL}, displays the full history. Default: \code{NULL}.}
 }
 \subsection{Returns}{
 A \code{ggplot} object.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-binSeg-summary"></a>}}
-\if{latex}{\out{\hypertarget{method-binSeg-summary}{}}}
-\subsection{Method \code{summary()}}{
-Summarises a segmentation: one list per segment with \code{start}, \code{end}, \code{n}, \code{cost} and the
-fitted parameters of the cost function (see \link{segSummary}).
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{binSeg$summary(endPts)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{endPts}}{Integer vector. End points. Default: latest \code{endPts} obtained via \verb{$predict()}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-An object of class \code{segSummary}.
 }
 }
 \if{html}{\out{<hr>}}

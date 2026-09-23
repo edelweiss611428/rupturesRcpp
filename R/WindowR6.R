@@ -75,7 +75,6 @@
 #'   \item{\code{$predict()}}{Performs `Window` given a linear penalty value.}
 #'   \item{\code{$getHistory()}}{Retrieves the full cost history and sequentially added breakpoints.}
 #'   \item{\code{$plotElbow()}}{Plots the elbow curve (Total Cost vs. Number of Change-Points).}
-#'   \item{\code{$summary()}}{Summarises a segmentation: per-segment costs and parameter estimates.}
 #'   \item{\code{$plot()}}{Plots change-point segmentation in `ggplot` style.}
 #'   \item{\code{$clone()}}{Clones the `R6` object.}
 #' }
@@ -856,27 +855,6 @@ Window = R6Class(
       return(p)
     },
 
-    #' @description Summarises a segmentation: one list per segment with `start`, `end`, `n`, `cost` and the
-    #' fitted parameters of the cost function (see [segSummary]).
-    #'
-    #' @param endPts Integer vector. End points. Default: latest `endPts` obtained via `$predict()`.
-    #'
-    #' @return An object of class `segSummary`.
-    summary = function(endPts) {
-
-      if (!private$.fitted) {
-        stop("$fit() must be run before $summary()!")
-      }
-
-      if (missing(endPts)) {
-        if (is.null(private$.tmpEndPts)) {
-          stop("Temporary `endPts` is null. Must run `$predict()` to initialise this!")
-        }
-        endPts = private$.tmpEndPts
-      }
-
-      .segSummary(self$eval, private$.costFunc$pass(), private$.tsMat, private$.covariates, endPts)
-    },
 
     #' @description Plots change-point segmentation
     #'
