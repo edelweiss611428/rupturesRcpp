@@ -1,12 +1,7 @@
 #include <RcppArmadillo.h>
 #include <queue>
 #include <limits>
-#include "VAR.h"
-#include "L2.h"
-#include "SIGMA.h"
-#include "L1_cwMed.h"
-#include "LinearL2.h"
-#include "baseClass.h"
+#include "costs.h"
 
 using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -170,6 +165,18 @@ public:
   // For LinearL2: constructor with (tsMat, covariates, intercept, minSize, jump)
   binSegCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_, int minSize_, int jump_);
 
+  // For LinearSIGMA: constructor with (tsMat, covariates, intercept, addSmallDiag, epsilon, minSize, jump)
+  binSegCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
+                bool addSmallDiag, double epsilon, int minSize_, int jump_);
+
+  // For LinearL1: constructor with (tsMat, covariates, intercept, tol, maxIter, minSize, jump)
+  binSegCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
+                double tol, int maxIter, int minSize_, int jump_);
+
+  // For RFunc: constructor with (tsMat, costFun, paramFun, minSize, jump)
+  binSegCppTmpl(const arma::mat& tsMat, Rcpp::Function costFun,
+                Rcpp::Nullable<Rcpp::Function> paramFun, int minSize_, int jump_);
+
   //.fit() method
   void fit(){
 
@@ -241,23 +248,16 @@ public:
 
   //.eval() method
   double eval(int start, int end) {
-
     costModule.resetWarning(false);
-
-    if(start >= end){
-      Rcpp::stop("`start < end` must be true!");
-    }
-
-    if(start >= nSamples or start < 0){
-      Rcpp::stop("`0 <= start < nSamples` must be true!");
-    }
-
-    if(end > nSamples or end <= 0){
-      Rcpp::stop("`0 < end <= nSamples` must be true!");
-    }
-
+    costModule.checkSegment(start, end);
     return costModule.eval(start, end);
+  }
 
+  //.get_params() method
+  Rcpp::List get_params(int start, int end) {
+    costModule.resetWarning(false);
+    costModule.checkSegment(start, end);
+    return costModule.get_params(start, end);
   }
 
 };
@@ -297,10 +297,13 @@ binSegCppTmpl<Cost_L1_cwMed>::binSegCppTmpl(const arma::mat& tsMat, int minSize_
 RCPP_EXPOSED_CLASS(binSegCpp_L1_cwMed)
   RCPP_MODULE(binSegCpp_L1_cwMed_module) {
     Rcpp::class_<binSegCppTmpl<Cost_L1_cwMed>>("binSegCpp_L1_cwMed")
-    .constructor<arma::mat, int, int>()       // mat, minSize, jump
+    .constructor<arma::mat, int, int>()
     .method("fit", &binSegCppTmpl<Cost_L1_cwMed>::fit)
     .method("predict", &binSegCppTmpl<Cost_L1_cwMed>::predict)
-    .method("eval", &binSegCppTmpl<Cost_L1_cwMed>::eval);
+    .method("eval", &binSegCppTmpl<Cost_L1_cwMed>::eval)
+    .method("get_params", &binSegCppTmpl<Cost_L1_cwMed>::get_params)
+    .field("bkpsVec", &binSegCppTmpl<Cost_L1_cwMed>::bkpsVec)
+    .field("costVec", &binSegCppTmpl<Cost_L1_cwMed>::costVec);
   }
 
 
@@ -341,6 +344,7 @@ RCPP_EXPOSED_CLASS(binSegCpp_L2)
     .method("fit", &binSegCppTmpl<Cost_L2>::fit)
     .method("predict", &binSegCppTmpl<Cost_L2>::predict)
     .method("eval", &binSegCppTmpl<Cost_L2>::eval)
+    .method("get_params", &binSegCppTmpl<Cost_L2>::get_params)
     .field("bkpsVec", &binSegCppTmpl<Cost_L2>::bkpsVec)
     .field("costVec", &binSegCppTmpl<Cost_L2>::costVec);
   }
@@ -382,10 +386,13 @@ binSegCppTmpl<Cost_VAR>::binSegCppTmpl(const arma::mat& tsMat, int pVAR, int min
 RCPP_EXPOSED_CLASS(binSegCpp_VAR)
   RCPP_MODULE(binSegCpp_VAR_module) {
     Rcpp::class_<binSegCppTmpl<Cost_VAR>>("binSegCpp_VAR")
-    .constructor<arma::mat, int, int, int>()  // mat, pVAR, minSize, jump
+    .constructor<arma::mat, int, int, int>()
     .method("fit", &binSegCppTmpl<Cost_VAR>::fit)
     .method("predict", &binSegCppTmpl<Cost_VAR>::predict)
-    .method("eval", &binSegCppTmpl<Cost_VAR>::eval);
+    .method("eval", &binSegCppTmpl<Cost_VAR>::eval)
+    .method("get_params", &binSegCppTmpl<Cost_VAR>::get_params)
+    .field("bkpsVec", &binSegCppTmpl<Cost_VAR>::bkpsVec)
+    .field("costVec", &binSegCppTmpl<Cost_VAR>::costVec);
   }
 
 
@@ -423,10 +430,13 @@ binSegCppTmpl<Cost_SIGMA>::binSegCppTmpl(const arma::mat& tsMat, bool addSmallDi
 RCPP_EXPOSED_CLASS(binSegCpp_SIGMA)
   RCPP_MODULE(binSegCpp_SIGMA_module) {
     Rcpp::class_<binSegCppTmpl<Cost_SIGMA>>("binSegCpp_SIGMA")
-    .constructor<arma::mat, bool, double, int, int>()  // mat, addSmallDiag, epsilon, minSize, jump
+    .constructor<arma::mat, bool, double, int, int>()
     .method("fit", &binSegCppTmpl<Cost_SIGMA>::fit)
     .method("predict", &binSegCppTmpl<Cost_SIGMA>::predict)
-    .method("eval", &binSegCppTmpl<Cost_SIGMA>::eval);
+    .method("eval", &binSegCppTmpl<Cost_SIGMA>::eval)
+    .method("get_params", &binSegCppTmpl<Cost_SIGMA>::get_params)
+    .field("bkpsVec", &binSegCppTmpl<Cost_SIGMA>::bkpsVec)
+    .field("costVec", &binSegCppTmpl<Cost_SIGMA>::costVec);
   }
 
 
@@ -467,8 +477,150 @@ binSegCppTmpl<Cost_LinearL2>::binSegCppTmpl(const arma::mat& tsMat,  const arma:
 RCPP_EXPOSED_CLASS(binSegCpp_LinearL2)
   RCPP_MODULE(binSegCpp_LinearL2_module) {
     Rcpp::class_<binSegCppTmpl<Cost_LinearL2>>("binSegCpp_LinearL2")
-    .constructor<arma::mat, arma::mat, bool, int, int>()  // mat, covariates, intercept, minSize, jump
+    .constructor<arma::mat, arma::mat, bool, int, int>()
     .method("fit", &binSegCppTmpl<Cost_LinearL2>::fit)
     .method("predict", &binSegCppTmpl<Cost_LinearL2>::predict)
-    .method("eval", &binSegCppTmpl<Cost_LinearL2>::eval);
+    .method("eval", &binSegCppTmpl<Cost_LinearL2>::eval)
+    .method("get_params", &binSegCppTmpl<Cost_LinearL2>::get_params)
+    .field("bkpsVec", &binSegCppTmpl<Cost_LinearL2>::bkpsVec)
+    .field("costVec", &binSegCppTmpl<Cost_LinearL2>::costVec);
   }
+
+
+
+// ========================================================
+//                   LinearSIGMA class
+// ========================================================
+
+template<>
+binSegCppTmpl<Cost_LinearSIGMA>::binSegCppTmpl(const arma::mat& tsMat, const arma::mat& covariates,
+                                                bool intercept_, bool addSmallDiag, double epsilon,
+                                                int minSize_, int jump_)
+  : costModule(tsMat, covariates, intercept_, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_){
+  nSamples = costModule.nr;
+
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
+  }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+}
+
+RCPP_EXPOSED_CLASS(binSegCpp_LinearSIGMA)
+  RCPP_MODULE(binSegCpp_LinearSIGMA_module) {
+    Rcpp::class_<binSegCppTmpl<Cost_LinearSIGMA>>("binSegCpp_LinearSIGMA")
+    .constructor<arma::mat, arma::mat, bool, bool, double, int, int>()
+    .method("fit", &binSegCppTmpl<Cost_LinearSIGMA>::fit)
+    .method("predict", &binSegCppTmpl<Cost_LinearSIGMA>::predict)
+    .method("eval", &binSegCppTmpl<Cost_LinearSIGMA>::eval)
+    .method("get_params", &binSegCppTmpl<Cost_LinearSIGMA>::get_params)
+    .field("bkpsVec", &binSegCppTmpl<Cost_LinearSIGMA>::bkpsVec)
+    .field("costVec", &binSegCppTmpl<Cost_LinearSIGMA>::costVec);
+  }
+
+
+
+// ========================================================
+//                    LinearL1 class
+// ========================================================
+
+template<>
+binSegCppTmpl<Cost_LinearL1>::binSegCppTmpl(const arma::mat& tsMat, const arma::mat& covariates,
+                                             bool intercept_, double tol, int maxIter,
+                                             int minSize_, int jump_)
+  : costModule(tsMat, covariates, intercept_, tol, maxIter, true), minSize(minSize_), jump(jump_){
+  nSamples = costModule.nr;
+
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
+  }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+}
+
+RCPP_EXPOSED_CLASS(binSegCpp_LinearL1)
+  RCPP_MODULE(binSegCpp_LinearL1_module) {
+    Rcpp::class_<binSegCppTmpl<Cost_LinearL1>>("binSegCpp_LinearL1")
+    .constructor<arma::mat, arma::mat, bool, double, int, int, int>()
+    .method("fit", &binSegCppTmpl<Cost_LinearL1>::fit)
+    .method("predict", &binSegCppTmpl<Cost_LinearL1>::predict)
+    .method("eval", &binSegCppTmpl<Cost_LinearL1>::eval)
+    .method("get_params", &binSegCppTmpl<Cost_LinearL1>::get_params)
+    .field("bkpsVec", &binSegCppTmpl<Cost_LinearL1>::bkpsVec)
+    .field("costVec", &binSegCppTmpl<Cost_LinearL1>::costVec);
+  }
+
+
+// ========================================================
+//              RFunc class (user-defined cost)
+// ========================================================
+
+template<>
+binSegCppTmpl<Cost_RFunc>::binSegCppTmpl(const arma::mat& tsMat, Rcpp::Function costFun,
+                                          Rcpp::Nullable<Rcpp::Function> paramFun,
+                                          int minSize_, int jump_)
+  : costModule(tsMat, costFun, paramFun, true), minSize(minSize_), jump(jump_) {
+  nSamples = costModule.nr;
+
+  if(minSize < 1){
+    Rcpp::stop("`minSize` must be at least 1!");
+  }
+
+  if(jump < 1){
+    Rcpp::stop("`jump` must be at least 1!");
+  }
+
+  int k = static_cast<int>(std::ceil(static_cast<double>(minSize) / jump));
+  minLen = 2 * k * jump; //to make sure the mid point is always of the form start + k*jump
+
+  if(nSamples < minLen){
+    Rcpp::stop("Number of observations must be at least `2*jump*ceiling(minSize/jump)`!");
+  }
+
+  if(nSamples <= jump){
+    Rcpp::stop("Number of observations must be larger than `jump`!");
+  }
+
+}
+
+
+RCPP_EXPOSED_CLASS(binSegCpp_RFunc)
+  RCPP_MODULE(binSegCpp_RFunc_module) {
+    Rcpp::class_<binSegCppTmpl<Cost_RFunc>>("binSegCpp_RFunc")
+    .constructor<arma::mat, Rcpp::Function, Rcpp::Nullable<Rcpp::Function>, int, int>()
+    .method("fit", &binSegCppTmpl<Cost_RFunc>::fit)
+    .method("predict", &binSegCppTmpl<Cost_RFunc>::predict)
+    .method("eval", &binSegCppTmpl<Cost_RFunc>::eval)
+    .method("get_params", &binSegCppTmpl<Cost_RFunc>::get_params)
+    .field("bkpsVec", &binSegCppTmpl<Cost_RFunc>::bkpsVec)
+    .field("costVec", &binSegCppTmpl<Cost_RFunc>::costVec);
+  }
+

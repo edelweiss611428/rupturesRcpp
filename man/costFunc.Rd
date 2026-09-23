@@ -31,6 +31,22 @@ where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via 
 \item \strong{"LinearL2"} for piecewise linear regression process with \strong{constant noise variance}
 \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
 points needed for OLS, return 0.
+\item \strong{"LinearSIGMA"} for piecewise linear regression process with \strong{varying noise covariance}
+\deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
+is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
+the same way as in the SIGMA cost function (including the \code{addSmallDiag}/\code{epsilon} stabilisation and lower-bound fallback).
+\item \strong{"LinearL1"} for piecewise linear regression process under \strong{L1 (least absolute deviations) loss}
+\deqn{c_{\text{LinearL1}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_1} where \eqn{\hat{\beta}} is
+fit column-by-column via Iteratively Reweighted Least Squares (IRLS), iterated until the change in the fit's cost
+is within \code{tol} or \code{maxIter} iterations are reached. Unlike the other regression cost functions, this has no
+\eqn{O(1)}-per-segment closed form, since IRLS must be re-run on each queried segment.
+\item \strong{"Custom"} for a user-defined cost function supplied from R
+\deqn{c_{\text{Custom}}(y_{(a+1):b}) := \text{evalFun}(y_{(a+1):b}, a, b)} where \code{evalFun} is a
+user-supplied function called on the raw segment matrix, plus the segment's own \verb{(a,b]} bounds --
+the latter let \code{evalFun} align the segment against any externally-captured, position-indexed data
+(e.g. a weight vector or exogenous series \code{evalFun} closes over) without the package needing to know
+that data exists. Because each call crosses back into R, this is substantially slower per call than
+the built-in costs above; see \verb{$evalFun} and \verb{$paramFun}.
 }
 
 If active binding \verb{$costFunc} is modified (via assignment operator), the default parameters will be used.
@@ -74,6 +90,23 @@ and required parameters are missing, the default parameters are used.}
 \item{\code{epsilon}}{Double. A bias value added to the diagonal of estimated covariance matrices to stabilise matrix operations. Can be accessed or modified via \verb{$epsilon}.}
 
 \item{\code{intercept}}{Logical. Whether to include the intercept in regression problems. Can be accessed or modified via \verb{$intercept}.}
+
+\item{\code{tol}}{Double. IRLS convergence tolerance: iteration stops once the change in the fit's cost falls below
+\code{tol}. Can be accessed or modified via \verb{$tol}.}
+
+\item{\code{maxIter}}{Integer. Maximum number of IRLS iterations. Can be accessed or modified via \verb{$maxIter}.}
+
+\item{\code{evalFun}}{Function. Required for \code{costFunc = "Custom"}. A user-defined cost function, called
+as \code{evalFun(segment, a, b)}, where \code{segment} is the numeric matrix of rows \code{(a+1):b} for the
+queried segment \verb{(a,b]} (0-indexed, same convention as \verb{$eval(a, b)}). \code{a} and \code{b} let \code{evalFun}
+align \code{segment} against externally-captured, position-indexed data it closes over (e.g.
+\code{externalSeries[(a+1):b]}), which the package itself never needs to see. Must return a single
+numeric value. Can be accessed or modified via \verb{$evalFun}.}
+
+\item{\code{paramFun}}{Function or \code{NULL}. Optional for \code{costFunc = "Custom"}. A user-defined function
+called as \code{paramFun(segment, a, b)} (same convention as \code{evalFun}), used by \verb{$get_params()} to
+report segment-level estimates. If \code{NULL} (default), \verb{$get_params()} returns an empty list for
+\code{"Custom"}. Can be accessed or modified via \verb{$paramFun}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -121,6 +154,29 @@ For \code{"VAR"}, \code{pVAR} is required:
 For \code{"LinearL2"}, \code{intercept} is required:
 \describe{
 \item{\code{intercept}}{Logical. Whether to include the intercept in regression problems. Default: \code{TRUE}.}
+}
+
+For \code{"LinearSIGMA"}, supported parameters are:
+\describe{
+\item{\code{intercept}}{Logical. Whether to include the intercept in regression problems. Default: \code{TRUE}.}
+\item{\code{addSmallDiag}}{Logical. If \code{TRUE}, add a small value to the diagonal of estimated residual covariance matrices
+to stabilise matrix operations. Default: \code{TRUE}.}
+\item{\code{epsilon}}{Double. If \code{addSmallDiag = TRUE}, a small positive value added to the diagonal of estimated residual covariance matrices to stabilise
+matrix operations. Default: \code{1e-6}.}
+}
+
+For \code{"LinearL1"}, supported parameters are:
+\describe{
+\item{\code{intercept}}{Logical. Whether to include the intercept in regression problems. Default: \code{TRUE}.}
+\item{\code{tol}}{Double. IRLS convergence tolerance: iteration stops once the change in the fit's cost falls
+below \code{tol}. Default: \code{1e-6}.}
+\item{\code{maxIter}}{Integer. Maximum number of IRLS iterations. Default: \code{1000L}.}
+}
+
+For \code{"Custom"}, supported parameters are:
+\describe{
+\item{\code{evalFun}}{Function. Required. See \verb{$evalFun} for details.}
+\item{\code{paramFun}}{Function or \code{NULL}. Optional. See \verb{$paramFun} for details.}
 }}
 }
 \if{html}{\out{</div>}}

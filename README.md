@@ -1,4 +1,4 @@
-# Welcome to rupturesRcpp
+# Welcome to `rupturesRcpp`
 
 [![R-CMD-check](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/edelweiss611428/rupturesRcpp/graphs/commit-activity) [![rupturesRcpp status badge](https://edelweiss611428.r-universe.dev/rupturesRcpp/badges/version)](https://edelweiss611428.r-universe.dev/rupturesRcpp)
 [![CRAN Version](https://www.r-pkg.org/badges/version/rupturesRcpp)](https://CRAN.R-project.org/package=rupturesRcpp) 
@@ -64,10 +64,13 @@ The following table shows the list of supported cost functions. Here, `n` is seg
 | `"L1"`            | Sum of `L1` distances to the segment-wise median; robust to outliers.                            | `costFunc`                               | `multi`        | `O(nlog(n))`                 |
 | `"L2"`            | Sum of squared `L2` distances to the segment-wise mean; faster but less robust than `L1`.        | `costFunc`                               | `multi`        | `O(1)`                 |
 | `"SIGMA"`         | Log-determinant of empirical covariance; models varying mean&variance.                           | `costFunc`, `addSmallDiag`, `epsilon`    | `multi`        | `O(1)`                 |
-| `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | `O(1)`                 |
+| `"LinearL1"`      | Sum of `L1` residuals from a linear regression model, fit via Iteratively Reweighted Least Squares (IRLS); robust to outliers. | `costFunc`, `intercept`, `tol`, `maxIter` | `multi`        | not `O(1)`! |
 | `"LinearL2"`      | Sum of squared residuals from a linear regression model with constant noise variance.            | `costFunc`, `intercept`                  | `multi`        | `O(1)`                 |
+| `"LinearSIGMA"`   | Log-determinant of the residual covariance from a linear regression model; models varying noise covariance around a regression mean. | `costFunc`, `intercept`, `addSmallDiag`, `epsilon` | `multi`        | `O(1)`                 |
+| `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        | `costFunc`, `pVAR`                       | `multi`        | `O(1)`                 |
+| `"Custom"`        | User-defined cost, supplied as a plain R function -- see *User-defined cost functions* below.    | `costFunc`, `evalFun`, `paramFun`        | `multi`        | depends on `evalFun`  |
 
-If active binding `costFunc` is modified by assigning to `costFuncObj$costFunc` and the required parameters are missing, the default parameters will be used.
+If active binding `costFunc` is modified by assigning to `costFuncObj$costFunc` and the required parameters are missing, the default parameters will be used. This does not apply to `"Custom"`: there is no sensible default `evalFun`, so `$pass()`/`$fit()` will error until one is set (see below).
 ```r
 costFuncObj$costFunc = "VAR"
 costFuncObj$pass()
@@ -91,7 +94,7 @@ After initialising a `costFunc` object, create a segmentation object such as `bi
 | `Window`         | Slicing Window            | Detects change-points using local gains over sliding windows.                  | `minSize`, `jump`, `radius`, `costFunc`,`tsMat`, `covariates` |
 | `PELT`           | Pruned Exact Linear Time  | Optimal segmentation with pruning for linear-time performance.                 | `minSize`, `jump`, `costFunc`, `tsMat`, `covariates`          |
 
-The `covariates` argument is optional and only required for models involving both dependent and independent variables (e.g., `"LinearL2"`). If not provided, the model is force-fitted using only 
+The `covariates` argument is optional and only required for models involving both dependent and independent variables (e.g., `"LinearL2"`, `"LinearSIGMA"`, `"LinearL1"`). If not provided, the model is force-fitted using only 
 an intercept term (i.e., a column of ones).
 
 A `PELT` object, for example, can be initialised as follows:
@@ -103,10 +106,15 @@ All segmentation objects implement the following methods:
 
 - `$describe(printConfig)`: Views the (current) configurations of the object.
 - `$fit(tsMat, covariates)`: Constructs a `C++` detection module corresponding to the current configurations.
-- `$predict(pen)`: Performs change-point detection given a linear penalty value.
+- `$predict(pen, nBkps)`: Performs change-point detection given a linear penalty value, or a target number of change-points via `nBkps` (which takes precedence over `pen` when both are supplied).
 - `$eval(a,b)`: Evaluates the cost of a segment (a,b].
 - `$summary(endPts)`: Summarises a segmentation: per-segment costs and parameter estimates (`endPts` defaults to the last `$predict()`).
 - `$plot(d, endPts,...)`: Plots change-point segmentation in `ggplot` style.
+
+`binSeg` and `Window` additionally implement:
+
+- `$getHistory()`: Returns a `data.frame` of the cost after `0, 1, 2, ...` change-points and which breakpoint was added at each step -- the same search both algorithms already do internally, just exposed.
+- `$plotElbow(maxK)`: Plots `$getHistory()`'s cost trajectory against the number of change-points, for choosing `nBkps` via the "elbow method" instead of tuning `pen` directly.
 
 Active bindings (such as `minSize` or `tsMat`) can be modified at any time—either before or after the object is created via the `$` operator. 
 For consistency, if the object has already been fitted, modifying any active bindings will automatically trigger the re-fitting process.
@@ -234,11 +242,215 @@ binSegObj$plot(d = 1L,
 <img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/f677f835-1a99-41b3-a244-6b4e5de25f93" />
 
 
+### User-defined cost functions: `costFunc = "Custom"`
+
+If none of the built-in cost functions fit, `costFunc = "Custom"` lets you supply
+your own as a plain R function -- no C++ required. It takes two active bindings:
+
+- `evalFun` (required): called as `evalFun(segment, a, b)`, where `segment` is the
+  raw matrix of rows `(a+1):b` of the fitted `tsMat`, and `a`/`b` are the same
+  0-indexed `(a,b]` bounds `$eval(a, b)` uses. Must return a single numeric value.
+- `paramFun` (optional, default `NULL`): same calling convention, used by internal
+  parameter reporting; if omitted, `"Custom"` simply reports no parameters.
+
+Passing `a`/`b` through -- not just `segment` -- is what makes this more than a
+convenience wrapper: `evalFun` can use them to align `segment` against any other
+externally-captured, position-indexed data (e.g. an exogenous series or weight
+vector) that the package itself is never told about. Because each call crosses
+back into R, it is substantially slower per call than the built-in costs -- prefer
+one of those when it fits.
+
+As a sanity check, re-implementing `"L2"` as a `"Custom"` cost gives identical numbers:
+
+```r
+myL2eval = function(segment, a, b){
+  segment = as.matrix(segment)
+  cm = colMeans(segment)
+  sum(sweep(segment, 2, cm, FUN = "-")^2)
+}
+
+customCF = costFunc$new("Custom", evalFun = myL2eval)
+customCF$pass()
+```
+<pre>
+$costFunc
+[1] "Custom"
+
+$evalFun
+function (segment, a, b) 
+{
+    segment = as.matrix(segment)
+    cm = colMeans(segment)
+    sum(sweep(segment, 2, cm, FUN = "-")^2)
+}
+
+$paramFun
+NULL
+</pre>
+
+```r
+customObj = PELT$new(minSize = 1L, jump = 1L, costFunc = customCF)
+customObj$fit(tsMat) # tsMat from the 2-regime SIGMA example above
+customObj$eval(0, 150)
+```
+<pre>
+[1] 3943.78
+</pre>
+which matches 
+```r
+PELT$new(costFunc = costFunc$new("L2"))$fit(tsMat)$eval(0, 150)
+```
+<pre>
+[1] 3943.78
+</pre>
+exactly.
+
+#### Risk of data mismatch
+
+The segmentation logic of existing modules only depends on being able to compute the cost for an arbitrary segment \((a,b]\); it does not depend on how the data are stored. Therefore, with a custom cost function, a mismatch can occur if the function relies on external data that are not part of the object passed to `$fit()`.
+
+**Data mismatch example**
+
+For example, a custom Poisson cost can silently use externally captured data that do not match the data passed to `$fit()`:
+
+```r
+set.seed(1)
+counts = as.matrix(c(rpois(250, 5), rpois(250, 0)))
+counts2 = as.matrix(rpois(500, 5)) 
+
+poissonCost = function(segment, a, b) {
+  y = as.vector(counts[(a + 1):b])
+  lambda_hat = mean(y)
+  if (lambda_hat <= 0) return(0)
+  -2 * sum(dpois(y, lambda_hat, log = TRUE))
+}
+
+binSegObj = binSeg$new(
+  minSize = 5L,
+  costFunc = costFunc$new("Custom", evalFun = poissonCost)
+)
+binSegObj$fit(counts2) # counts2 has NO change-point by design.
+binSegObj$predict(nBkps = 1)
+```
+
+<pre>
+[1] 250 500
+</pre>
+
+Here, `counts` contains a change-point at 250, but `counts2` does not. Since `poissonCost` implicitly uses `counts` rather than `counts2`, the detected segmentation can be inconsistent with the data supplied to `$fit()`.
+
+```{r}
+
+binSegObj$plot()
+```
+<img width="2516" height="1403" alt="image" src="https://github.com/user-attachments/assets/c85c24fa-2742-4cb8-9563-4f47337ba9dd" />
+
+
+**Implicit external data example**. The actual use case is a custom cost function that closes over data the package was never explicitly given. For example, below, `externalSeries` is captured purely through lexical scope—it is never passed to `$fit()`—and `evalFun` uses `a` and `b` to align it with each candidate segment:
+
+```r
+set.seed(1)
+tsMat2 = cbind(c(rnorm(100, 0), rnorm(100, 4)))
+externalSeries = as.matrix(rnorm(200)) # captured by closure, never passed to `$fit()`
+
+externalRegCost = function(segment, a, b){
+  x = externalSeries[(a+1):b, , drop = FALSE]
+  sum(lm(segment ~ x)$residuals^2)
+}
+
+customObj2 = PELT$new(minSize = 2L, jump = 1L,
+                       costFunc = costFunc$new("Custom", evalFun = externalRegCost))
+customObj2$fit(tsMat2)
+customObj2$predict(pen = 15)
+```
+<pre>
+[1] 100 200
+</pre>
+
+This matches the built-in `"LinearL2"` cost told about `externalSeries` directly, via `covariates`:
+
+```r
+linObj = PELT$new(minSize = 2L, jump = 1L, costFunc = costFunc$new("LinearL2"))
+linObj$fit(tsMat2, externalSeries)
+linObj$predict(pen = 15)
+```
+<pre>
+[1] 100 200
+</pre>
+
+`$describe()` reports `evalFun`/`paramFun` as `<function>`/`NULL` rather than printing the closure itself:
+
+```r
+customObj2$describe(printConfig = TRUE)
+```
+<pre>
+Pruned Exact Linear Time (PELT) 
+minSize      : 2L
+jump         : 1L
+costFunc     : "Custom"
+evalFun      : <function>
+paramFun     : NULL
+fitted       : TRUE
+n            : 200L
+p            : 1L
+</pre>
+
+`"Custom"` is supported by `PELT`, `binSeg`, and `Window` alike.
+
+### Elbow-method model selection: `$getHistory()`, `$plotElbow()`, and `$predict(nBkps = ...)`
+
+`binSeg` and `Window` both build up their segmentation by adding one change-point
+at a time -- `binSeg` by recursively splitting the segment that most reduces
+cost, `Window` by ranking candidate local maxima by gain. `$getHistory()`
+exposes that trajectory directly, so you can inspect it, or choose the number
+of change-points via the "elbow method", instead of only tuning `pen`.
+
+Continuing with the `binSegObj` (`"VAR"` cost) from the previous example:
+
+```r
+binSegObj$getHistory()
+```
+<pre>
+   k     cost added_bkp
+1  0 533.9504        NA
+2  1 165.2573        99
+3  2 159.6331       111
+4  3 154.7607       159
+5  4 149.1974       180
+...
+</pre>
+
+`$plotElbow()` renders this as a `ggplot` object (cost vs. number of
+change-points); look for where the marginal decrease in cost flattens out to
+pick `k`.
+
+```r
+binSegObj$plotElbow()
+```
+
+Once a `k` is chosen, `$predict()` accepts it directly via `nBkps`, which
+takes precedence over `pen` when both are supplied:
+
+```r
+binSegObj$predict(nBkps = 1)
+```
+<pre>
+[1]  99 200
+</pre>
+
+`nBkps` is treated as an upper bound, not a strict requirement: for `binSeg`
+it returns its own best answer among the splits it already explored, and for
+`Window` the `nBkps` highest-gain local maxima it found -- neither is
+guaranteed to be the *globally* optimal segmentation for that count. `Window`
+in particular can only ever offer as many change-points as it found local
+maxima for; if you ask for more, `$predict()` returns what's available and
+reports the shortfall via a message rather than erroring.
+
 ## Future development
 
 - Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using data structures such as a persistent segment tree with `O(nlog(n))` precomputation.
 - Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility (see https://github.com/edelweiss611428/R6BinSeg/tree/main for an idea).
-- Implement additional cost functions (e.g., `"Poisson"` and `"Linear-L1"`). 
+- Implement additional cost functions (e.g., `"Poisson"`). 
 - Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
 - Improve `$plot()` method for models involving both dependent and independent variables.
 

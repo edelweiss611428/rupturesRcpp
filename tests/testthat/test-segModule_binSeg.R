@@ -566,6 +566,93 @@ test_that("Some additional tests", {
 
 })
 
+test_that("`$getHistory()` returns a well-formed, non-increasing cost history", {
+
+  set.seed(12345)
+  tsMat = matrix(c(rnorm(50,0), rnorm(50,5)))
+  binSegObj = binSeg$new(minSize = 2L)
+
+  expect_error(binSegObj$getHistory(), "must be run before") #not fitted yet
+
+  binSegObj$fit(tsMat)
+  hist = binSegObj$getHistory()
+
+  expect_s3_class(hist, "data.frame")
+  expect_identical(names(hist), c("k", "cost", "added_bkp"))
+  expect_equal(hist$k, 0:(nrow(hist) - 1))
+  expect_true(is.na(hist$added_bkp[1]))
+  expect_false(any(is.na(hist$added_bkp[-1])))
+  expect_true(all(diff(hist$cost) <= 1e-8)) #cost is non-increasing as k grows
+
+  #cost/added_bkp agree with the raw C++ fields
+  expect_equal(hist$cost, binSegObj$.__enclos_env__$private$.binSegModule$costVec)
+  expect_equal(hist$added_bkp[-1], as.integer(binSegObj$.__enclos_env__$private$.binSegModule$bkpsVec))
+
+  #cost at k=0 is the whole-series cost; cost at k=nrow-1 matches $eval() on the full split
+  expect_equal(hist$cost[1], binSegObj$eval(0, 100))
+
+})
+
+test_that("`$plotElbow()` returns a ggplot object and respects `maxK`", {
+
+  set.seed(12345)
+  tsMat = matrix(c(rnorm(50,0), rnorm(50,5)))
+  binSegObj = binSeg$new(minSize = 2L)
+
+  expect_error(binSegObj$plotElbow(), "must be run before") #not fitted yet
+
+  binSegObj$fit(tsMat)
+
+  expect_no_error(binSegObj$plotElbow())
+  p = binSegObj$plotElbow()
+  expect_s3_class(p, "ggplot")
+
+  pCapped = binSegObj$plotElbow(maxK = 2)
+  expect_equal(nrow(pCapped$data), 3) #k = 0,1,2
+
+  expect_error(binSegObj$plotElbow(maxK = 0), "positive integer")
+  expect_error(binSegObj$plotElbow(maxK = "a"), "positive integer")
+
+})
+
+test_that("`$predict(nBkps=)` returns the exact prefix of `$getHistory()`'s `added_bkp`, capped and preferred over `pen`", {
+
+  set.seed(12345)
+  tsMat = matrix(c(rnorm(50,0), rnorm(50,5)))
+  binSegObj = binSeg$new(minSize = 2L)
+  binSegObj$fit(tsMat)
+
+  hist = binSegObj$getHistory()
+  maxK = nrow(hist) - 1L
+
+  for(k in 0:min(4, maxK)){
+    bkps = binSegObj$predict(nBkps = k)
+    expect_length(bkps, k + 1L) #k change-points + n
+    expect_equal(tail(bkps, 1), 100)
+    if(k > 0){
+      expect_setequal(head(bkps, -1), hist$added_bkp[2:(k+1)])
+    }
+  }
+
+  #Requesting more than available is capped, not an error
+  expect_message(bkpsCapped <- binSegObj$predict(nBkps = maxK + 50), "Only .* available")
+  expect_length(bkpsCapped, maxK + 1L)
+  expect_identical(bkpsCapped, binSegObj$predict(nBkps = maxK))
+
+  #`nBkps` takes precedence over `pen` when both are supplied
+  expect_identical(binSegObj$predict(pen = 999999, nBkps = 2), binSegObj$predict(nBkps = 2))
+
+  #Existing `pen`-only behaviour is unaffected
+  expect_equal(binSegObj$predict(999999), 100)
+
+  #Validation
+  expect_error(binSegObj$predict(nBkps = -1), "non-negative integer")
+  expect_error(binSegObj$predict(nBkps = 1.5), "non-negative integer")
+  expect_error(binSegObj$predict(nBkps = "a"), "non-negative integer")
+  expect_no_error(binSegObj$predict(nBkps = 0))
+
+})
+
 
 
 

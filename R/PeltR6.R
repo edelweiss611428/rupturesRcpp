@@ -5,7 +5,7 @@
 #' @include costFuncR6.R
 #' @docType class
 #' @importFrom R6 R6Class is.R6
-#' @importFrom ggplot2 aes ggplot geom_rect geom_line scale_fill_identity theme_minimal theme geom_vline labs element_blank element_text facet_wrap
+#' @import ggplot2
 #' @import patchwork
 #' @importFrom utils hasName
 #' @export
@@ -21,6 +21,8 @@
 #' - `"SIGMA"`: for (independent) piecewise Gaussian process with **varying variance**
 #' - `"VAR"`: for piecewise Gaussian vector-regressive process with **constant noise variance**
 #' - `"LinearL2"`: for piecewise linear regression process with **constant noise variance**
+#' - `"LinearSIGMA"`: for piecewise linear regression process with **varying noise covariance**
+#' - `"LinearL1"`: for piecewise linear regression process under **L1 (least absolute deviations) loss**
 #'
 #' See `$eval()` method for more details on computation of cost.
 #'
@@ -233,7 +235,7 @@ PELT = R6Class(
 
       private$.covariates = numMat
 
-      if(private$.costFunc$pass()[["costFunc"]] %in% c("LinearL2")){
+      if(private$.costFunc$pass()[["costFunc"]] %in% c("LinearL2", "LinearSIGMA", "LinearL1")){
         if (!is.null(private$.tsMat) & private$.fitted) {
           self$fit()
         }
@@ -281,7 +283,7 @@ PELT = R6Class(
     #' \describe{
     #'   \item{\code{minSize}}{Minimum allowed segment length.}
     #'   \item{\code{jump}}{Search grid step size.}
-    #'   \item{\code{costFunc}}{The `costFun` object.}
+    #'   \item{\code{costFunc}}{The `costFunc` object.}
     #'   \item{\code{fitted}}{Whether or not `$fit()` has been run.}
     #'   \item{\code{tsMat}}{Time series matrix.}
     #'   \item{\code{covariates}}{Covariate matrix (if exists).}
@@ -356,6 +358,52 @@ PELT = R6Class(
 
       }
 
+      if(private$.costFunc$pass()[["costFunc"]] == "LinearSIGMA"){
+
+        if(printConfig){
+
+          cat(sprintf("intercept    : %sL\n", private$.costFunc$pass()[["intercept"]]))
+          cat(sprintf("addSmallDiag : %s\n", private$.costFunc$pass()[["addSmallDiag"]]))
+          cat(sprintf("epsilon      : %s\n", private$.costFunc$pass()[["epsilon"]]))
+
+        }
+
+        params[["intercept"]] = private$.costFunc$pass()[["intercept"]]
+        params[["addSmallDiag"]] = private$.costFunc$pass()[["addSmallDiag"]]
+        params[["epsilon"]] = private$.costFunc$pass()[["epsilon"]]
+
+      }
+
+      if(private$.costFunc$pass()[["costFunc"]] == "LinearL1"){
+
+        if(printConfig){
+
+          cat(sprintf("intercept    : %sL\n", private$.costFunc$pass()[["intercept"]]))
+          cat(sprintf("tol          : %s\n", private$.costFunc$pass()[["tol"]]))
+          cat(sprintf("maxIter      : %sL\n", private$.costFunc$pass()[["maxIter"]]))
+
+        }
+
+        params[["intercept"]] = private$.costFunc$pass()[["intercept"]]
+        params[["tol"]] = private$.costFunc$pass()[["tol"]]
+        params[["maxIter"]] = private$.costFunc$pass()[["maxIter"]]
+
+      }
+
+      if(private$.costFunc$pass()[["costFunc"]] == "Custom"){
+
+        if(printConfig){
+
+          cat(sprintf("evalFun      : <function>\n"))
+          cat(sprintf("paramFun     : %s\n", if(is.null(private$.costFunc$pass()[["paramFun"]])) "NULL" else "<function>"))
+
+        }
+
+        params[["evalFun"]] = private$.costFunc$pass()[["evalFun"]]
+        params[["paramFun"]] = private$.costFunc$pass()[["paramFun"]]
+
+      }
+
       if(printConfig){
 
         cat(sprintf("fitted       : %s\n", private$.fitted))
@@ -409,7 +457,7 @@ PELT = R6Class(
 
       }
 
-      if(private$.costFunc$pass()[["costFunc"]] %in% c("LinearL2")){
+      if(private$.costFunc$pass()[["costFunc"]] %in% c("LinearL2", "LinearSIGMA", "LinearL1")){
 
         if(!is.null(covariates)){
 
@@ -436,6 +484,22 @@ PELT = R6Class(
 
               private$.PELTModule = new(PELTCpp_LinearL2, private$.tsMat, matrix(1, nrow = private$.n, ncol = 1),
                                         FALSE, #no intercept
+                                        private$.minSize, private$.jump)
+
+            } else if(private$.costFunc$pass()[["costFunc"]] == "LinearSIGMA"){
+
+              private$.PELTModule = new(PELTCpp_LinearSIGMA, private$.tsMat, matrix(1, nrow = private$.n, ncol = 1),
+                                        FALSE, #no intercept
+                                        private$.costFunc$pass()[["addSmallDiag"]],
+                                        private$.costFunc$pass()[["epsilon"]],
+                                        private$.minSize, private$.jump)
+
+            } else if(private$.costFunc$pass()[["costFunc"]] == "LinearL1"){
+
+              private$.PELTModule = new(PELTCpp_LinearL1, private$.tsMat, matrix(1, nrow = private$.n, ncol = 1),
+                                        FALSE, #no intercept
+                                        private$.costFunc$pass()[["tol"]],
+                                        private$.costFunc$pass()[["maxIter"]],
                                         private$.minSize, private$.jump)
 
             }
@@ -478,6 +542,29 @@ PELT = R6Class(
 
         private$.PELTModule = new(PELTCpp_LinearL2, private$.tsMat, private$.covariates,
                                   private$.costFunc$pass()[["intercept"]],
+                                  private$.minSize, private$.jump)
+
+      } else if(private$.costFunc$pass()[["costFunc"]] == "LinearSIGMA"){
+
+        private$.PELTModule = new(PELTCpp_LinearSIGMA, private$.tsMat, private$.covariates,
+                                  private$.costFunc$pass()[["intercept"]],
+                                  private$.costFunc$pass()[["addSmallDiag"]],
+                                  private$.costFunc$pass()[["epsilon"]],
+                                  private$.minSize, private$.jump)
+
+      } else if(private$.costFunc$pass()[["costFunc"]] == "LinearL1"){
+
+        private$.PELTModule = new(PELTCpp_LinearL1, private$.tsMat, private$.covariates,
+                                  private$.costFunc$pass()[["intercept"]],
+                                  private$.costFunc$pass()[["tol"]],
+                                  private$.costFunc$pass()[["maxIter"]],
+                                  private$.minSize, private$.jump)
+
+      } else if(private$.costFunc$pass()[["costFunc"]] == "Custom"){
+
+        private$.PELTModule = new(PELTCpp_RFunc, private$.tsMat,
+                                  private$.costFunc$pass()[["evalFun"]],
+                                  private$.costFunc$pass()[["paramFun"]],
                                   private$.minSize, private$.jump)
 
       } else{
@@ -525,6 +612,16 @@ PELT = R6Class(
     #' **"LinearL2"** for piecewise linear regression process with **constant noise variance**
     #' \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
     #' points needed for OLS, return 0.
+    #'
+    #' - **"LinearSIGMA"** for piecewise linear regression process with **varying noise covariance**
+    #' \deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
+    #' is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
+    #' the same way as in the SIGMA cost function.
+    #'
+    #' - **"LinearL1"** for piecewise linear regression process under **L1 (least absolute deviations) loss**
+    #' \deqn{c_{\text{LinearL1}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_1} where \eqn{\hat{\beta}}
+    #' is fit column-by-column via IRLS on segment \eqn{(a+1):b}, iterated until convergence (`tol`) or `maxIter`.
+    #' Unlike the other regression costs, this has no \eqn{O(1)}-per-segment closed form.
     #'
     eval = function(a, b){
 

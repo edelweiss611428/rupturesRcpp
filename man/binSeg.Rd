@@ -17,6 +17,8 @@ splits the data at locations that minimise the cost function.
 \item \code{"SIGMA"}: for (independent) piecewise Gaussian process with \strong{varying variance}
 \item \code{"VAR"}: for piecewise Gaussian vector-regressive process with \strong{constant noise variance}
 \item \code{"LinearL2"}: for piecewise linear regression process with \strong{constant noise variance}
+\item \code{"LinearSIGMA"}: for piecewise linear regression process with \strong{varying noise covariance}
+\item \code{"LinearL1"}: for piecewise linear regression process under \strong{L1 (least absolute deviations) loss}
 }
 
 See \verb{$eval()} method for more details on computation of cost.
@@ -108,6 +110,8 @@ Modifying \code{covariates} will automatically trigger \verb{$fit()}.}
 \item \href{#method-binSeg-fit}{\code{binSeg$fit()}}
 \item \href{#method-binSeg-eval}{\code{binSeg$eval()}}
 \item \href{#method-binSeg-predict}{\code{binSeg$predict()}}
+\item \href{#method-binSeg-getHistory}{\code{binSeg$getHistory()}}
+\item \href{#method-binSeg-plotElbow}{\code{binSeg$plotElbow()}}
 \item \href{#method-binSeg-summary}{\code{binSeg$summary()}}
 \item \href{#method-binSeg-plot}{\code{binSeg$plot()}}
 \item \href{#method-binSeg-clone}{\code{binSeg$clone()}}
@@ -160,7 +164,7 @@ Invisibly returns a list storing at least the following fields:
 \describe{
 \item{\code{minSize}}{Minimum allowed segment length.}
 \item{\code{jump}}{Search grid step size.}
-\item{\code{costFunc}}{The \code{costFun} object.}
+\item{\code{costFunc}}{The \code{costFunc} object.}
 \item{\code{fitted}}{Whether or not \verb{$fit()} has been run.}
 \item{\code{tsMat}}{Time series matrix.}
 \item{\code{covariates}}{Covariate matrix (if exists).}
@@ -244,6 +248,14 @@ where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via 
 \item \strong{"LinearL2"} for piecewise linear regression process with \strong{constant noise variance}
 \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
 points needed for OLS, return 0.
+\item \strong{"LinearSIGMA"} for piecewise linear regression process with \strong{varying noise covariance}
+\deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
+is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
+the same way as in the SIGMA cost function.
+\item \strong{"LinearL1"} for piecewise linear regression process under \strong{L1 (least absolute deviations) loss}
+\deqn{c_{\text{LinearL1}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_1} where \eqn{\hat{\beta}}
+is fit column-by-column via IRLS on segment \eqn{(a+1):b}, iterated until convergence (\code{tol}) or \code{maxIter}.
+Unlike the other regression costs, this has no \eqn{O(1)}-per-segment closed form.
 }
 }
 
@@ -255,15 +267,22 @@ The segment cost.
 \if{html}{\out{<a id="method-binSeg-predict"></a>}}
 \if{latex}{\out{\hypertarget{method-binSeg-predict}{}}}
 \subsection{Method \code{predict()}}{
-Performs \code{binSeg} given a linear penalty value.
+Performs \code{binSeg} given a linear penalty value, or a target number of change-points.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{binSeg$predict(pen = 0)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$predict(pen = 0, nBkps = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{pen}}{Numeric. Penalty per change-point. Default: \code{0}.}
+\item{\code{pen}}{Numeric. Penalty per change-point. Ignored if \code{nBkps} is supplied. Default: \code{0}.}
+
+\item{\code{nBkps}}{Integer. If supplied, takes precedence over \code{pen}: returns the first \code{nBkps}
+change-points \code{binSeg}'s greedy splitting added (see \verb{$getHistory()}), i.e. its own best
+answer for that many change-points -- not necessarily the globally optimal one for that count
+(see \code{Dynp} for that guarantee). Treated as an upper bound, not a strict requirement: if fewer
+than \code{nBkps} change-points were found (e.g. \code{minSize} leaves no further valid split), all of
+them are returned and a message reports the shortfall. Default: \code{NULL}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -296,6 +315,45 @@ specifying endpoints manually.
 \subsection{Returns}{
 An integer vector of regime end-points. By design, the last element is the
 number of observations.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-binSeg-getHistory"></a>}}
+\if{latex}{\out{\hypertarget{method-binSeg-getHistory}{}}}
+\subsection{Method \code{getHistory()}}{
+Retrieves the full cost history and sequentially added breakpoints.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$getHistory()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A \code{data.frame} with three columns:
+\describe{
+\item{\code{k}}{The number of change-points.}
+\item{\code{cost}}{The total unpenalised cost of the segmentation.}
+\item{\code{added_bkp}}{The breakpoint added at this step to achieve the cost.}
+}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-binSeg-plotElbow"></a>}}
+\if{latex}{\out{\hypertarget{method-binSeg-plotElbow}{}}}
+\subsection{Method \code{plotElbow()}}{
+Plots the elbow curve (Total Cost vs. Number of Change-Points).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$plotElbow(maxK = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{maxK}}{Integer. The maximum number of change-points to display on the plot.
+If \code{NULL}, displays the full history. Default: \code{NULL}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \code{ggplot} object.
 }
 }
 \if{html}{\out{<hr>}}
