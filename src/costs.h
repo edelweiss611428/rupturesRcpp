@@ -67,7 +67,6 @@ public:
   Rcpp::List get_params(int start, int end) const override;  // mean
 
 private:
-  arma::rowvec shift;  // column means, subtracted before the cumulative sums (avoids cancellation)
   arma::mat csX;
   arma::mat csXsq;
 };
@@ -84,9 +83,8 @@ public:
   Rcpp::List get_params(int start, int end) const override;  // mean, cov
 
 private:
-  arma::rowvec shift;  // column means, subtracted before the cumulative sums (avoids cancellation)
-  arma::mat csX;     // cumsum of centred rows
-  arma::cube csXXt;  // cumsum of outer products of centred rows
+  arma::mat csX;     // cumsum of rows
+  arma::cube csXXt;  // cumsum of outer products
   bool addSmallDiag_;
   double epsilon_;
   double lbDet;      // p * log(epsilon)
@@ -109,24 +107,17 @@ protected:
 
   RegressionCost(bool warnOnce, const char* msgOnce, const char* msgEvery);
 
-  // Z.row(r) and Y.row(r) belong to observation offset + r. If Z has a constant non-zero column (the intercept,
-  // or the ones column of a force-fit), Y and the other columns of Z are centred first: fitted values and costs
-  // are unchanged, but the cumulative sums no longer cancel when the data sit far from zero.
+  // Z.row(r) and Y.row(r) belong to observation offset + r
   void precompute(const arma::mat& Z, const arma::mat& Y, int offset);
 
   double ssr(int start, int end) const;
-  arma::mat solveCoef(int start, int end, int nEff) const;  // B_hat (J x pY) on the centred scale, NA-filled if nEff < J
-  Rcpp::List coef(int start, int end, int nEff) const;  // {coef: uncentre(solveCoef(...))}
+  arma::mat solveCoef(int start, int end, int nEff) const;  // B_hat (J x pY), NA-filled if nEff < J
+  Rcpp::List coef(int start, int end, int nEff) const;  // {coef: solveCoef(...)}
   arma::mat residualSSR(int start, int end, const arma::mat& B) const;  // R'R (q x q) given a precomputed B_hat
-  arma::mat uncentre(arma::mat B) const;  // centred-scale B_hat -> original scale
 
 private:
   const char* msgOnce_;
   const char* msgEvery_;
-  int constCol_ = -1;       // column of Z used for centring, -1 if none
-  double constVal_ = 1.0;   // its constant value
-  arma::rowvec mY_;         // column means of Y
-  arma::rowvec mZ_;         // column means of Z, 0 at constCol_
 
   arma::mat solveSegment(const arma::mat& ZtZ, const arma::mat& ZtY) const;
 };

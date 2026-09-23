@@ -97,10 +97,8 @@ Rcpp::List Cost_L1_cwMed::get_params(int start, int end) const {
 Cost_L2::Cost_L2(const arma::mat& inputMat, bool warnOnce) : CostBase(warnOnce) {
   nr = inputMat.n_rows;
   nc = inputMat.n_cols;
-  shift = arma::mean(inputMat, 0);
-  arma::mat X = inputMat.each_row() - shift;
-  csX = getCumSumCpp(X);
-  csXsq = getCumSumCpp(arma::pow(X, 2));
+  csX = getCumSumCpp(inputMat);
+  csXsq = getCumSumCpp(arma::pow(inputMat, 2));
 }
 
 double Cost_L2::eval(int start, int end) const {
@@ -114,7 +112,7 @@ double Cost_L2::eval(int start, int end) const {
 
 Rcpp::List Cost_L2::get_params(int start, int end) const {
   checkSegment(start, end);
-  arma::rowvec mu = (csX.row(end) - csX.row(start)) / (end - start) + shift;
+  arma::rowvec mu = (csX.row(end) - csX.row(start)) / (end - start);
   return Rcpp::List::create(Rcpp::Named("mean") = asNumeric(mu));
 }
 
@@ -128,12 +126,10 @@ Cost_SIGMA::Cost_SIGMA(const arma::mat& inputMat, bool addSmallDiag, double epsi
   nc = inputMat.n_cols;
   lbDet = nc * std::log(epsilon);
 
-  shift = arma::mean(inputMat, 0);
-  arma::mat X = inputMat.each_row() - shift;
-  csX = getCumSumCpp(X);
+  csX = getCumSumCpp(inputMat);
   csXXt.zeros(nc, nc, nr + 1);
   for (int i = 1; i <= nr; i++) {
-    csXXt.slice(i) = csXXt.slice(i - 1) + X.row(i - 1).t() * X.row(i - 1);
+    csXXt.slice(i) = csXXt.slice(i - 1) + inputMat.row(i - 1).t() * inputMat.row(i - 1);
   }
 }
 
@@ -158,7 +154,7 @@ double Cost_SIGMA::eval(int start, int end) const {
 
 Rcpp::List Cost_SIGMA::get_params(int start, int end) const {
   checkSegment(start, end);
-  arma::rowvec mu = (csX.row(end) - csX.row(start)) / (end - start) + shift;
+  arma::rowvec mu = (csX.row(end) - csX.row(start)) / (end - start);
   return Rcpp::List::create(Rcpp::Named("mean") = asNumeric(mu),
                             Rcpp::Named("cov") = segmentCov(start, end));
 }
@@ -171,36 +167,14 @@ RegressionCost::RegressionCost(bool warnOnce, const char* msgOnce, const char* m
   : CostBase(warnOnce), msgOnce_(msgOnce), msgEvery_(msgEvery) {}
 
 void RegressionCost::precompute(const arma::mat& Z, const arma::mat& Y, int offset) {
-  arma::mat Zc = Z;
-  arma::mat Yc = Y;
-  mY_.zeros(Y.n_cols);
-  mZ_.zeros(Z.n_cols);
-  constCol_ = -1;
-
-  for (arma::uword j = 0; j < Z.n_cols && Z.n_rows > 0; ++j) {
-    if (Z(0, j) != 0.0 && arma::all(Z.col(j) == Z(0, j))) {
-      constCol_ = static_cast<int>(j);
-      constVal_ = Z(0, j);
-      break;
-    }
-  }
-
-  if (constCol_ >= 0) {
-    mY_ = arma::mean(Y, 0);
-    mZ_ = arma::mean(Z, 0);
-    mZ_(constCol_) = 0.0;
-    Zc.each_row() -= mZ_;
-    Yc.each_row() -= mY_;
-  }
-
   csZtZ.zeros(J, J, nr + 1);
   csZtY.zeros(J, Y.n_cols, nr + 1);
   csYtY.zeros(Y.n_cols, Y.n_cols, nr + 1);
 
-  for (arma::uword r = 0; r < Zc.n_rows; ++r) {
+  for (arma::uword r = 0; r < Z.n_rows; ++r) {
     int i = offset + static_cast<int>(r);
-    arma::rowvec zi = Zc.row(r);
-    arma::rowvec yi = Yc.row(r);
+    arma::rowvec zi = Z.row(r);
+    arma::rowvec yi = Y.row(r);
     csZtZ.slice(i + 1) = csZtZ.slice(i) + zi.t() * zi;
     csZtY.slice(i + 1) = csZtY.slice(i) + zi.t() * yi;
     csYtY.slice(i + 1) = csYtY.slice(i) + yi.t() * yi;
@@ -233,13 +207,6 @@ arma::mat RegressionCost::residualSSR(int start, int end, const arma::mat& B) co
   return YtY - B.t() * ZtY;
 }
 
-arma::mat RegressionCost::uncentre(arma::mat B) const {
-  if (constCol_ >= 0 && B.is_finite()) {
-    B.row(constCol_) += (mY_ - mZ_ * B) / constVal_;  // the constant column absorbs the centring
-  }
-  return B;
-}
-
 arma::mat RegressionCost::solveCoef(int start, int end, int nEff) const {
   arma::mat B(J, csZtY.n_cols);
   if (nEff < J) {
@@ -251,7 +218,7 @@ arma::mat RegressionCost::solveCoef(int start, int end, int nEff) const {
 }
 
 Rcpp::List RegressionCost::coef(int start, int end, int nEff) const {
-  return Rcpp::List::create(Rcpp::Named("coef") = uncentre(solveCoef(start, end, nEff)));
+  return Rcpp::List::create(Rcpp::Named("coef") = solveCoef(start, end, nEff));
 }
 
 // ========================================================
@@ -396,7 +363,7 @@ Rcpp::List Cost_LinearSIGMA::get_params(int start, int end) const {
     covMat = residualCov(start, end, B);
   }
 
-  return Rcpp::List::create(Rcpp::Named("coef") = uncentre(B), Rcpp::Named("cov") = covMat);
+  return Rcpp::List::create(Rcpp::Named("coef") = B, Rcpp::Named("cov") = covMat);
 }
 
 // ========================================================

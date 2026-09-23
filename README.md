@@ -124,17 +124,6 @@ detectionObj$fit(a_time_series_matrix) #Fitted
 detectionObj$minSize = 1L #After fitting - automatically trigger `$fit()`
 ```
 
-### Cost evaluation and parameter estimation: `costFactory`
-
-`costFactory` builds the `C++` cost module of a `costFunc` once and reuses its precomputations for every query, without running a detection algorithm. `$eval(a, b)` returns the cost of the segment `(a, b]` and `$get_params(a, b)` the module's `get_params()` output (e.g. `mean`, `median`, `cov`, regression `coef`).
-
-```r
-cf = costFactory$new(costFunc$new("VAR", pVAR = 2), tsMat)
-cf$eval(0, 100)
-cf$get_params(0, 100)$coef
-Map(cf$get_params, c(0, head(endPts, -1)), endPts) # every segment of a segmentation, e.g. endPts from $predict()
-```
-
 ## Simulated data examples
 
 ### 2-regime SIGMA example via binary segmentation
@@ -450,6 +439,7 @@ reports the shortfall via a message rather than erroring.
 - Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility (see https://github.com/edelweiss611428/R6BinSeg/tree/main for an idea).
 - Implement additional cost functions (e.g., `"Poisson"`). 
 - Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
+- Develop a `costFactory` class for users focusing solely on fast cost computation and parameter estimation.
 - Improve `$plot()` method for models involving both dependent and independent variables.
 
 ## Contributing
