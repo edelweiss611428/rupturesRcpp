@@ -15,9 +15,9 @@ whatever \code{nBkps} is requested. The price is complexity: building the full t
 \eqn{O(\text{nBkpsMax} \cdot M^2)} where \eqn{M} is the number of \verb{(minSize, jump)}-admissible
 grid points (\eqn{M \approx n/\text{jump}} in the worst case), versus PELT's near-linear pruning
 or binSeg's \eqn{O(n \log n)}-ish greedy search. \verb{$fit()} computes the exact minimal cost for
-\emph{every} change-point count from \code{0} to \code{nBkpsMax} in one pass (see \verb{$costPath()}), so this is
-also the algorithm to reach for when choosing the number of change-points itself is the question
-(the "elbow method"), not just finding them for a count you already know.
+\emph{every} change-point count from \code{0} to \code{nBkpsMax} in one pass (see \verb{$costPath()}). \code{Dynp} is
+therefore useful when an exact fixed-number-of-change-points solution is required,
+particularly when using custom cost functions for which PELT pruning cannot be guaranteed.
 
 \code{Dynp} requires a \code{R6} object of class \code{costFunc}, exactly as \code{PELT}/\code{binSeg}/\code{Window} do -- see
 \code{costFunc} for the supported cost functions (\code{"L1"}, \code{"L2"}, \code{"SIGMA"}, \code{"VAR"}, \code{"LinearL2"},

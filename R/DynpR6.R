@@ -18,9 +18,9 @@
 #' \eqn{O(\text{nBkpsMax} \cdot M^2)} where \eqn{M} is the number of `(minSize, jump)`-admissible
 #' grid points (\eqn{M \approx n/\text{jump}} in the worst case), versus PELT's near-linear pruning
 #' or binSeg's \eqn{O(n \log n)}-ish greedy search. `$fit()` computes the exact minimal cost for
-#' *every* change-point count from `0` to `nBkpsMax` in one pass (see `$costPath()`), so this is
-#' also the algorithm to reach for when choosing the number of change-points itself is the question
-#' (the "elbow method"), not just finding them for a count you already know.
+#' *every* change-point count from `0` to `nBkpsMax` in one pass (see `$costPath()`). `Dynp` is
+#' therefore useful when an exact fixed-number-of-change-points solution is required,
+#' particularly when using custom cost functions for which PELT pruning cannot be guaranteed.
 #'
 #' `Dynp` requires a `R6` object of class `costFunc`, exactly as `PELT`/`binSeg`/`Window` do -- see
 #' `costFunc` for the supported cost functions (`"L1"`, `"L2"`, `"SIGMA"`, `"VAR"`, `"LinearL2"`,
