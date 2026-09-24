@@ -55,7 +55,7 @@ $costFunc
 [1] "L2"
 </pre>
 
-The following table shows the list of supported cost functions. Here, `n` is segment length.
+The following table shows the list of supported cost functions (pre-implemented ones are `PELT`-compatible - see the next Section). Here, `n` is segment length.
 
 | **Cost function** | **Description**                                                                                  | **Parameters/active bindings**           | **Dimension** | **Time complexity** |
 |-------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|----------------|----------------------|
