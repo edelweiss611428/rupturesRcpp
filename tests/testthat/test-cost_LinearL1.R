@@ -254,8 +254,8 @@ test_that("Expect $eval() method in window_LinearL1 gives the correct results/er
 
 test_that("Expect .eval() method in C++ window_LinearL1 class gives the correct results/error message", {
 
-  #.constructor<arma::mat, arma::mat, bool, double, int, int, int, int>()
-  windowCppObj = new(windowCpp_LinearL1, Y, X, TRUE, 1e-6, 1000L, 1L, 1L, 10L)
+  #.constructor<arma::mat, arma::mat, bool, double, int, Rcpp::IntegerVector>() -- last arg is c(minSize, jump, radius)
+  windowCppObj = new(windowCpp_LinearL1, Y, X, TRUE, 1e-6, 1000L, c(1L, 1L, 10L))
 
   idx1b = sample.int(nr-6, nCases)
   idx2b = integer(nCases)

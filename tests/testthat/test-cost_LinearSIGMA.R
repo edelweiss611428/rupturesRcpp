@@ -223,8 +223,8 @@ test_that("Expect $eval() method in window_LinearSIGMA gives the correct results
 
 test_that("Expect .eval() method in C++ window_LinearSIGMA class gives the correct results/error message", {
 
-  #.constructor<arma::mat, arma::mat, bool, bool, double, int, int, int>()
-  windowCppObj = new(windowCpp_LinearSIGMA, Y, X, TRUE, TRUE, 1e-6, 1L, 1L, 10L)
+  #.constructor<arma::mat, arma::mat, bool, bool, double, Rcpp::IntegerVector>() -- last arg is c(minSize, jump, radius)
+  windowCppObj = new(windowCpp_LinearSIGMA, Y, X, TRUE, TRUE, 1e-6, c(1L, 1L, 10L))
 
   idx1b = sample.int(nr-6, nCases)
   idx2b = integer(nCases)

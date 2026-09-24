@@ -22,12 +22,28 @@ inline arma::uvec findLocalMaxima(const arma::vec& gains,
     bool isMax = true;
     double centeredVal = gains[i];
 
-    // Compare with neighbors in [i - order, i + order]
-    for (int j = std::max(0, i - order); j <= std::min(nCandidates - 1, i + order); j++) {
-      if (j == i) continue;
-      if (gains[j] > centeredVal) {
+    int lo = std::max(0, i - order);
+    int hi = std::min(nCandidates - 1, i + order);
+
+    // Ties are broken towards the earlier index: a left neighbor that is equal-or-greater
+    // disqualifies i, but a right neighbor only disqualifies i if it is strictly greater.
+    // Without this asymmetry, every point in a plateau of equal gains (common on
+    // piecewise-constant data) would pass as its own "local maximum", since none of them
+    // is ever *strictly* beaten -- defeating the `order`/`radius` separation this function
+    // exists to enforce. This way, only the plateau's leftmost point survives.
+    for (int j = lo; j < i; j++) {
+      if (gains[j] >= centeredVal) {
         isMax = false;
         break;
+      }
+    }
+
+    if (isMax) {
+      for (int j = i + 1; j <= hi; j++) {
+        if (gains[j] > centeredVal) {
+          isMax = false;
+          break;
+        }
       }
     }
 
@@ -84,13 +100,17 @@ public:
   // For LinearL2: constructor with (tsMat, covariates, intercept, minSize, jump, radius)
   windowCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_, int minSize_, int jump_, int h_);
 
-  // For LinearSIGMA: constructor with (tsMat, covariates, intercept, addSmallDiag, epsilon, minSize, jump, radius)
+  // For LinearSIGMA: constructor with (tsMat, covariates, intercept, addSmallDiag, epsilon, segParams),
+  // where segParams = c(minSize, jump, radius). Bundled into one vector because Rcpp Modules'
+  // `.constructor<...>()` supports at most 7 template arguments, and this cost type already needs
+  // 5 for its own parameters.
   windowCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
-                bool addSmallDiag, double epsilon, int minSize_, int jump_, int h_);
+                bool addSmallDiag, double epsilon, Rcpp::IntegerVector segParams);
 
-  // For LinearL1: constructor with (tsMat, covariates, intercept, tol, maxIter, minSize, jump, radius)
+  // For LinearL1: constructor with (tsMat, covariates, intercept, tol, maxIter, segParams), where
+  // segParams = c(minSize, jump, radius) -- see the LinearSIGMA constructor above for why.
   windowCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
-                double tol, int maxIter, int minSize_, int jump_, int h_);
+                double tol, int maxIter, Rcpp::IntegerVector segParams);
 
   // For RFunc: constructor with (tsMat, costFun, paramFun, minSize, jump, radius)
   windowCppTmpl(const arma::mat& tsMat, Rcpp::Function costFun,
@@ -508,8 +528,9 @@ RCPP_EXPOSED_CLASS(windowCpp_LinearL2)
 template<>
 windowCppTmpl<Cost_LinearSIGMA>::windowCppTmpl(const arma::mat& tsMat, const arma::mat& covariates,
                                                 bool intercept_, bool addSmallDiag, double epsilon,
-                                                int minSize_, int jump_, int h_)
-  : costModule(tsMat, covariates, intercept_, addSmallDiag, epsilon, true), minSize(minSize_), jump(jump_), h(h_){
+                                                Rcpp::IntegerVector segParams)
+  : costModule(tsMat, covariates, intercept_, addSmallDiag, epsilon, true),
+    minSize(segParams.at(0)), jump(segParams.at(1)), h(segParams.at(2)){
   nSamples = costModule.nr;
 
   if(minSize < 1){
@@ -546,7 +567,7 @@ windowCppTmpl<Cost_LinearSIGMA>::windowCppTmpl(const arma::mat& tsMat, const arm
 RCPP_EXPOSED_CLASS(windowCpp_LinearSIGMA)
   RCPP_MODULE(windowCpp_LinearSIGMA_module) {
     Rcpp::class_<windowCppTmpl<Cost_LinearSIGMA>>("windowCpp_LinearSIGMA")
-    .constructor<arma::mat, arma::mat, bool, bool, double, int, int, int>()  // mat, covariates, intercept, addSmallDiag, epsilon, minSize, jump, h
+    .constructor<arma::mat, arma::mat, bool, bool, double, Rcpp::IntegerVector>()  // mat, covariates, intercept, addSmallDiag, epsilon, c(minSize, jump, h)
     .method("fit", &windowCppTmpl<Cost_LinearSIGMA>::fit)
     .method("predict", &windowCppTmpl<Cost_LinearSIGMA>::predict)
     .method("eval", &windowCppTmpl<Cost_LinearSIGMA>::eval)
@@ -565,8 +586,9 @@ RCPP_EXPOSED_CLASS(windowCpp_LinearSIGMA)
 template<>
 windowCppTmpl<Cost_LinearL1>::windowCppTmpl(const arma::mat& tsMat, const arma::mat& covariates,
                                              bool intercept_, double tol, int maxIter,
-                                             int minSize_, int jump_, int h_)
-  : costModule(tsMat, covariates, intercept_, tol, maxIter, true), minSize(minSize_), jump(jump_), h(h_){
+                                             Rcpp::IntegerVector segParams)
+  : costModule(tsMat, covariates, intercept_, tol, maxIter, true),
+    minSize(segParams.at(0)), jump(segParams.at(1)), h(segParams.at(2)){
   nSamples = costModule.nr;
 
   if(minSize < 1){
@@ -598,12 +620,12 @@ windowCppTmpl<Cost_LinearL1>::windowCppTmpl(const arma::mat& tsMat, const arma::
 
 }
 
-// For LinearL1: constructor with (tsMat, covariates, intercept, tol, maxIter, minSize, jump, h)
+// For LinearL1: constructor with (tsMat, covariates, intercept, tol, maxIter, c(minSize, jump, h))
 
 RCPP_EXPOSED_CLASS(windowCpp_LinearL1)
   RCPP_MODULE(windowCpp_LinearL1_module) {
     Rcpp::class_<windowCppTmpl<Cost_LinearL1>>("windowCpp_LinearL1")
-    .constructor<arma::mat, arma::mat, bool, double, int, int, int, int>()  // mat, covariates, intercept, tol, maxIter, minSize, jump, h
+    .constructor<arma::mat, arma::mat, bool, double, int, Rcpp::IntegerVector>()  // mat, covariates, intercept, tol, maxIter, c(minSize, jump, h)
     .method("fit", &windowCppTmpl<Cost_LinearL1>::fit)
     .method("predict", &windowCppTmpl<Cost_LinearL1>::predict)
     .method("eval", &windowCppTmpl<Cost_LinearL1>::eval)

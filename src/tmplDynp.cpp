@@ -50,13 +50,17 @@ public:
   // For LinearL2: constructor with (tsMat, covariates, intercept, minSize, jump, nBkpsMax)
   DynpCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_, int minSize_, int jump_, int nBkpsMax_);
 
-  // For LinearSIGMA: constructor with (tsMat, covariates, intercept, addSmallDiag, epsilon, minSize, jump, nBkpsMax)
+  // For LinearSIGMA: constructor with (tsMat, covariates, intercept, addSmallDiag, epsilon, segParams),
+  // where segParams = c(minSize, jump, nBkpsMax). Bundled into one vector because Rcpp Modules'
+  // `.constructor<...>()` supports at most 7 template arguments, and this cost type already needs
+  // 5 for its own parameters.
   DynpCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
-              bool addSmallDiag, double epsilon, int minSize_, int jump_, int nBkpsMax_);
+              bool addSmallDiag, double epsilon, Rcpp::IntegerVector segParams);
 
-  // For LinearL1: constructor with (tsMat, covariates, intercept, tol, maxIter, minSize, jump, nBkpsMax)
+  // For LinearL1: constructor with (tsMat, covariates, intercept, tol, maxIter, segParams), where
+  // segParams = c(minSize, jump, nBkpsMax) -- see the LinearSIGMA constructor above for why.
   DynpCppTmpl(const arma::mat& tsMat, const arma::mat& covariates, bool intercept_,
-              double tol, int maxIter, int minSize_, int jump_, int nBkpsMax_);
+              double tol, int maxIter, Rcpp::IntegerVector segParams);
 
   // For RFunc: constructor with (tsMat, costFun, paramFun, minSize, jump, nBkpsMax)
   DynpCppTmpl(const arma::mat& tsMat, Rcpp::Function costFun,
@@ -435,9 +439,9 @@ RCPP_EXPOSED_CLASS(DynpCpp_LinearL2)
 template<>
 DynpCppTmpl<Cost_LinearSIGMA>::DynpCppTmpl(const arma::mat& tsMat, const arma::mat& covariates,
                                             bool intercept_, bool addSmallDiag, double epsilon,
-                                            int minSize_, int jump_, int nBkpsMax_)
+                                            Rcpp::IntegerVector segParams)
   : costModule(tsMat, covariates, intercept_, addSmallDiag, epsilon, true),
-    minSize(minSize_), jump(jump_), nBkpsMax(nBkpsMax_){
+    minSize(segParams.at(0)), jump(segParams.at(1)), nBkpsMax(segParams.at(2)){
   nSamples = costModule.nr;
 
   if(minSize < 1){
@@ -468,7 +472,7 @@ DynpCppTmpl<Cost_LinearSIGMA>::DynpCppTmpl(const arma::mat& tsMat, const arma::m
 RCPP_EXPOSED_CLASS(DynpCpp_LinearSIGMA)
   RCPP_MODULE(DynpCpp_LinearSIGMA_module) {
     Rcpp::class_<DynpCppTmpl<Cost_LinearSIGMA>>("DynpCpp_LinearSIGMA")
-    .constructor<arma::mat, arma::mat, bool, bool, double, int, int, int>()  // mat, covariates, intercept, addSmallDiag, epsilon, minSize, jump, nBkpsMax
+    .constructor<arma::mat, arma::mat, bool, bool, double, Rcpp::IntegerVector>()  // mat, covariates, intercept, addSmallDiag, epsilon, c(minSize, jump, nBkpsMax)
     .method("fit", &DynpCppTmpl<Cost_LinearSIGMA>::fit)
     .method("predictK", &DynpCppTmpl<Cost_LinearSIGMA>::predictK)
     .method("predictPen", &DynpCppTmpl<Cost_LinearSIGMA>::predictPen)
@@ -485,9 +489,9 @@ RCPP_EXPOSED_CLASS(DynpCpp_LinearSIGMA)
 template<>
 DynpCppTmpl<Cost_LinearL1>::DynpCppTmpl(const arma::mat& tsMat, const arma::mat& covariates,
                                          bool intercept_, double tol, int maxIter,
-                                         int minSize_, int jump_, int nBkpsMax_)
+                                         Rcpp::IntegerVector segParams)
   : costModule(tsMat, covariates, intercept_, tol, maxIter, true),
-    minSize(minSize_), jump(jump_), nBkpsMax(nBkpsMax_){
+    minSize(segParams.at(0)), jump(segParams.at(1)), nBkpsMax(segParams.at(2)){
   nSamples = costModule.nr;
 
   if(minSize < 1){
@@ -518,7 +522,7 @@ DynpCppTmpl<Cost_LinearL1>::DynpCppTmpl(const arma::mat& tsMat, const arma::mat&
 RCPP_EXPOSED_CLASS(DynpCpp_LinearL1)
   RCPP_MODULE(DynpCpp_LinearL1_module) {
     Rcpp::class_<DynpCppTmpl<Cost_LinearL1>>("DynpCpp_LinearL1")
-    .constructor<arma::mat, arma::mat, bool, double, int, int, int, int>()  // mat, covariates, intercept, tol, maxIter, minSize, jump, nBkpsMax
+    .constructor<arma::mat, arma::mat, bool, double, int, Rcpp::IntegerVector>()  // mat, covariates, intercept, tol, maxIter, c(minSize, jump, nBkpsMax)
     .method("fit", &DynpCppTmpl<Cost_LinearL1>::fit)
     .method("predictK", &DynpCppTmpl<Cost_LinearL1>::predictK)
     .method("predictPen", &DynpCppTmpl<Cost_LinearL1>::predictPen)

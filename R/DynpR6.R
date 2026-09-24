@@ -536,7 +536,7 @@ Dynp = R6Class(
                                         FALSE, #no intercept
                                         private$.costFunc$pass()[["addSmallDiag"]],
                                         private$.costFunc$pass()[["epsilon"]],
-                                        private$.minSize, private$.jump, resolvedNBkpsMax)
+                                        c(private$.minSize, private$.jump, resolvedNBkpsMax))
 
             } else if(private$.costFunc$pass()[["costFunc"]] == "LinearL1"){
 
@@ -544,7 +544,7 @@ Dynp = R6Class(
                                         FALSE, #no intercept
                                         private$.costFunc$pass()[["tol"]],
                                         private$.costFunc$pass()[["maxIter"]],
-                                        private$.minSize, private$.jump, resolvedNBkpsMax)
+                                        c(private$.minSize, private$.jump, resolvedNBkpsMax))
 
             }
 
@@ -595,7 +595,7 @@ Dynp = R6Class(
                                   private$.costFunc$pass()[["intercept"]],
                                   private$.costFunc$pass()[["addSmallDiag"]],
                                   private$.costFunc$pass()[["epsilon"]],
-                                  private$.minSize, private$.jump, resolvedNBkpsMax)
+                                  c(private$.minSize, private$.jump, resolvedNBkpsMax))
 
       } else if(private$.costFunc$pass()[["costFunc"]] == "LinearL1"){
 
@@ -603,7 +603,7 @@ Dynp = R6Class(
                                   private$.costFunc$pass()[["intercept"]],
                                   private$.costFunc$pass()[["tol"]],
                                   private$.costFunc$pass()[["maxIter"]],
-                                  private$.minSize, private$.jump, resolvedNBkpsMax)
+                                  c(private$.minSize, private$.jump, resolvedNBkpsMax))
 
       } else if(private$.costFunc$pass()[["costFunc"]] == "Custom"){
 
