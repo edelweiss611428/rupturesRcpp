@@ -32,6 +32,7 @@ Suggests:
 Config/testthat/edition: 3
 Collate: 
     'costFuncR6.R'
+    'DynpR6.R'
     'PeltR6.R'
     'WindowR6.R'
     'binSegR6.R'
