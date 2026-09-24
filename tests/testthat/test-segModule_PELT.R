@@ -586,3 +586,55 @@ test_that("Some additional tests", {
 
 })
 
+
+test_that("`$segments()` returns the cost and params of each segment", {
+
+  set.seed(1)
+  X = matrix(c(rnorm(100, 0), rnorm(100, 5)))
+  PELTObj = PELT$new()
+  PELTObj$fit(X)
+  expect_error(PELTObj$segments()) #No `$predict()` yet
+
+  bkps = PELTObj$predict(pen = 10)
+  segs = PELTObj$segments()
+
+  expect_length(segs, length(bkps))
+  expect_equal(sapply(segs, `[[`, "Start"), c(0, head(bkps, -1)))
+  expect_equal(sapply(segs, `[[`, "End"), bkps)
+
+  for (s in segs) {
+    Xe = X[(s$Start + 1):s$End, , drop = FALSE]
+    expect_equal(s$Cost, sum((Xe - mean(Xe))^2))
+    expect_equal(s$Params$mean, colMeans(Xe))
+  }
+
+  #Costs sum to the optimal penalised cost minus the penalties
+  expect_equal(sum(sapply(segs, `[[`, "Cost")), segObj(PELTObj, bkps, 10) - 10*(length(bkps) - 1))
+
+})
+
+test_that("`$segments()` agrees with `costFactory` for every cost function", {
+
+  set.seed(2)
+  X = matrix(c(rnorm(100, 0), rnorm(100, 5, 3)))
+  covariates = matrix(rnorm(200))
+  PELTObj = PELT$new(minSize = 5L)
+  PELTObj$fit(X)
+  PELTObj$covariates = covariates #`$fit()` only keeps `covariates` for Linear costs
+
+  for (cf in c("L1", "L2", "SIGMA", "VAR", "LinearL2", "LinearSIGMA")) {
+
+    suppressMessages(PELTObj$costFunc <- costFunc$new(cf))
+    expect_error(PELTObj$segments()) #Refitting clears stale end points
+
+    PELTObj$predict(pen = 10)
+    facObj = costFactory$new(costFunc$new(cf))
+    facObj$fit(X, covariates)
+
+    for (s in PELTObj$segments()) {
+      expect_equal(s$Cost, facObj$eval(s$Start, s$End))
+      expect_equal(s$Params, facObj$get_params(s$Start, s$End))
+    }
+  }
+
+})
