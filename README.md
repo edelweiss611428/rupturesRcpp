@@ -562,7 +562,8 @@ $cov
 
 - Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using data structures such as a persistent segment tree with `O(nlog(n))` precomputation.
 - Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility (see https://github.com/edelweiss611428/R6BinSeg/tree/main for an idea).
-- Implement methods for tuning the linear penalty.
+- Implement `$get_params()` for segmentation modules.
+- Implement methods for model selection.
 - Implement additional cost functions (e.g., `"Poisson"`). 
 - Implement other offline change-point detection classes (e.g., `BottomUp`).
 - Improve `$plot()` method for models involving both dependent and independent variables.
