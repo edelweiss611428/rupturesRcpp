@@ -235,9 +235,7 @@ RCPP_EXPOSED_CLASS(DynpCpp_L1_cwMed)
     .method("predictPen", &DynpCppTmpl<Cost_L1_cwMed>::predictPen)
     .method("costPath", &DynpCppTmpl<Cost_L1_cwMed>::costPath)
     .method("eval", &DynpCppTmpl<Cost_L1_cwMed>::eval)
-    .method("get_params", &DynpCppTmpl<Cost_L1_cwMed>::get_params)
-    .field("bkpsVec", &DynpCppTmpl<Cost_L1_cwMed>::bkpsVec)
-    .field("costVec", &DynpCppTmpl<Cost_L1_cwMed>::costVec);
+    .method("get_params", &DynpCppTmpl<Cost_L1_cwMed>::get_params);
   }
 
 
@@ -284,9 +282,7 @@ RCPP_EXPOSED_CLASS(DynpCpp_L2)
     .method("predictPen", &DynpCppTmpl<Cost_L2>::predictPen)
     .method("costPath", &DynpCppTmpl<Cost_L2>::costPath)
     .method("eval", &DynpCppTmpl<Cost_L2>::eval)
-    .method("get_params", &DynpCppTmpl<Cost_L2>::get_params)
-    .field("bkpsVec", &DynpCppTmpl<Cost_L2>::bkpsVec)
-    .field("costVec", &DynpCppTmpl<Cost_L2>::costVec);
+    .method("get_params", &DynpCppTmpl<Cost_L2>::get_params);
   }
 
 
@@ -333,9 +329,7 @@ RCPP_EXPOSED_CLASS(DynpCpp_VAR)
     .method("predictPen", &DynpCppTmpl<Cost_VAR>::predictPen)
     .method("costPath", &DynpCppTmpl<Cost_VAR>::costPath)
     .method("eval", &DynpCppTmpl<Cost_VAR>::eval)
-    .method("get_params", &DynpCppTmpl<Cost_VAR>::get_params)
-    .field("bkpsVec", &DynpCppTmpl<Cost_VAR>::bkpsVec)
-    .field("costVec", &DynpCppTmpl<Cost_VAR>::costVec);
+    .method("get_params", &DynpCppTmpl<Cost_VAR>::get_params);
   }
 
 
@@ -382,9 +376,7 @@ RCPP_EXPOSED_CLASS(DynpCpp_SIGMA)
     .method("predictPen", &DynpCppTmpl<Cost_SIGMA>::predictPen)
     .method("costPath", &DynpCppTmpl<Cost_SIGMA>::costPath)
     .method("eval", &DynpCppTmpl<Cost_SIGMA>::eval)
-    .method("get_params", &DynpCppTmpl<Cost_SIGMA>::get_params)
-    .field("bkpsVec", &DynpCppTmpl<Cost_SIGMA>::bkpsVec)
-    .field("costVec", &DynpCppTmpl<Cost_SIGMA>::costVec);
+    .method("get_params", &DynpCppTmpl<Cost_SIGMA>::get_params);
   }
 
 
@@ -432,9 +424,7 @@ RCPP_EXPOSED_CLASS(DynpCpp_LinearL2)
     .method("predictPen", &DynpCppTmpl<Cost_LinearL2>::predictPen)
     .method("costPath", &DynpCppTmpl<Cost_LinearL2>::costPath)
     .method("eval", &DynpCppTmpl<Cost_LinearL2>::eval)
-    .method("get_params", &DynpCppTmpl<Cost_LinearL2>::get_params)
-    .field("bkpsVec", &DynpCppTmpl<Cost_LinearL2>::bkpsVec)
-    .field("costVec", &DynpCppTmpl<Cost_LinearL2>::costVec);
+    .method("get_params", &DynpCppTmpl<Cost_LinearL2>::get_params);
   }
 
 
@@ -484,9 +474,7 @@ RCPP_EXPOSED_CLASS(DynpCpp_LinearSIGMA)
     .method("predictPen", &DynpCppTmpl<Cost_LinearSIGMA>::predictPen)
     .method("costPath", &DynpCppTmpl<Cost_LinearSIGMA>::costPath)
     .method("eval", &DynpCppTmpl<Cost_LinearSIGMA>::eval)
-    .method("get_params", &DynpCppTmpl<Cost_LinearSIGMA>::get_params)
-    .field("bkpsVec", &DynpCppTmpl<Cost_LinearSIGMA>::bkpsVec)
-    .field("costVec", &DynpCppTmpl<Cost_LinearSIGMA>::costVec);
+    .method("get_params", &DynpCppTmpl<Cost_LinearSIGMA>::get_params);
   }
 
 
@@ -536,9 +524,7 @@ RCPP_EXPOSED_CLASS(DynpCpp_LinearL1)
     .method("predictPen", &DynpCppTmpl<Cost_LinearL1>::predictPen)
     .method("costPath", &DynpCppTmpl<Cost_LinearL1>::costPath)
     .method("eval", &DynpCppTmpl<Cost_LinearL1>::eval)
-    .method("get_params", &DynpCppTmpl<Cost_LinearL1>::get_params)
-    .field("bkpsVec", &DynpCppTmpl<Cost_LinearL1>::bkpsVec)
-    .field("costVec", &DynpCppTmpl<Cost_LinearL1>::costVec);
+    .method("get_params", &DynpCppTmpl<Cost_LinearL1>::get_params);
   }
 
 
@@ -588,7 +574,5 @@ RCPP_EXPOSED_CLASS(DynpCpp_RFunc)
     .method("predictPen", &DynpCppTmpl<Cost_RFunc>::predictPen)
     .method("costPath", &DynpCppTmpl<Cost_RFunc>::costPath)
     .method("eval", &DynpCppTmpl<Cost_RFunc>::eval)
-    .method("get_params", &DynpCppTmpl<Cost_RFunc>::get_params)
-    .field("bkpsVec", &DynpCppTmpl<Cost_RFunc>::bkpsVec)
-    .field("costVec", &DynpCppTmpl<Cost_RFunc>::costVec);
+    .method("get_params", &DynpCppTmpl<Cost_RFunc>::get_params);
   }
