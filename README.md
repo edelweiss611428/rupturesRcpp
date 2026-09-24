@@ -8,8 +8,6 @@
 
 <p>The R package provides an efficient, object-oriented R6 interface for offline change point detection, implemented in C++ for high performance. This was created as part of the Google Summer of Code 2025 program (see <a href="https://github.com/edelweiss611428/rupturesRcpp/blob/gsoc-2025/README.md">edelweiss611428/rupturesRcpp at gsoc-2025</a> for the project archive).</p>
 
-A Colab notebook, <a href="https://colab.research.google.com/drive/13EH4MiJsldD8Ck_tn_58wsHotu_GTP4K?usp=sharing">rupturesRcpp usage</a>, is provided for learning purpose.
-
 <pre>
 +------------------------------------------------------------+
 |                                                            |
@@ -38,7 +36,7 @@ install_github("edelweiss611428/rupturesRcpp")
 To detect change-points using `rupturesRcpp` you need three main components:
 
 - **Cost function** (`costFunc`)
-- **Segmentation method** (`binSeg`, `Window`, `PELT`)
+- **Segmentation method** (`binSeg`, `Window`, `PELT`, `Dynp`)
 - **Linear penalty threshold**
 
 Each `component` is implemented using an R6-based object-oriented design for modularity and maintainability.
@@ -57,7 +55,7 @@ $costFunc
 [1] "L2"
 </pre>
 
-The following table shows the list of supported cost functions. Here, `n` is segment length.
+The following table shows the list of supported cost functions (pre-implemented ones are `PELT`-compatible - see the next Section). Here, `n` is segment length.
 
 | **Cost function** | **Description**                                                                                  | **Parameters/active bindings**           | **Dimension** | **Time complexity** |
 |-------------------|--------------------------------------------------------------------------------------------------|------------------------------------------|----------------|----------------------|
@@ -86,13 +84,14 @@ $pVAR
 
 ### Segmentation methods
 
-After initialising a `costFunc` object, create a segmentation object such as `binSeg`, `Window`, or `PELT`.
+After initialising a `costFunc` object, create a segmentation object such as `binSeg`, `Window`, `PELT`, or `Dynp`.
 
 | **R6 Class**     | **Method**                | **Description**                                                                | **Parameters/active bindings**                                |
 |------------------|---------------------------|--------------------------------------------------------------------------------|---------------------------------------------------------------|
 | `binSeg`         | Binary Segmentation       | Recursively splits the signal at points that minimise the cost.                | `minSize`, `jump`, `costFunc`, `tsMat`, `covariates`          |
 | `Window`         | Slicing Window            | Detects change-points using local gains over sliding windows.                  | `minSize`, `jump`, `radius`, `costFunc`,`tsMat`, `covariates` |
-| `PELT`           | Pruned Exact Linear Time  | Optimal segmentation with pruning for linear-time performance.                 | `minSize`, `jump`, `costFunc`, `tsMat`, `covariates`          |
+| `PELT`           | Pruned Exact Linear Time  | Optimal segmentation with pruning for linear-time performance (`costFunc` must be `PELT`-compatible).                 | `minSize`, `jump`, `costFunc`, `tsMat`, `covariates`          |
+| `Dynp`           | Exact Dynamic Programming | Globally optimal segmentation for a specified number of change-points, via a full dynamic-programming table rather than `binSeg`'s greedy search. | `minSize`, `jump`, `nBkpsMax`, `costFunc`, `tsMat`, `covariates` |
 
 The `covariates` argument is optional and only required for models involving both dependent and independent variables (e.g., `"LinearL2"`, `"LinearSIGMA"`, `"LinearL1"`). If not provided, the model is force-fitted using only 
 an intercept term (i.e., a column of ones).
@@ -102,7 +101,7 @@ A `PELT` object, for example, can be initialised as follows:
 detectionObj = PELT$new(minSize = 1L, jump = 1L, costFunc = costFuncObj)
 ```
 
-All segmentation objects implement the following methods:
+All segmentation objects (`binSeg`, `Window`, `PELT`, `Dynp`) implement the following methods:
 
 - `$describe(printConfig)`: Views the (current) configurations of the object.
 - `$fit(tsMat, covariates)`: Constructs a `C++` detection module corresponding to the current configurations.
@@ -110,10 +109,12 @@ All segmentation objects implement the following methods:
 - `$eval(a,b)`: Evaluates the cost of a segment (a,b].
 - `$plot(d, endPts,...)`: Plots change-point segmentation in `ggplot` style.
 
-`binSeg` and `Window` additionally implement:
+`binSeg`, `Window`, and `Dynp` additionally implement:
 
-- `$getHistory()`: Returns a `data.frame` of the cost after `0, 1, 2, ...` change-points and which breakpoint was added at each step -- the same search both algorithms already do internally, just exposed.
+- `$getHistory()`: Returns a `data.frame` of the cost after `0, 1, 2, ...` change-points -- for `binSeg`/`Window`, also which breakpoint was added at each step (see *Exact optimal segmentation via `Dynp`* below for why `Dynp`'s version omits that column).
 - `$plotElbow(maxK)`: Plots `$getHistory()`'s cost trajectory against the number of change-points, for choosing `nBkps` via the "elbow method" instead of tuning `pen` directly.
+
+`Dynp` additionally implements `$costPath()`, the raw numeric vector of exact minimal costs that `$getHistory()` wraps into a `data.frame`.
 
 Active bindings (such as `minSize` or `tsMat`) can be modified at any time—either before or after the object is created via the `$` operator. 
 For consistency, if the object has already been fitted, modifying any active bindings will automatically trigger the re-fitting process.
@@ -433,14 +434,139 @@ in particular can only ever offer as many change-points as it found local
 maxima for; if you ask for more, `$predict()` returns what's available and
 reports the shortfall via a message rather than erroring.
 
+### Exact optimal segmentation via `Dynp`
+
+The caveat above -- `binSeg`/`Window` returning their own best answer for a given `nBkps`, not necessarily the *globally* optimal one -- is exactly what `Dynp` addresses. It finds the segmentation that is exactly optimal for a specified number of change-points, by building a full dynamic-programming table instead of searching greedily. The cost is complexity: the table takes `O(nBkpsMax * M^2)` time, where `M` is the number of `(minSize, jump)`-admissible positions, versus `binSeg`'s near-`O(n log n)` greedy search or `PELT`'s pruned search for a penalty.
+
+```r
+set.seed(1121)
+signals = as.matrix(c(rnorm(100, 0, 1), rnorm(100, 5, 1)))
+
+DynpObj = Dynp$new(minSize = 1L, jump = 1L) # nBkpsMax left NULL -> resolved at $fit()
+DynpObj$fit(signals)
+```
+<pre>
+`nBkpsMax` not set; using 20L.
+</pre>
+
+`$describe()` shows the two fields specific to `Dynp`: the user-set `nBkpsMax` (here left `NULL`) and the `resolvedNBkpsMax` actually used, capped at 20 by default.
+
+```r
+DynpObj$describe(printConfig = TRUE)
+```
+<pre>
+Exact Dynamic Programming (Dynp) 
+minSize          : 1L
+jump             : 1L
+nBkpsMax         : NULL (auto)
+resolvedNBkpsMax : 20L
+costFunc         : "L2"
+fitted           : TRUE
+n                : 200L
+p                : 1L
+</pre>
+
+`$predict()`, `$eval()`, and `$plot()` all work exactly as with `binSeg`/`Window`/`PELT`, either via `nBkps` or via a penalty:
+
+```r
+DynpObj$predict(nBkps = 1)
+```
+<pre>
+[1] 100 200
+</pre>
+
+```r
+DynpObj$predict(pen = 100) # same split, reached via a penalty instead
+```
+<pre>
+[1] 100 200
+</pre>
+
+```r
+DynpObj$plot(main = "method: Dynp; costFunc: L2; nBkps: 1")
+```
+
+Since `$fit()` already computes the exact minimal cost for *every* change-point count from `0` to `nBkpsMax` in one pass (exposed via `$costPath()`), `$getHistory()`/`$plotElbow()` come for free here -- no extra search is needed the way `binSeg`/`Window` would need to keep growing their own nested sequence:
+
+```r
+DynpObj$getHistory()
+```
+<pre>
+  k      cost
+1 0 1511.6991
+2 1  186.6857
+3 2  176.1339
+4 3  169.4885
+5 4  163.1693
+6 5  158.4455
+...
+</pre>
+
+Unlike `binSeg`/`Window`, there is no `added_bkp` column: each `k`'s solution is independently exact and need not be nested inside the solution for `k+1`, so "the one breakpoint added at this step" is not generally well-defined. Use `$predict(nBkps = k)` to get the full breakpoint set for a given `k`.
+
+## Cost evaluation without detection: `costFactory`
+
+Sometimes you don't need a detection algorithm at all -- only fast cost evaluation and parameter estimation for segments whose boundaries you already have (e.g., cross-validating a `pen` value against known change-points, or just querying a segment's fitted parameters). `costFactory` wraps the same `C++` cost modules used internally by `PELT`/`binSeg`/`Window`/`Dynp`, exposing only `$eval()` and `$get_params()` -- no segmentation logic.
+
+```r
+set.seed(1)
+tsMat = cbind(c(rnorm(100, 0), rnorm(100, 5, 5)))
+
+cf = costFactory$new(costFunc$new("L2"))
+cf$fit(tsMat)
+cf$eval(0, 100)
+```
+<pre>
+[1] 79.86945
+</pre>
+
+```r
+cf$get_params(0, 100)
+```
+<pre>
+$mean
+[1] 0.1088874
+</pre>
+
+As with the segmentation classes, `$costFunc` is an active binding: reassigning it after `$fit()` automatically re-fits the underlying module against the same data.
+
+```r
+cf$costFunc = costFunc$new("SIGMA")
+```
+<pre>
+`costFunc` has been updated. Re-fitting the model.
+</pre>
+
+```r
+cf$eval(0, 100)
+```
+<pre>
+[1] -22.47755
+</pre>
+
+```r
+cf$get_params(0, 100)
+```
+<pre>
+$mean
+[1] 0.1088874
+
+$cov
+          [,1]
+[1,] 0.7986955
+</pre>
+
+`$get_params()`'s return shape depends on the cost function: `median`/`mean` for `"L1"`/`"L2"`, `mean` and `cov` for `"SIGMA"`, `coef` (intercept first) for `"VAR"`/`"LinearL2"`/`"LinearL1"`, `coef` and `cov` for `"LinearSIGMA"`, and `params` (whatever `paramFun` returns) for `"Custom"`.
+
 ## Future development
 
 - Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using data structures such as a persistent segment tree with `O(nlog(n))` precomputation.
 - Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility (see https://github.com/edelweiss611428/R6BinSeg/tree/main for an idea).
+- Implement methods for tuning the linear penalty.
 - Implement additional cost functions (e.g., `"Poisson"`). 
-- Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
-- Develop a `costFactory` class for users focusing solely on fast cost computation and parameter estimation.
+- Implement other offline change-point detection classes (e.g., `BottomUp`).
 - Improve `$plot()` method for models involving both dependent and independent variables.
+
 
 ## Contributing
 
