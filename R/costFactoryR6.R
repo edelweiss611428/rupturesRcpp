@@ -55,31 +55,31 @@ costFactory = R6Class(
     #' @return Invisibly returns `NULL`.
     initialize = function(costFunc, tsMat, covariates = NULL) {
 
-      spec = list(costFunc = "L2")
+      costFuncObj = list(costFunc = "L2")
       if (!missing(costFunc)) {
         if (!inherits(costFunc, "costFunc") || !is.R6(costFunc)) {
           stop("`costFunc` must be a `R6` object of class `costFunc` - can be created via costFunc$new()!")
         }
-        spec = costFunc$pass()
+        costFuncObj = costFunc$pass()
       }
 
-      intercept = spec$intercept
-      if (spec$costFunc %in% c("LinearL2", "LinearSIGMA", "LinearL1") && is.null(covariates)) {
+      intercept = costFuncObj$intercept
+      if (costFuncObj$costFunc %in% c("LinearL2", "LinearSIGMA", "LinearL1") && is.null(covariates)) {
         warning("No `covariates` found! Force-fitting with only an intercept!")
         covariates = matrix(1, nrow(tsMat), 1)
         intercept = FALSE
       }
 
       # warnOnce = FALSE: warn on every call, like $eval() of the detection classes
-      private$.module = switch(spec$costFunc,
+      private$.module = switch(costFuncObj$costFunc,
         L1          = new(Cost_L1_cwMed, tsMat, FALSE),
         L2          = new(Cost_L2, tsMat, FALSE),
-        SIGMA       = new(Cost_SIGMA, tsMat, spec$addSmallDiag, spec$epsilon, FALSE),
-        VAR         = new(Cost_VAR, tsMat, spec$pVAR, FALSE),
+        SIGMA       = new(Cost_SIGMA, tsMat, costFuncObj$addSmallDiag, costFuncObj$epsilon, FALSE),
+        VAR         = new(Cost_VAR, tsMat, costFuncObj$pVAR, FALSE),
         LinearL2    = new(Cost_LinearL2, tsMat, covariates, intercept, FALSE),
-        LinearSIGMA = new(Cost_LinearSIGMA, tsMat, covariates, intercept, spec$addSmallDiag, spec$epsilon, FALSE),
-        LinearL1    = new(Cost_LinearL1, tsMat, covariates, intercept, spec$tol, spec$maxIter, FALSE),
-        Custom      = new(Cost_RFunc, tsMat, spec$evalFun, spec$paramFun, FALSE))
+        LinearSIGMA = new(Cost_LinearSIGMA, tsMat, covariates, intercept, costFuncObj$addSmallDiag, costFuncObj$epsilon, FALSE),
+        LinearL1    = new(Cost_LinearL1, tsMat, covariates, intercept, costFuncObj$tol, costFuncObj$maxIter, FALSE),
+        Custom      = new(Cost_RFunc, tsMat, costFuncObj$evalFun, costFuncObj$paramFun, FALSE))
 
       invisible(NULL)
     },
