@@ -103,7 +103,7 @@ public:
         double best = inf;
         int bestJ = -1;
         for (int j = 0; j < i; j++) {
-          if (!arma::is_finite(D(k - 1, j)) || !arma::is_finite(C(j, i))) continue;
+          if (!std::isfinite(D(k - 1, j)) || !std::isfinite(C(j, i))) continue;
           double cand = D(k - 1, j) + C(j, i);
           if (cand < best) {
             best = cand;
@@ -147,7 +147,7 @@ public:
       Rcpp::stop("`nBkps` must be between 0 and `nBkpsMax`!");
     }
     int lastIdx = static_cast<int>(grid.size()) - 1;
-    if (!arma::is_finite(D(nBkps, lastIdx))) {
+    if (!std::isfinite(D(nBkps, lastIdx))) {
       Rcpp::stop("No valid segmentation exists for this `nBkps`, given `minSize`/`jump`!");
     }
     return Rcpp::wrap(traceback(nBkps, lastIdx));
