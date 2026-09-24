@@ -50,7 +50,8 @@ cf$costFunc = costFunc$new("SIGMA")
 cf$eval(0, 100)
 }
 \author{
-Minh Long Nguyen \email{edelweiss611428@gmail.com}
+Minh Long Nguyen \email{edelweiss611428@gmail.com} \cr
+Huy Nhat Minh Nguyen \email{sleepysnorlax0115@gmail.com}
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}

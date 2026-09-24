@@ -29,7 +29,10 @@
 #'   \item{\code{$clone()}}{Clones the `R6` object.}
 #' }
 #'
-#' @author Minh Long Nguyen \email{edelweiss611428@gmail.com}
+#' @author
+#' Minh Long Nguyen \email{edelweiss611428@gmail.com} \cr
+#' Huy Nhat Minh Nguyen \email{sleepysnorlax0115@gmail.com}
+#'
 #' @docType class
 #' @include costFuncR6.R
 #' @importFrom R6 R6Class is.R6
