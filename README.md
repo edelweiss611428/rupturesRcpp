@@ -439,7 +439,6 @@ reports the shortfall via a message rather than erroring.
 - Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility (see https://github.com/edelweiss611428/R6BinSeg/tree/main for an idea).
 - Implement additional cost functions (e.g., `"Poisson"`). 
 - Implement other offline change-point detection classes (e.g., `Opt` and `BottomUp`).
-- Develop a `costFactory` class for users focusing solely on fast cost computation and parameter estimation.
 - Improve `$plot()` method for models involving both dependent and independent variables.
 
 ## Contributing
