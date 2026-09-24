@@ -534,7 +534,7 @@ Window = R6Class(
                                           FALSE, #no intercept
                                           private$.costFunc$pass()[["addSmallDiag"]],
                                           private$.costFunc$pass()[["epsilon"]],
-                                          private$.minSize, private$.jump, private$.radius)
+                                          c(private$.minSize, private$.jump, private$.radius))
 
             } else if(private$.costFunc$pass()[["costFunc"]] == "LinearL1"){
 
@@ -542,7 +542,7 @@ Window = R6Class(
                                           FALSE, #no intercept
                                           private$.costFunc$pass()[["tol"]],
                                           private$.costFunc$pass()[["maxIter"]],
-                                          private$.minSize, private$.jump, private$.radius)
+                                          c(private$.minSize, private$.jump, private$.radius))
 
             }
 
@@ -594,7 +594,7 @@ Window = R6Class(
                                     private$.costFunc$pass()[["intercept"]],
                                     private$.costFunc$pass()[["addSmallDiag"]],
                                     private$.costFunc$pass()[["epsilon"]],
-                                    private$.minSize, private$.jump, private$.radius)
+                                    c(private$.minSize, private$.jump, private$.radius))
 
       } else if(private$.costFunc$pass()[["costFunc"]] == "LinearL1"){
 
@@ -602,7 +602,7 @@ Window = R6Class(
                                     private$.costFunc$pass()[["intercept"]],
                                     private$.costFunc$pass()[["tol"]],
                                     private$.costFunc$pass()[["maxIter"]],
-                                    private$.minSize, private$.jump, private$.radius)
+                                    c(private$.minSize, private$.jump, private$.radius))
 
       } else if(private$.costFunc$pass()[["costFunc"]] == "Custom"){
 
