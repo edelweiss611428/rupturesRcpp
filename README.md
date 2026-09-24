@@ -370,7 +370,7 @@ linObj$predict(pen = 15)
 ```r
 customObj2$describe(printConfig = TRUE)
 ```
-<pre>
+```text
 Pruned Exact Linear Time (PELT) 
 minSize      : 2L
 jump         : 1L
@@ -380,7 +380,7 @@ paramFun     : NULL
 fitted       : TRUE
 n            : 200L
 p            : 1L
-</pre>
+```
 
 `"Custom"` is supported by `PELT`, `binSeg`, and `Window` alike.
 
