@@ -8,9 +8,13 @@
 An \code{R6} class for fast segment-cost evaluation and parameter estimation, without a detection algorithm.
 }
 \details{
-\code{costFactory} builds the \verb{C++} cost module selected by a \code{costFunc} object once, at initialisation, and keeps it,
-so every query reuses its precomputations, as \code{PELT}, \code{binSeg} and \code{Window} do. \verb{$eval()} and \verb{$get_params()} call
-the module directly: segments are \verb{(a, b]} with 0-based \code{a}, and all checks are done in \verb{C++}.
+\code{costFactory} builds the \verb{C++} cost module selected by \verb{$costFunc} at \verb{$fit()}, and keeps it, so every query reuses
+its precomputations, as \code{PELT}, \code{binSeg} and \code{Window} do. \verb{$eval()} and \verb{$get_params()} call the module directly:
+segments are \verb{(a, b]} with 0-based \code{a}, and all checks are done in \verb{C++}.
+
+\verb{$new()} only stores the \code{costFunc} object; \verb{$fit()} validates and attaches the data. \verb{$costFunc} is an active
+binding, so it can be inspected or replaced after construction -- if data has already been supplied, replacing it
+automatically triggers \verb{$fit()} again.
 
 \verb{$get_params()} returns:
 \itemize{
@@ -26,6 +30,7 @@ the module directly: segments are \verb{(a, b]} with 0-based \code{a}, and all c
 
 \describe{
 \item{\code{$new()}}{Initialises a \code{costFactory} object.}
+\item{\code{$fit()}}{Constructs the \verb{C++} cost module.}
 \item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$get_params()}}{Returns the parameter estimates of a segment.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
@@ -35,17 +40,31 @@ the module directly: segments are \verb{(a, b]} with 0-based \code{a}, and all c
 \examples{
 set.seed(1)
 tsMat = cbind(c(rnorm(100, 0), rnorm(100, 5, 5)))
-cf = costFactory$new(costFunc$new("L2"), tsMat)
+cf = costFactory$new(costFunc$new("L2"))
+cf$fit(tsMat)
 cf$eval(0, 100)
 cf$get_params(0, 100)
+
+# `costFunc` is an active binding: swapping it re-fits automatically.
+cf$costFunc = costFunc$new("SIGMA")
+cf$eval(0, 100)
 }
 \author{
 Minh Long Nguyen \email{edelweiss611428@gmail.com}
+}
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{costFunc}}{\code{R6} object of class \code{costFunc}. Can be accessed or modified via \verb{$costFunc}.
+Modifying \code{costFunc} will automatically trigger \verb{$fit()} if a \code{tsMat} has already been fitted.}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-costFactory-new}{\code{costFactory$new()}}
+\item \href{#method-costFactory-fit}{\code{costFactory$fit()}}
 \item \href{#method-costFactory-eval}{\code{costFactory$eval()}}
 \item \href{#method-costFactory-get_params}{\code{costFactory$get_params()}}
 \item \href{#method-costFactory-clone}{\code{costFactory$clone()}}
@@ -55,23 +74,48 @@ Minh Long Nguyen \email{edelweiss611428@gmail.com}
 \if{html}{\out{<a id="method-costFactory-new"></a>}}
 \if{latex}{\out{\hypertarget{method-costFactory-new}{}}}
 \subsection{Method \code{new()}}{
-Initialises a \code{costFactory} object and builds the \verb{C++} cost module.
+Initialises a \code{costFactory} object. Does not build the \verb{C++} cost module; call \verb{$fit()} for that.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{costFactory$new(costFunc, tsMat, covariates = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{costFactory$new(costFunc)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{costFunc}}{A \code{R6} object of class \code{costFunc}. Default: \code{costFunc$new("L2")}.}
-
-\item{\code{tsMat}}{Numeric matrix. Time series of size \eqn{n \times p}.}
-
-\item{\code{covariates}}{Numeric matrix with \code{n} rows, used by \code{"LinearL2"}, \code{"LinearSIGMA"} and \code{"LinearL1"}. If \code{NULL},
-the model is force-fitted with only an intercept. Default: \code{NULL}.}
+\item{\code{costFunc}}{A \code{R6} object of class \code{costFunc}. Should be created via \code{costFunc$new()} to avoid error.
+Default: \code{costFunc$new("L2")}.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Returns}{
+Invisibly returns \code{NULL}.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-costFactory-fit"></a>}}
+\if{latex}{\out{\hypertarget{method-costFactory-fit}{}}}
+\subsection{Method \code{fit()}}{
+Validates the supplied data and constructs the \verb{C++} cost module selected by \verb{$costFunc}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{costFactory$fit(tsMat = NULL, covariates = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{tsMat}}{Numeric matrix. Time series of size \eqn{n \times p}. If \code{NULL}, the method will use the
+previously assigned \code{tsMat} (i.e., from a prior \verb{$fit(tsMat)}). Default: \code{NULL}.}
+
+\item{\code{covariates}}{Numeric matrix with \code{n} rows, used by \code{"LinearL2"}, \code{"LinearSIGMA"} and \code{"LinearL1"}. If
+\code{NULL} and no prior \code{covariates} were set, the model is force-fitted with only an intercept. Default: \code{NULL}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+This method constructs the \verb{C++} cost module and sets \code{private$.fitted} to \code{TRUE}, enabling the use
+of \verb{$eval()} and \verb{$get_params()}.
+}
+
 \subsection{Returns}{
 Invisibly returns \code{NULL}.
 }
