@@ -44,6 +44,17 @@ NULL
   Rcpp::loadModule("windowCpp_LinearL1_module", TRUE)
   Rcpp::loadModule("windowCpp_RFunc_module", TRUE)
 
+
+  #Dynp
+  Rcpp::loadModule("DynpCpp_L1_cwMed_module", TRUE)
+  Rcpp::loadModule("DynpCpp_L2_module", TRUE)
+  Rcpp::loadModule("DynpCpp_VAR_module", TRUE)
+  Rcpp::loadModule("DynpCpp_SIGMA_module", TRUE)
+  Rcpp::loadModule("DynpCpp_LinearL2_module", TRUE)
+  Rcpp::loadModule("DynpCpp_LinearSIGMA_module", TRUE)
+  Rcpp::loadModule("DynpCpp_LinearL1_module", TRUE)
+  Rcpp::loadModule("DynpCpp_RFunc_module", TRUE)
+
 }
 
 .onAttach <- function(libname, pkgname) {
