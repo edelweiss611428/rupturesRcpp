@@ -375,7 +375,7 @@ Pruned Exact Linear Time (PELT)
 minSize      : 2L
 jump         : 1L
 costFunc     : "Custom"
-evalFun      : `<function>`
+evalFun      : <function>
 paramFun     : NULL
 fitted       : TRUE
 n            : 200L
