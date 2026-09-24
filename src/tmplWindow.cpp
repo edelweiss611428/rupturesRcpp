@@ -22,12 +22,28 @@ inline arma::uvec findLocalMaxima(const arma::vec& gains,
     bool isMax = true;
     double centeredVal = gains[i];
 
-    // Compare with neighbors in [i - order, i + order]
-    for (int j = std::max(0, i - order); j <= std::min(nCandidates - 1, i + order); j++) {
-      if (j == i) continue;
-      if (gains[j] > centeredVal) {
+    int lo = std::max(0, i - order);
+    int hi = std::min(nCandidates - 1, i + order);
+
+    // Ties are broken towards the earlier index: a left neighbor that is equal-or-greater
+    // disqualifies i, but a right neighbor only disqualifies i if it is strictly greater.
+    // Without this asymmetry, every point in a plateau of equal gains (common on
+    // piecewise-constant data) would pass as its own "local maximum", since none of them
+    // is ever *strictly* beaten -- defeating the `order`/`radius` separation this function
+    // exists to enforce. This way, only the plateau's leftmost point survives.
+    for (int j = lo; j < i; j++) {
+      if (gains[j] >= centeredVal) {
         isMax = false;
         break;
+      }
+    }
+
+    if (isMax) {
+      for (int j = i + 1; j <= hi; j++) {
+        if (gains[j] > centeredVal) {
+          isMax = false;
+          break;
+        }
       }
     }
 
