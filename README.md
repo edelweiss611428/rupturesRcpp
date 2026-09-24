@@ -90,7 +90,7 @@ After initialising a `costFunc` object, create a segmentation object such as `bi
 |------------------|---------------------------|--------------------------------------------------------------------------------|---------------------------------------------------------------|
 | `binSeg`         | Binary Segmentation       | Recursively splits the signal at points that minimise the cost.                | `minSize`, `jump`, `costFunc`, `tsMat`, `covariates`          |
 | `Window`         | Slicing Window            | Detects change-points using local gains over sliding windows.                  | `minSize`, `jump`, `radius`, `costFunc`,`tsMat`, `covariates` |
-| `PELT`           | Pruned Exact Linear Time  | Optimal segmentation with pruning for linear-time performance.                 | `minSize`, `jump`, `costFunc`, `tsMat`, `covariates`          |
+| `PELT`           | Pruned Exact Linear Time  | Optimal segmentation with pruning for linear-time performance (`costFunc` must be `PELT`-compatible).                 | `minSize`, `jump`, `costFunc`, `tsMat`, `covariates`          |
 | `Dynp`           | Exact Dynamic Programming | Globally optimal segmentation for a specified number of change-points, via a full dynamic-programming table rather than `binSeg`'s greedy search. | `minSize`, `jump`, `nBkpsMax`, `costFunc`, `tsMat`, `covariates` |
 
 The `covariates` argument is optional and only required for models involving both dependent and independent variables (e.g., `"LinearL2"`, `"LinearSIGMA"`, `"LinearL1"`). If not provided, the model is force-fitted using only 
