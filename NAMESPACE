@@ -3,6 +3,7 @@
 export(PELT)
 export(Window)
 export(binSeg)
+export(costFactory)
 export(costFunc)
 import(ggplot2)
 import(patchwork)
