@@ -116,6 +116,8 @@ All segmentation objects (`binSeg`, `Window`, `PELT`, `Dynp`) implement the foll
 
 `Dynp` additionally implements `$costPath()`, the raw numeric vector of exact minimal costs that `$getHistory()` wraps into a `data.frame`.
 
+`PELT` additionally implements `$segments()`, which returns the cost and parameter estimates of each segment from the latest `$predict()` (see *Per-segment costs and parameters via `$segments()`* below).
+
 Active bindings (such as `minSize` or `tsMat`) can be modified at any time—either before or after the object is created via the `$` operator. 
 For consistency, if the object has already been fitted, modifying any active bindings will automatically trigger the re-fitting process.
 
@@ -503,6 +505,56 @@ DynpObj$getHistory()
 </pre>
 
 Unlike `binSeg`/`Window`, there is no `added_bkp` column: each `k`'s solution is independently exact and need not be nested inside the solution for `k+1`, so "the one breakpoint added at this step" is not generally well-defined. Use `$predict(nBkps = k)` to get the full breakpoint set for a given `k`.
+
+## Per-segment costs and parameters via `$segments()`
+
+After `$predict()`, `PELT`'s `$segments()` returns a list with one element per segment. Each element is a list with `Start`, `End`, `Cost` and `Params`, where the segment is `(Start, End]` with the same 0-based convention as `$eval(a, b)`. `Cost` equals `$eval(Start, End)`, and `Params` is the same named list `costFactory`'s `$get_params()` returns (see below).
+
+```r
+set.seed(1)
+tsMat = cbind(c(rnorm(100, 0), rnorm(100, 5, 5)))
+
+PELTObj = PELT$new(minSize = 5L, costFunc = costFunc$new("SIGMA"))
+PELTObj$fit(tsMat)
+PELTObj$predict(pen = 50)
+```
+<pre>
+[1] 100 200
+</pre>
+
+```r
+segs = PELTObj$segments()
+segs[[2]]
+```
+<pre>
+$Start
+[1] 100
+
+$End
+[1] 200
+
+$Cost
+[1] 312.2758
+
+$Params
+$Params$mean
+[1] 4.81096
+
+$Params$cov
+         [,1]
+[1,] 22.70893
+</pre>
+
+The segment costs add up to the optimal penalised cost minus `pen` times the number of change-points.
+
+```r
+sapply(segs, `[[`, "Cost")
+```
+<pre>
+[1] -22.47755 312.27581
+</pre>
+
+Re-fitting (including through an active binding such as `$minSize` or `$costFunc`) clears the segmentation saved by the last `$predict()`, so `$predict()` must be run again before calling `$segments()`.
 
 ## Cost evaluation without detection: `costFactory`
 
