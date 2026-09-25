@@ -34,6 +34,7 @@ for detailed basic usage!
 \item{\code{$fit()}}{Constructs a \code{binSeg} module in \verb{C++}.}
 \item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$predict()}}{Performs \code{binSeg} given a linear penalty value.}
+\item{\code{$segments()}}{Returns the cost and parameter estimates of each segment from the latest \verb{$predict()}.}
 \item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
 }
@@ -109,6 +110,7 @@ Modifying \code{covariates} will automatically trigger \verb{$fit()}.}
 \item \href{#method-binSeg-fit}{\code{binSeg$fit()}}
 \item \href{#method-binSeg-eval}{\code{binSeg$eval()}}
 \item \href{#method-binSeg-predict}{\code{binSeg$predict()}}
+\item \href{#method-binSeg-segments}{\code{binSeg$segments()}}
 \item \href{#method-binSeg-getHistory}{\code{binSeg$getHistory()}}
 \item \href{#method-binSeg-plotElbow}{\code{binSeg$plotElbow()}}
 \item \href{#method-binSeg-plot}{\code{binSeg$plot()}}
@@ -313,6 +315,38 @@ specifying endpoints manually.
 \subsection{Returns}{
 An integer vector of regime end-points. By design, the last element is the
 number of observations.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-binSeg-segments"></a>}}
+\if{latex}{\out{\hypertarget{method-binSeg-segments}{}}}
+\subsection{Method \code{segments()}}{
+Returns the cost and parameter estimates of each segment from the latest \verb{$predict()}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{binSeg$segments()}\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+Let \eqn{0 = c_0 < c_1 < \dots < c_{k+1} = n} be the end-points from the latest \verb{$predict()}, called with either
+\code{pen} or \code{nBkps}. Segment \eqn{i} is \eqn{(c_{i-1}, c_i]}, \code{Cost} is \eqn{c_{(c_{i-1}, c_i]}} and \code{Params} is its
+minimiser. Both modes return the first \eqn{k} change-points of the greedy splitting path, so the costs sum to
+\verb{$getHistory()$cost[k + 1]}. This is the cost of the greedy segmentation, not necessarily the minimal cost for
+\eqn{k} change-points (see \code{Dynp}).
+
+Temporary end-points are cleared by \verb{$fit()}, so \verb{$predict()} must be run again after modifying the object via
+its active bindings.
+}
+
+\subsection{Returns}{
+A list with one element per segment \eqn{(Start, End]}. Each element is a list with:
+
+\describe{
+\item{\code{Start}}{Start index of the segment (exclusive, 0-based), same convention as \verb{$eval()}.}
+\item{\code{End}}{End index of the segment (inclusive).}
+\item{\code{Cost}}{The segment cost, as returned by \verb{$eval(Start, End)}.}
+\item{\code{Params}}{A named list of the segment parameter estimates, e.g. \code{list(mean = ...)} for \code{"L2"}. See
+\code{costFactory} for the fields returned by each cost function.}
+}
 }
 }
 \if{html}{\out{<hr>}}
