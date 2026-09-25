@@ -43,6 +43,7 @@ for detailed basic usage!
 \item{\code{$fit()}}{Constructs a \code{Window} module in \verb{C++}.}
 \item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$predict()}}{Performs \code{Window} given a linear penalty value.}
+\item{\code{$segments()}}{Returns the cost and parameter estimates of each segment from the latest \verb{$predict()}.}
 \item{\code{$getHistory()}}{Retrieves the full cost history and sequentially added breakpoints.}
 \item{\code{$plotElbow()}}{Plots the elbow curve (Total Cost vs. Number of Change-Points).}
 \item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
@@ -121,6 +122,7 @@ Modifying \code{covariates} will automatically trigger \verb{$fit()}.}
 \item \href{#method-Window-fit}{\code{Window$fit()}}
 \item \href{#method-Window-eval}{\code{Window$eval()}}
 \item \href{#method-Window-predict}{\code{Window$predict()}}
+\item \href{#method-Window-segments}{\code{Window$segments()}}
 \item \href{#method-Window-getHistory}{\code{Window$getHistory()}}
 \item \href{#method-Window-plotElbow}{\code{Window$plotElbow()}}
 \item \href{#method-Window-plot}{\code{Window$plot()}}
@@ -332,6 +334,38 @@ specifying endpoints manually.
 \subsection{Returns}{
 An integer vector of regime end-points. By design, the last element is the
 number of observations.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Window-segments"></a>}}
+\if{latex}{\out{\hypertarget{method-Window-segments}{}}}
+\subsection{Method \code{segments()}}{
+Returns the cost and parameter estimates of each segment from the latest \verb{$predict()}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Window$segments()}\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+Let \eqn{0 = c_0 < c_1 < \dots < c_{k+1} = n} be the end-points from the latest \verb{$predict()}, called with either
+\code{pen} or \code{nBkps}. Segment \eqn{i} is \eqn{(c_{i-1}, c_i]}, \code{Cost} is \eqn{c_{(c_{i-1}, c_i]}} and \code{Params} is its
+minimiser. The costs sum to the total cost of this segmentation. For \eqn{k \ge 1} this generally differs from
+\verb{$getHistory()$cost[k + 1]}, which subtracts local gains computed on windows of \code{2 * radius} points instead of
+re-evaluating the segments.
+
+Temporary end-points are cleared by \verb{$fit()}, so \verb{$predict()} must be run again after modifying the object via
+its active bindings.
+}
+
+\subsection{Returns}{
+A list with one element per segment \eqn{(Start, End]}. Each element is a list with:
+
+\describe{
+\item{\code{Start}}{Start index of the segment (exclusive, 0-based), same convention as \verb{$eval()}.}
+\item{\code{End}}{End index of the segment (inclusive).}
+\item{\code{Cost}}{The segment cost, as returned by \verb{$eval(Start, End)}.}
+\item{\code{Params}}{A named list of the segment parameter estimates, e.g. \code{list(mean = ...)} for \code{"L2"}. See
+\code{costFactory} for the fields returned by each cost function.}
+}
 }
 }
 \if{html}{\out{<hr>}}

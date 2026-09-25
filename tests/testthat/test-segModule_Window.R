@@ -606,3 +606,65 @@ test_that("`$predict(nBkps=)` returns the exact prefix of `$getHistory()`'s `add
 #Lack of testing for C++ SW modules (to-be-updated)
 #Lack of comparision to gold-standard Slicing Window here (To-be-updated); however, testing has been done before
 
+test_that("`$segments()` returns the cost and params of each segment", {
+
+  set.seed(1)
+  X = matrix(c(rnorm(100, 0), rnorm(100, 5)))
+  WindowObj = Window$new()
+  WindowObj$fit(X)
+  expect_error(WindowObj$segments(), "Must run") #No `$predict()` yet
+
+  bkps = WindowObj$predict(pen = 10)
+  segs = WindowObj$segments()
+
+  expect_length(segs, length(bkps))
+  expect_equal(sapply(segs, `[[`, "Start"), c(0, head(bkps, -1)))
+  expect_equal(sapply(segs, `[[`, "End"), bkps)
+
+  for (s in segs) {
+    Xe = X[(s$Start + 1):s$End, , drop = FALSE]
+    expect_equal(s$Cost, sum((Xe - mean(Xe))^2))
+    expect_equal(s$Params$mean, colMeans(Xe))
+  }
+
+  #`nBkps` path. No cost identity with `$getHistory()`: its costs subtract local window gains, not segment costs.
+  #At least one local maximum always exists, so k = 1 is always available.
+  for (k in 0:1) {
+    bkps = WindowObj$predict(nBkps = k)
+    expect_equal(sapply(WindowObj$segments(), `[[`, "End"), bkps)
+  }
+
+  #The intercept-only force-fit path returns early from `$fit()`, but must still clear stale end points
+  linObj = Window$new(costFunc = costFunc$new("LinearL2"))
+  expect_warning(linObj$fit(X), "an intercept")
+  linObj$predict(pen = 10)
+  expect_warning(linObj$fit(), "an intercept")
+  expect_error(linObj$segments(), "Must run")
+
+})
+
+test_that("`$segments()` agrees with `costFactory` for every cost function", {
+
+  set.seed(2)
+  X = matrix(c(rnorm(100, 0), rnorm(100, 5, 3)))
+  covariates = matrix(rnorm(200))
+  WindowObj = Window$new(minSize = 5L)
+  WindowObj$fit(X)
+  WindowObj$covariates = covariates #`$fit()` only keeps `covariates` for Linear costs
+
+  for (cf in c("L1", "L2", "SIGMA", "VAR", "LinearL2", "LinearSIGMA")) {
+
+    suppressMessages(WindowObj$costFunc <- costFunc$new(cf))
+    expect_error(WindowObj$segments(), "Must run") #Refitting clears stale end points
+
+    WindowObj$predict(pen = 10)
+    facObj = costFactory$new(costFunc$new(cf))
+    facObj$fit(X, covariates)
+
+    for (s in WindowObj$segments()) {
+      expect_equal(s$Cost, facObj$eval(s$Start, s$End))
+      expect_equal(s$Params, facObj$get_params(s$Start, s$End))
+    }
+  }
+
+})

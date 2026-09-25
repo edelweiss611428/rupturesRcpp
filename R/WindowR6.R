@@ -73,6 +73,7 @@
 #'   \item{\code{$fit()}}{Constructs a `Window` module in `C++`.}
 #'   \item{\code{$eval()}}{Evaluates the cost of a segment.}
 #'   \item{\code{$predict()}}{Performs `Window` given a linear penalty value.}
+#'   \item{\code{$segments()}}{Returns the cost and parameter estimates of each segment from the latest `$predict()`.}
 #'   \item{\code{$getHistory()}}{Retrieves the full cost history and sequentially added breakpoints.}
 #'   \item{\code{$plotElbow()}}{Plots the elbow curve (Total Cost vs. Number of Change-Points).}
 #'   \item{\code{$plot()}}{Plots change-point segmentation in `ggplot` style.}
@@ -499,6 +500,11 @@ Window = R6Class(
 
       }
 
+      # End points from a previous `$predict()` are stale once the module is rebuilt
+      private$.tmpEndPts = NULL
+      private$.tmpPen = NULL
+      private$.tmpNBkps = NULL
+
       if(private$.costFunc$pass()[["costFunc"]] %in% c("LinearL2", "LinearSIGMA", "LinearL1")){
 
         if(!is.null(covariates)){
@@ -792,6 +798,45 @@ Window = R6Class(
       private$.tmpNBkps = NULL
 
       return(endPts)
+
+    },
+
+    #' @description Returns the cost and parameter estimates of each segment from the latest `$predict()`.
+    #'
+    #' @return A list with one element per segment \eqn{(Start, End]}. Each element is a list with:
+    #'
+    #' \describe{
+    #'   \item{\code{Start}}{Start index of the segment (exclusive, 0-based), same convention as `$eval()`.}
+    #'   \item{\code{End}}{End index of the segment (inclusive).}
+    #'   \item{\code{Cost}}{The segment cost, as returned by `$eval(Start, End)`.}
+    #'   \item{\code{Params}}{A named list of the segment parameter estimates, e.g. `list(mean = ...)` for `"L2"`. See
+    #'   `costFactory` for the fields returned by each cost function.}
+    #' }
+    #'
+    #' @details
+    #' Let \eqn{0 = c_0 < c_1 < \dots < c_{k+1} = n} be the end-points from the latest `$predict()`, called with either
+    #' `pen` or `nBkps`. Segment \eqn{i} is \eqn{(c_{i-1}, c_i]}, `Cost` is \eqn{c_{(c_{i-1}, c_i]}} and `Params` is its
+    #' minimiser. The costs sum to the total cost of this segmentation. For \eqn{k \ge 1} this generally differs from
+    #' `$getHistory()$cost[k + 1]`, which subtracts local gains computed on windows of `2 * radius` points instead of
+    #' re-evaluating the segments.
+    #'
+    #' Temporary end-points are cleared by `$fit()`, so `$predict()` must be run again after modifying the object via
+    #' its active bindings.
+
+    segments = function(){
+
+      if(is.null(private$.tmpEndPts)){
+        stop("Temporary `endPts` is null. Must run `$predict()` to initialise this!")
+      }
+
+      ends = private$.tmpEndPts
+      starts = c(0L, ends[-length(ends)])
+
+      mapply(function(a, b) {
+        list(Start = a, End = b,
+             Cost = private$.windowModule$eval(a, b),
+             Params = private$.windowModule$get_params(a, b))
+      }, starts, ends, SIMPLIFY = FALSE)
 
     },
 
