@@ -857,3 +857,70 @@ test_that("Dynp achieves cost <= binSeg's greedy solution for the same `nBkps`",
   }
 
 })
+
+test_that("`$segments()` returns the cost and params of each segment", {
+
+  set.seed(1)
+  X = matrix(c(rnorm(100, 0), rnorm(100, 5)))
+  DynpObj = Dynp$new(nBkpsMax = 5L) #Explicit `nBkpsMax`: no "not set" message
+  DynpObj$fit(X)
+  expect_error(DynpObj$segments(), "Must run") #No `$predict()` yet
+
+  bkps = DynpObj$predict(pen = 10)
+  segs = DynpObj$segments()
+
+  expect_length(segs, length(bkps))
+  expect_equal(sapply(segs, `[[`, "Start"), c(0, head(bkps, -1)))
+  expect_equal(sapply(segs, `[[`, "End"), bkps)
+
+  for (s in segs) {
+    Xe = X[(s$Start + 1):s$End, , drop = FALSE]
+    expect_equal(s$Cost, sum((Xe - mean(Xe))^2))
+    expect_equal(s$Params$mean, colMeans(Xe))
+  }
+
+  #Costs sum to the exact minimal cost for the number of change-points returned, for both `$predict()` modes
+  cp = DynpObj$costPath()
+  expect_equal(sum(sapply(segs, `[[`, "Cost")), cp[length(bkps)])
+
+  for (k in 0:3) {
+    bkps = DynpObj$predict(nBkps = k)
+    segs = DynpObj$segments()
+    expect_equal(sapply(segs, `[[`, "End"), bkps)
+    expect_equal(sum(sapply(segs, `[[`, "Cost")), cp[k + 1])
+  }
+
+  #The intercept-only force-fit path returns early from `$fit()`, but must still clear stale end points
+  linObj = Dynp$new(nBkpsMax = 5L, costFunc = costFunc$new("LinearL2"))
+  expect_warning(linObj$fit(X), "an intercept")
+  linObj$predict(pen = 10)
+  expect_warning(linObj$fit(), "an intercept")
+  expect_error(linObj$segments(), "Must run")
+
+})
+
+test_that("`$segments()` agrees with `costFactory` for every cost function", {
+
+  set.seed(2)
+  X = matrix(c(rnorm(100, 0), rnorm(100, 5, 3)))
+  covariates = matrix(rnorm(200))
+  DynpObj = Dynp$new(minSize = 5L, nBkpsMax = 5L)
+  DynpObj$fit(X)
+  DynpObj$covariates = covariates #`$fit()` only keeps `covariates` for Linear costs
+
+  for (cf in c("L1", "L2", "SIGMA", "VAR", "LinearL2", "LinearSIGMA")) {
+
+    suppressMessages(DynpObj$costFunc <- costFunc$new(cf))
+    expect_error(DynpObj$segments(), "Must run") #Refitting clears stale end points
+
+    DynpObj$predict(pen = 10)
+    facObj = costFactory$new(costFunc$new(cf))
+    facObj$fit(X, covariates)
+
+    for (s in DynpObj$segments()) {
+      expect_equal(s$Cost, facObj$eval(s$Start, s$End))
+      expect_equal(s$Params, facObj$get_params(s$Start, s$End))
+    }
+  }
+
+})

@@ -34,6 +34,7 @@ for detailed basic usage!
 \item{\code{$fit()}}{Constructs a \code{Dynp} module in \verb{C++}.}
 \item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$predict()}}{Returns the exact optimal breakpoints, for a given \code{pen} or \code{nBkps}.}
+\item{\code{$segments()}}{Returns the cost and parameter estimates of each segment from the latest \verb{$predict()}.}
 \item{\code{$costPath()}}{Returns the exact minimal cost for every change-point count up to \code{nBkpsMax}.}
 \item{\code{$getHistory()}}{Same data as \verb{$costPath()}, as a \code{k}/\code{cost} \code{data.frame} (same shape as \code{binSeg}/\code{Window}'s \verb{$getHistory()}, minus \code{added_bkp} -- see its own docs for why).}
 \item{\code{$plotElbow()}}{Plots the elbow curve (Total Cost vs. Number of Change-Points).}
@@ -107,6 +108,7 @@ Modifying \code{covariates} will automatically trigger \verb{$fit()}.}
 \item \href{#method-Dynp-fit}{\code{Dynp$fit()}}
 \item \href{#method-Dynp-eval}{\code{Dynp$eval()}}
 \item \href{#method-Dynp-predict}{\code{Dynp$predict()}}
+\item \href{#method-Dynp-segments}{\code{Dynp$segments()}}
 \item \href{#method-Dynp-costPath}{\code{Dynp$costPath()}}
 \item \href{#method-Dynp-getHistory}{\code{Dynp$getHistory()}}
 \item \href{#method-Dynp-plotElbow}{\code{Dynp$plotElbow()}}
@@ -278,6 +280,38 @@ users to call \verb{$plot()} without specifying endpoints manually.
 \subsection{Returns}{
 An integer vector of regime end-points. By design, the last element is the
 number of observations.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Dynp-segments"></a>}}
+\if{latex}{\out{\hypertarget{method-Dynp-segments}{}}}
+\subsection{Method \code{segments()}}{
+Returns the cost and parameter estimates of each segment from the latest \verb{$predict()}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Dynp$segments()}\if{html}{\out{</div>}}
+}
+
+\subsection{Details}{
+Let \eqn{0 = c_0 < c_1 < \dots < c_{k+1} = n} be the end-points from the latest \verb{$predict()}. Segment \eqn{i} is
+\eqn{(c_{i-1}, c_i]}, \code{Cost} is \eqn{c_{(c_{i-1}, c_i]}} and \code{Params} is its minimiser. The costs sum to
+\verb{$costPath()[k + 1]}, the exact minimal total cost for \eqn{k} change-points. With \code{nBkps}, \eqn{k} is the
+requested count (capped at the resolved \code{nBkpsMax}). With \code{pen}, \eqn{k} is the count, from 0 up to the resolved
+\code{nBkpsMax}, that minimises the total cost plus \code{pen} times \eqn{k}.
+
+Temporary end-points are cleared by \verb{$fit()}, so \verb{$predict()} must be run again after modifying the object via
+its active bindings.
+}
+
+\subsection{Returns}{
+A list with one element per segment \eqn{(Start, End]}. Each element is a list with:
+
+\describe{
+\item{\code{Start}}{Start index of the segment (exclusive, 0-based), same convention as \verb{$eval()}.}
+\item{\code{End}}{End index of the segment (inclusive).}
+\item{\code{Cost}}{The segment cost, as returned by \verb{$eval(Start, End)}.}
+\item{\code{Params}}{A named list of the segment parameter estimates, e.g. \code{list(mean = ...)} for \code{"L2"}. See
+\code{costFactory} for the fields returned by each cost function.}
+}
 }
 }
 \if{html}{\out{<hr>}}
