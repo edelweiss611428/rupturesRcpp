@@ -55,6 +55,7 @@
 #'   \item{\code{$fit()}}{Constructs a `Dynp` module in `C++`.}
 #'   \item{\code{$eval()}}{Evaluates the cost of a segment.}
 #'   \item{\code{$predict()}}{Returns the exact optimal breakpoints, for a given `pen` or `nBkps`.}
+#'   \item{\code{$segments()}}{Returns the cost and parameter estimates of each segment from the latest `$predict()`.}
 #'   \item{\code{$costPath()}}{Returns the exact minimal cost for every change-point count up to `nBkpsMax`.}
 #'   \item{\code{$getHistory()}}{Same data as `$costPath()`, as a `k`/`cost` `data.frame` (same shape as `binSeg`/`Window`'s `$getHistory()`, minus `added_bkp` -- see its own docs for why).}
 #'   \item{\code{$plotElbow()}}{Plots the elbow curve (Total Cost vs. Number of Change-Points).}
@@ -485,6 +486,11 @@ Dynp = R6Class(
 
       }
 
+      # End points from a previous `$predict()` are stale once the module is rebuilt
+      private$.tmpEndPts = NULL
+      private$.tmpPen = NULL
+      private$.tmpNBkps = NULL
+
       naturalMax = private$.n %/% private$.minSize - 1L
 
       if(is.null(private$.nBkpsMax)){
@@ -742,6 +748,45 @@ Dynp = R6Class(
       private$.tmpEndPts = endPts
 
       return(endPts)
+
+    },
+
+    #' @description Returns the cost and parameter estimates of each segment from the latest `$predict()`.
+    #'
+    #' @return A list with one element per segment \eqn{(Start, End]}. Each element is a list with:
+    #'
+    #' \describe{
+    #'   \item{\code{Start}}{Start index of the segment (exclusive, 0-based), same convention as `$eval()`.}
+    #'   \item{\code{End}}{End index of the segment (inclusive).}
+    #'   \item{\code{Cost}}{The segment cost, as returned by `$eval(Start, End)`.}
+    #'   \item{\code{Params}}{A named list of the segment parameter estimates, e.g. `list(mean = ...)` for `"L2"`. See
+    #'   `costFactory` for the fields returned by each cost function.}
+    #' }
+    #'
+    #' @details
+    #' Let \eqn{0 = c_0 < c_1 < \dots < c_{k+1} = n} be the end-points from the latest `$predict()`. Segment \eqn{i} is
+    #' \eqn{(c_{i-1}, c_i]}, `Cost` is \eqn{c_{(c_{i-1}, c_i]}} and `Params` is its minimiser. The costs sum to
+    #' `$costPath()[k + 1]`, the exact minimal total cost for \eqn{k} change-points. With `nBkps`, \eqn{k} is the
+    #' requested count (capped at the resolved `nBkpsMax`). With `pen`, \eqn{k} is the count, from 0 up to the resolved
+    #' `nBkpsMax`, that minimises the total cost plus `pen` times \eqn{k}.
+    #'
+    #' Temporary end-points are cleared by `$fit()`, so `$predict()` must be run again after modifying the object via
+    #' its active bindings.
+
+    segments = function(){
+
+      if(is.null(private$.tmpEndPts)){
+        stop("Temporary `endPts` is null. Must run `$predict()` to initialise this!")
+      }
+
+      ends = private$.tmpEndPts
+      starts = c(0L, ends[-length(ends)])
+
+      mapply(function(a, b) {
+        list(Start = a, End = b,
+             Cost = private$.DynpModule$eval(a, b),
+             Params = private$.DynpModule$get_params(a, b))
+      }, starts, ends, SIMPLIFY = FALSE)
 
     },
 
