@@ -653,6 +653,69 @@ test_that("`$predict(nBkps=)` returns the exact prefix of `$getHistory()`'s `add
 
 })
 
+test_that("`$segments()` returns the cost and params of each segment", {
 
+  set.seed(1)
+  X = matrix(c(rnorm(100, 0), rnorm(100, 5)))
+  binSegObj = binSeg$new()
+  binSegObj$fit(X)
+  expect_error(binSegObj$segments(), "Must run") #No `$predict()` yet
 
+  bkps = binSegObj$predict(pen = 10)
+  segs = binSegObj$segments()
 
+  expect_length(segs, length(bkps))
+  expect_equal(sapply(segs, `[[`, "Start"), c(0, head(bkps, -1)))
+  expect_equal(sapply(segs, `[[`, "End"), bkps)
+
+  for (s in segs) {
+    Xe = X[(s$Start + 1):s$End, , drop = FALSE]
+    expect_equal(s$Cost, sum((Xe - mean(Xe))^2))
+    expect_equal(s$Params$mean, colMeans(Xe))
+  }
+
+  #Both `$predict()` modes return a prefix of the greedy path, whose total cost `$getHistory()` records
+  hist = binSegObj$getHistory()
+  expect_equal(sum(sapply(segs, `[[`, "Cost")), hist$cost[length(bkps)])
+
+  for (k in 0:3) {
+    bkps = binSegObj$predict(nBkps = k)
+    segs = binSegObj$segments()
+    expect_equal(sapply(segs, `[[`, "End"), bkps)
+    expect_equal(sum(sapply(segs, `[[`, "Cost")), hist$cost[k + 1])
+  }
+
+  #The intercept-only force-fit path returns early from `$fit()`, but must still clear stale end points
+  linObj = binSeg$new(costFunc = costFunc$new("LinearL2"))
+  expect_warning(linObj$fit(X), "an intercept")
+  linObj$predict(pen = 10)
+  expect_warning(linObj$fit(), "an intercept")
+  expect_error(linObj$segments(), "Must run")
+
+})
+
+test_that("`$segments()` agrees with `costFactory` for every cost function", {
+
+  set.seed(2)
+  X = matrix(c(rnorm(100, 0), rnorm(100, 5, 3)))
+  covariates = matrix(rnorm(200))
+  binSegObj = binSeg$new(minSize = 5L)
+  binSegObj$fit(X)
+  binSegObj$covariates = covariates #`$fit()` only keeps `covariates` for Linear costs
+
+  for (cf in c("L1", "L2", "SIGMA", "VAR", "LinearL2", "LinearSIGMA")) {
+
+    suppressMessages(binSegObj$costFunc <- costFunc$new(cf))
+    expect_error(binSegObj$segments(), "Must run") #Refitting clears stale end points
+
+    binSegObj$predict(pen = 10)
+    facObj = costFactory$new(costFunc$new(cf))
+    facObj$fit(X, covariates)
+
+    for (s in binSegObj$segments()) {
+      expect_equal(s$Cost, facObj$eval(s$Start, s$End))
+      expect_equal(s$Params, facObj$get_params(s$Start, s$End))
+    }
+  }
+
+})
