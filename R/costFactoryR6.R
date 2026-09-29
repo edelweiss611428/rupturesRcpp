@@ -26,6 +26,7 @@
 #'   \item{\code{$fit()}}{Constructs the `C++` cost module.}
 #'   \item{\code{$eval()}}{Evaluates the cost of a segment.}
 #'   \item{\code{$get_params()}}{Returns the parameter estimates of a segment.}
+#'   \item{\code{$segments()}}{Returns the cost and parameter estimates of each segment of a given segmentation.}
 #'   \item{\code{$clone()}}{Clones the `R6` object.}
 #' }
 #'
@@ -44,6 +45,7 @@
 #' cf$fit(tsMat)
 #' cf$eval(0, 100)
 #' cf$get_params(0, 100)
+#' cf$segments(c(100, 200))
 #'
 #' # `costFunc` is an active binding: swapping it re-fits automatically.
 #' cf$costFunc = costFunc$new("SIGMA")
@@ -218,6 +220,37 @@ costFactory = R6Class(
       }
 
       private$.module$get_params(a, b)
+    },
+
+    #' @description Returns the cost and parameter estimates of each segment of a given segmentation.
+    #' @param endPts Integer vector. Segment end-points, e.g. from `$predict()` of `PELT`, `binSeg`, `Window` or
+    #' `Dynp`. Sorted internally; must be unique, at least `1`, and end at `n`.
+    #' @return A list with one element per segment \eqn{(Start, End]}, in the same format as the `$segments()` of the
+    #' segmentation classes. Each element is a list with `Start` (exclusive, 0-based), `End` (inclusive), `Cost`
+    #' (as returned by `$eval(Start, End)`) and `Params` (as returned by `$get_params(Start, End)`).
+    segments = function(endPts) {
+
+      if (!private$.fitted) {
+        stop("`$fit()` must be run before `$segments()`!")
+      }
+
+      if (!is.numeric(endPts) || length(endPts) == 0 || anyNA(endPts)) {
+        stop("`endPts` must be an integer vector specifying endpoints!")
+      }
+
+      ends = sort(as.integer(endPts))
+
+      if (ends[1] < 1 || ends[length(ends)] != private$.n || anyDuplicated(ends)) {
+        stop("`endPts` must be unique, at least 1, and end at `n`!")
+      }
+
+      starts = c(0L, ends[-length(ends)])
+
+      mapply(function(a, b) {
+        list(Start = a, End = b,
+             Cost = private$.module$eval(a, b),
+             Params = private$.module$get_params(a, b))
+      }, starts, ends, SIMPLIFY = FALSE)
     }
   )
 )

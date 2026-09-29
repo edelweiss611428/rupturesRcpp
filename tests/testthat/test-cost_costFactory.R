@@ -199,3 +199,33 @@ test_that("Expect $new()/$fit() separation and $costFunc active-binding behaviou
   expect_identical(cf$costFunc$pass()$costFunc, "SIGMA")
 
 })
+
+test_that("Expect $segments() in costFactory to return the cost and params of each segment", {
+
+  cf = costFactory$new(costFunc$new("SIGMA"))
+  expect_error(cf$segments(c(50, nr)), regexp = "must be run before")
+  cf$fit(tsMat)
+
+  #Unsorted end points are sorted
+  segs = cf$segments(c(nr, 30, 70))
+  expect_length(segs, 3)
+  expect_equal(sapply(segs, `[[`, "Start"), c(0, 30, 70))
+  expect_equal(sapply(segs, `[[`, "End"), c(30, 70, nr))
+
+  for (s in segs) {
+    expect_equal(s$Cost, cf$eval(s$Start, s$End))
+    expect_equal(s$Params, cf$get_params(s$Start, s$End))
+  }
+
+  #Takes the end points of a segmentation class as is, and gives the same result as its `$segments()`
+  PELTObj = PELT$new(minSize = 5L, costFunc = costFunc$new("SIGMA"))
+  PELTObj$fit(tsMat)
+  expect_equal(cf$segments(PELTObj$predict(pen = 50)), PELTObj$segments())
+
+  expect_error(cf$segments("50"), regexp = "must be an integer vector")
+  expect_error(cf$segments(c(50, NA, nr)), regexp = "must be an integer vector")
+  expect_error(cf$segments(c(0, 50, nr)), regexp = "must be unique, at least 1, and end at `n`")
+  expect_error(cf$segments(c(50, nr - 1)), regexp = "must be unique, at least 1, and end at `n`")
+  expect_error(cf$segments(c(50, 50, nr)), regexp = "must be unique, at least 1, and end at `n`")
+
+})
