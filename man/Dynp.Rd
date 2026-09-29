@@ -70,7 +70,8 @@ Signal Processing, 167, 107299.
 \author{
 Minh Long Nguyen \email{edelweiss611428@gmail.com} \cr
 Toby Dylan Hocking \email{toby.hocking@r-project.org} \cr
-Charles Truong \email{ctruong@ens-paris-saclay.fr}
+Charles Truong \email{ctruong@ens-paris-saclay.fr} \cr
+Huy Nhat Minh Nguyen \email{sleepysnorlax0115@gmail.com}
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}

@@ -86,7 +86,8 @@
 #' @author
 #' Minh Long Nguyen \email{edelweiss611428@gmail.com} \cr
 #' Toby Dylan Hocking \email{toby.hocking@r-project.org} \cr
-#' Charles Truong \email{ctruong@ens-paris-saclay.fr}
+#' Charles Truong \email{ctruong@ens-paris-saclay.fr} \cr
+#' Huy Nhat Minh Nguyen \email{sleepysnorlax0115@gmail.com}
 #' @export
 
 Window = R6Class(
