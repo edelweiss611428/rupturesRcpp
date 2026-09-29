@@ -558,7 +558,7 @@ Re-fitting (including through an active binding such as `$minSize` or `$costFunc
 
 ## Cost evaluation without detection: `costFactory`
 
-Sometimes you don't need a detection algorithm at all -- only fast cost evaluation and parameter estimation for segments whose boundaries you already have (e.g., cross-validating a `pen` value against known change-points, or just querying a segment's fitted parameters). `costFactory` wraps the same `C++` cost modules used internally by `PELT`/`binSeg`/`Window`/`Dynp`, exposing only `$eval()` and `$get_params()` -- no segmentation logic.
+Sometimes you don't need a detection algorithm at all -- only fast cost evaluation and parameter estimation for segments whose boundaries you already have (e.g., cross-validating a `pen` value against known change-points, or just querying a segment's fitted parameters). `costFactory` wraps the same `C++` cost modules used internally by `PELT`/`binSeg`/`Window`/`Dynp`, exposing only `$eval()`, `$get_params()` and `$segments()` -- no segmentation logic.
 
 ```r
 set.seed(1)
@@ -609,6 +609,16 @@ $cov
 </pre>
 
 `$get_params()`'s return shape depends on the cost function: `median`/`mean` for `"L1"`/`"L2"`, `mean` and `cov` for `"SIGMA"`, `coef` (intercept first) for `"VAR"`/`"LinearL2"`/`"LinearL1"`, `coef` and `cov` for `"LinearSIGMA"`, and `params` (whatever `paramFun` returns) for `"Custom"`.
+
+`$segments(endPts)` runs `$eval()` and `$get_params()` over every segment of a given segmentation, returning the same list as `PELT`'s `$segments()` (see above). `endPts` must end at `n`, so the output of any `$predict()` can be passed as is:
+
+```r
+segs = cf$segments(c(100, 200))
+sapply(segs, `[[`, "Cost")
+```
+<pre>
+[1] -22.47755 312.27581
+</pre>
 
 ## Future development
 

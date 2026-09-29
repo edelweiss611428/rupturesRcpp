@@ -33,6 +33,7 @@ automatically triggers \verb{$fit()} again.
 \item{\code{$fit()}}{Constructs the \verb{C++} cost module.}
 \item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$get_params()}}{Returns the parameter estimates of a segment.}
+\item{\code{$segments()}}{Returns the cost and parameter estimates of each segment of a given segmentation.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
 }
 }
@@ -44,6 +45,7 @@ cf = costFactory$new(costFunc$new("L2"))
 cf$fit(tsMat)
 cf$eval(0, 100)
 cf$get_params(0, 100)
+cf$segments(c(100, 200))
 
 # `costFunc` is an active binding: swapping it re-fits automatically.
 cf$costFunc = costFunc$new("SIGMA")
@@ -68,6 +70,7 @@ Modifying \code{costFunc} will automatically trigger \verb{$fit()} if a \code{ts
 \item \href{#method-costFactory-fit}{\code{costFactory$fit()}}
 \item \href{#method-costFactory-eval}{\code{costFactory$eval()}}
 \item \href{#method-costFactory-get_params}{\code{costFactory$get_params()}}
+\item \href{#method-costFactory-segments}{\code{costFactory$segments()}}
 \item \href{#method-costFactory-clone}{\code{costFactory$clone()}}
 }
 }
@@ -163,6 +166,29 @@ Returns the parameter estimates of the segment (a, b] with the module's \code{ge
 }
 \subsection{Returns}{
 A named list; see Details.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-costFactory-segments"></a>}}
+\if{latex}{\out{\hypertarget{method-costFactory-segments}{}}}
+\subsection{Method \code{segments()}}{
+Returns the cost and parameter estimates of each segment of a given segmentation.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{costFactory$segments(endPts)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{endPts}}{Integer vector. Segment end-points, e.g. from \verb{$predict()} of \code{PELT}, \code{binSeg}, \code{Window} or
+\code{Dynp}. Sorted internally; must be unique, at least \code{1}, and end at \code{n}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A list with one element per segment \eqn{(Start, End]}, in the same format as the \verb{$segments()} of the
+segmentation classes. Each element is a list with \code{Start} (exclusive, 0-based), \code{End} (inclusive), \code{Cost}
+(as returned by \verb{$eval(Start, End)}) and \code{Params} (as returned by \verb{$get_params(Start, End)}).
 }
 }
 \if{html}{\out{<hr>}}
