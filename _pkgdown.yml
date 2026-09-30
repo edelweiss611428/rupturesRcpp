@@ -1,0 +1,27 @@
+url: https://edelweiss611428.github.io/rupturesRcpp/
+template:
+  bootstrap: 5
+
+reference:
+- title: Costs
+  contents:
+  - costFunc
+  - costFactory
+- title: Segmentation classes
+  contents:
+  - binSeg
+  - Window
+  - PELT
+  - Dynp
+
+articles:
+- title: Components
+  navbar: Components
+  contents:
+  - articles/cost-functions
+  - articles/segmentation-classes
+- title: Topics
+  navbar: Topics
+  contents:
+  - articles/model-selection
+  - articles/segment-costs-and-parameters
