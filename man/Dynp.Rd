@@ -23,8 +23,8 @@ particularly when using custom cost functions for which PELT pruning cannot be g
 \code{costFunc} for the supported cost functions (\code{"L1"}, \code{"L2"}, \code{"SIGMA"}, \code{"VAR"}, \code{"LinearL2"},
 \code{"LinearSIGMA"}, \code{"LinearL1"}, \code{"Custom"}).
 
-Some examples are provided below. See the \href{https://github.com/edelweiss611428/rupturesRcpp/blob/main/README.md}{GitHub README}
-for detailed basic usage!
+Some examples are provided below. See the \href{https://edelweiss611428.github.io/rupturesRcpp/}{package website}
+for detailed usage!
 }
 \section{Methods}{
 
