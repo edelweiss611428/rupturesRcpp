@@ -1,16 +1,17 @@
 ---
-title: "Segmentation classes"
+title: "Segmentation methods"
+guide: true
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.asp = 0.5)
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 8, fig.height = 3)
 ```
+
+This chapter describes the four segmentation classes, the methods they share, and how refitting works. Each class takes a `costFunc` object and a time series and returns change-points; they differ in the search they use, from greedy (`binSeg`, `Window`) to exact (`PELT` for a penalty, `Dynp` for a number of change-points).
 
 ```{r setup, message = FALSE}
 library(rupturesRcpp)
 ```
-
-This page describes the four segmentation classes, the methods they share, and how refitting works. Each class takes a `costFunc` object and a time series and returns change-points; they differ in the search they use, from greedy (`binSeg`, `Window`) to exact (`PELT` for a penalty, `Dynp` for a number of change-points).
 
 ## Classes
 

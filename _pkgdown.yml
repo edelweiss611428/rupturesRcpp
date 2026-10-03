@@ -2,12 +2,47 @@ url: https://edelweiss611428.github.io/rupturesRcpp/
 template:
   bootstrap: 5
 
+authors:
+  sidebar:
+    roles: [cre, aut, ctb]
+  footer:
+    roles: [cre, aut, ctb]
+
+navbar:
+  structure:
+    left: [start, docs, cases]
+    right: [github]
+  components:
+    start:
+      text: Getting started
+      href: articles/getting-started.html
+    docs:
+      text: Documentation
+      menu:
+      - text: Overview
+        href: articles/documentation.html
+      - text: -------
+      - text: Cost functions
+        href: articles/cost-functions.html
+      - text: Segmentation methods
+        href: articles/segmentation-methods.html
+      - text: Model selection
+        href: articles/model-selection.html
+      - text: Segment costs and parameters
+        href: articles/segment-costs-and-parameters.html
+      - text: -------
+      - text: Function reference
+        href: reference/index.html
+    cases:
+      text: Case studies
+      href: articles/case-studies.html
+
 reference:
 - title: Costs
   contents:
   - costFunc
   - costFactory
-- title: Segmentation classes
+- title: Segmentation methods
   contents:
   - binSeg
   - Window
@@ -15,13 +50,16 @@ reference:
   - Dynp
 
 articles:
-- title: Components
-  navbar: Components
+- title: Getting started
   contents:
+  - articles/getting-started
+- title: Documentation
+  contents:
+  - articles/documentation
   - articles/cost-functions
-  - articles/segmentation-classes
-- title: Topics
-  navbar: Topics
-  contents:
+  - articles/segmentation-methods
   - articles/model-selection
   - articles/segment-costs-and-parameters
+- title: Case studies
+  contents:
+  - articles/case-studies

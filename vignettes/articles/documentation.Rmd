@@ -1,0 +1,64 @@
+---
+title: "Documentation"
+guide: true
+---
+
+The documentation covers the three parts of every detection: the cost function, the segmentation method and model selection. This page lists the basic functions and shows how the package is organised; the sidebar links to each part.
+
+## Basic functions
+
+Every segmentation class (`binSeg`, `Window`, `PELT` and `Dynp`) has the same methods, so code written for one runs with the others.
+
+| Function | What it does |
+|----------|--------------|
+| `costFunc$new()` | Chooses the cost function, which sets the kind of change to look for. |
+| `binSeg$new()`, `Window$new()`, `PELT$new()`, `Dynp$new()` | Chooses the segmentation method, which searches for the change-points. |
+| `$fit(tsMat)` | Attaches the time series: a matrix with one row per time point. |
+| `$predict(pen = ...)` | Returns the change-points for a penalty per change-point. |
+| `$predict(nBkps = ...)` | Returns the change-points for a given number of change-points. |
+| `$plot()` | Plots the series with the detected segments. |
+| `$segments()` | Gives the cost and parameter estimates of each segment. |
+| `$eval(a, b)` | Gives the cost of the segment `(a, b]`. |
+
+## How the package is organised
+
+A detection with $K$ change-points $t_1 < \dots < t_K$, where $t_0 = 0$ and $t_{K+1} = n$, minimises the total cost of the segments plus a penalty $\lambda$ per change-point:
+
+$$\sum_{k=0}^{K} c\left(y_{(t_k+1):t_{k+1}}\right) + \lambda K.$$
+
+The cost function sets $c$, the segmentation method searches over the change-points, and model selection sets $\lambda$, or fixes $K$ instead. The package follows the same split.
+
+```{=html}
+<figure class="pkg-map">
+<div class="pkg-map-root"><code>rupturesRcpp</code></div>
+<ul class="pkg-map-branches">
+<li>
+<a class="pkg-map-node" href="cost-functions.html">Cost functions</a>
+<p class="pkg-map-what">What kind of change to look for</p>
+<ul class="pkg-map-leaves">
+<li><a href="../reference/costFunc.html"><code>costFunc$new()</code></a>: <code>"L1"</code>, <code>"L2"</code>, <code>"SIGMA"</code>, <code>"VAR"</code>, <code>"LinearL2"</code>, <code>"LinearSIGMA"</code>, <code>"LinearL1"</code>, <code>"Custom"</code></li>
+<li><a href="segment-costs-and-parameters.html"><code>costFactory</code></a>: costs without a detection</li>
+</ul>
+</li>
+<li>
+<a class="pkg-map-node" href="segmentation-methods.html">Segmentation methods</a>
+<p class="pkg-map-what">How to search for change-points</p>
+<ul class="pkg-map-leaves">
+<li><a href="../reference/binSeg.html"><code>binSeg</code></a>: binary segmentation</li>
+<li><a href="../reference/Window.html"><code>Window</code></a>: sliding window</li>
+<li><a href="../reference/PELT.html"><code>PELT</code></a>: exact for a penalty</li>
+<li><a href="../reference/Dynp.html"><code>Dynp</code></a>: exact for a number of change-points</li>
+</ul>
+</li>
+<li>
+<a class="pkg-map-node" href="model-selection.html">Model selection</a>
+<p class="pkg-map-what">How many change-points to keep</p>
+<ul class="pkg-map-leaves">
+<li><code>$predict(pen = ...)</code>: a penalty per change-point</li>
+<li><code>$predict(nBkps = ...)</code>: a fixed number</li>
+<li><code>$getHistory()</code> and <code>$plotElbow()</code>: the elbow method</li>
+</ul>
+</li>
+</ul>
+</figure>
+```

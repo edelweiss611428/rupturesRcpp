@@ -88,13 +88,11 @@ binSegObj$plot(d = 1:2,
 
 ## Documentation
 
-Detailed usage is documented on the [package website](https://edelweiss611428.github.io/rupturesRcpp/):
+The [package website](https://edelweiss611428.github.io/rupturesRcpp/) has three parts:
 
-- [Get started](https://edelweiss611428.github.io/rupturesRcpp/articles/rupturesRcpp.html): the simulated SIGMA and VAR examples.
-- [Cost functions](https://edelweiss611428.github.io/rupturesRcpp/articles/cost-functions.html): the options of each cost function, and user-defined (`"Custom"`) costs.
-- [Segmentation classes](https://edelweiss611428.github.io/rupturesRcpp/articles/segmentation-classes.html): `binSeg`, `Window`, `PELT` and `Dynp`, their methods and active bindings.
-- [Model selection](https://edelweiss611428.github.io/rupturesRcpp/articles/model-selection.html): `$getHistory()`, `$plotElbow()`, `$predict(nBkps = ...)`, and exact segmentation with `Dynp`.
-- [Segment costs and parameters](https://edelweiss611428.github.io/rupturesRcpp/articles/segment-costs-and-parameters.html): `$segments()` and `costFactory`.
+- [Getting started](https://edelweiss611428.github.io/rupturesRcpp/articles/getting-started.html): installation and a first detection.
+- [Documentation](https://edelweiss611428.github.io/rupturesRcpp/articles/documentation.html): the basic functions and how the package is organised, then [Cost functions](https://edelweiss611428.github.io/rupturesRcpp/articles/cost-functions.html), [Segmentation methods](https://edelweiss611428.github.io/rupturesRcpp/articles/segmentation-methods.html), [Model selection](https://edelweiss611428.github.io/rupturesRcpp/articles/model-selection.html) and [Segment costs and parameters](https://edelweiss611428.github.io/rupturesRcpp/articles/segment-costs-and-parameters.html).
+- [Case studies](https://edelweiss611428.github.io/rupturesRcpp/articles/case-studies.html): longer worked examples.
 
 The website follows the development version on `main`, which can differ from the CRAN release. Each class is also documented in R, e.g. `?PELT` or `?costFactory`, and in the [function reference](https://edelweiss611428.github.io/rupturesRcpp/reference/).
 
