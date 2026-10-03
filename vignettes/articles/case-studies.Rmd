@@ -1,18 +1,20 @@
 ---
-title: "Get started"
+title: "Case studies"
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.asp = 0.5)
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 8, fig.height = 3)
 ```
+
+This page collects longer worked examples. The two below use simulated data and `binSeg`: a change in mean and variance (`"SIGMA"` cost), and a change in autoregressive dynamics (`"VAR"` cost). The second example also shows how to change an existing object through its active bindings.
 
 ```{r setup, message = FALSE}
 library(rupturesRcpp)
 ```
 
-This page walks through two simulated examples with `binSeg`: a change in mean and variance (`"SIGMA"` cost), and a change in autoregressive dynamics (`"VAR"` cost). The second example also shows how to change an existing object through its active bindings.
+## Simulated data
 
-## 2-regime SIGMA example via binary segmentation
+### 2-regime SIGMA example via binary segmentation
 
 To demonstrate the package usage, we first consider a simple 2d time series with two piecewise Gaussian regimes and varying variance.
 
@@ -46,12 +48,12 @@ binSegObj$predict(pen = 100)
 
 After running `$predict()`, the segmentation output is temporarily saved to the `binSeg` object, allowing users to use the `$plot()` method without specifying `endPts`.
 
-```{r, message = FALSE, fig.alt = "Two simulated series split into two shaded segments at the detected change-point, t = 100."}
+```{r, message = FALSE, fig.height = 5, fig.alt = "Two simulated series split into two shaded segments at the detected change-point, t = 100."}
 binSegObj$plot(d = 1:2,
                main = "method: binSeg; costFunc: SIGMA; pen: 100")
 ```
 
-## 2-regime VAR example: Modifying a `binSeg` object through its active bindings
+### 2-regime VAR example
 
 You can also modify a `binSeg` object's fields through its active bindings. To demonstrate this, we consider a piecewise vector autoregressive example with constant noise variance.
 
@@ -84,3 +86,7 @@ binSegObj$plot(d = 1L,
 ```
 
 The warning is expected: with `minSize = 1L`, some candidate segments have too few observations to fit the VAR model, so their cost falls back to an approximate solve.
+
+## Real data
+
+Case studies on real data are to be added.

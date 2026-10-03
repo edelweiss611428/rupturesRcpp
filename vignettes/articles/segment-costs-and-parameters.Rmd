@@ -1,18 +1,19 @@
 ---
 title: "Segment costs and parameters"
+guide: true
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.asp = 0.5)
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 8, fig.height = 3)
 ```
+
+This chapter shows how to get the cost and parameter estimates of each segment, either from a fitted segmentation (`$segments()`) or for any segment you choose, without running a detection algorithm (`costFactory`).
 
 ```{r setup, message = FALSE}
 library(rupturesRcpp)
 ```
 
-This page shows how to get the cost and parameter estimates of each segment, either from a fitted segmentation (`$segments()`) or for any segment you choose, without running a detection algorithm (`costFactory`).
-
-## Per-segment costs and parameters via `$segments()`
+## Costs and parameters of each segment
 
 After `$predict()`, `$segments()` returns a list with one element per segment (available on `binSeg`, `Window`, `PELT` and `Dynp`; the example below uses `PELT`). Each element is a list with `Start`, `End`, `Cost` and `Params`, where the segment is `(Start, End]` with the same 0-based convention as `$eval(a, b)`. `Cost` equals `$eval(Start, End)`, and `Params` is the same named list `costFactory`'s `$get_params()` returns (see below).
 
@@ -38,7 +39,7 @@ sapply(segs, `[[`, "Cost")
 
 Re-fitting (including through an active binding such as `$minSize` or `$costFunc`) clears the segmentation saved by the last `$predict()`, so `$predict()` must be run again before calling `$segments()`.
 
-## Cost evaluation without detection: `costFactory`
+## Costs without a detection algorithm
 
 Sometimes you don't need a detection algorithm at all, only fast cost evaluation and parameter estimation for segments whose boundaries you already have (e.g., cross-validating a `pen` value against known change-points, or just querying a segment's fitted parameters). `costFactory` wraps the same `C++` cost modules used internally by `PELT`/`binSeg`/`Window`/`Dynp`, exposing only `$eval()`, `$get_params()` and `$segments()`, with no segmentation logic.
 
