@@ -12,7 +12,7 @@
 
   `costFactory` class
 
-## Segmentation classes
+## Segmentation methods
 
 - [`binSeg`](https://edelweiss611428.github.io/rupturesRcpp/reference/binSeg.md)
   :

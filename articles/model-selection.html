@@ -10,7 +10,8 @@
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Model selection">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<script src="../extra.js"></script><meta property="og:title" content="Model selection">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -29,26 +30,23 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/rupturesRcpp.html">Get started</a></li>
-<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/getting-started.html">Getting started</a></li>
 <li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Components</h6></li>
-    <li><a class="dropdown-item" href="../articles/cost-functions.html">Cost functions</a></li>
-    <li><a class="dropdown-item" href="../articles/segmentation-classes.html">Segmentation classes</a></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-documentation" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Documentation</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-documentation">
+<li><a class="dropdown-item" href="../articles/documentation.html">Overview</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Topics</h6></li>
+    <li><a class="dropdown-item" href="../articles/cost-functions.html">Cost functions</a></li>
+    <li><a class="dropdown-item" href="../articles/segmentation-methods.html">Segmentation methods</a></li>
     <li><a class="dropdown-item" href="../articles/model-selection.html">Model selection</a></li>
     <li><a class="dropdown-item" href="../articles/segment-costs-and-parameters.html">Segment costs and parameters</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../reference/index.html">Function reference</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../articles/case-studies.html">Case studies</a></li>
       </ul>
 <ul class="navbar-nav">
-<li class="nav-item"><form class="form-inline" role="search">
- <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
-</form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/edelweiss611428/rupturesRcpp/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
@@ -60,27 +58,37 @@
 
 
 
+<!-- Article layout. Pages with `guide: true` in their YAML are Documentation pages: they get
+     the chapter sidebar, listed in the same order as the Documentation section in _pkgdown.yml.
+     pkgdown/extra.js marks the current page and adds the previous/next links. -->
 <div class="row">
-  <main id="main" class="col-md-9"><div class="page-header">
-
+  <nav class="guide-nav col-lg-2 order-2 order-lg-1" aria-label="Documentation"><h2><a class="guide-chapter" href="documentation.html">Documentation</a></h2>
+    <ul>
+<li><a class="guide-chapter" href="cost-functions.html">Cost functions</a></li>
+      <li><a class="guide-chapter" href="segmentation-methods.html">Segmentation methods</a></li>
+      <li><a class="guide-chapter" href="model-selection.html">Model selection</a></li>
+      <li><a class="guide-chapter" href="segment-costs-and-parameters.html">Segment costs and parameters</a></li>
+    </ul>
+<p class="guide-nav-part">Reference</p>
+    <ul>
+<li><a href="../reference/index.html">Function reference</a></li>
+    </ul></nav><main id="main" class="col-lg-7 order-1 order-lg-2"><div class="page-header">
       <h1>Model selection</h1>
-            
-      
-      <small class="dont-index">Source: <a href="https://github.com/edelweiss611428/rupturesRcpp/blob/main/vignettes/articles/model-selection.Rmd" class="external-link"><code>vignettes/articles/model-selection.Rmd</code></a></small>
-      <div class="d-none name"><code>model-selection.Rmd</code></div>
+      <!-- Kept from pkgdown's own template. Pandoc drops these when unused, but pkgdown's
+           tweak_useless_toc() inspects this template before pandoc runs and keeps the
+           "On this page" sidebar only if it finds more than one heading here. -->
+                        <div class="d-none name"><code>model-selection.Rmd</code></div>
     </div>
 
     
-    
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://edelweiss611428.github.io/rupturesRcpp/">rupturesRcpp</a></span><span class="op">)</span></span></code></pre></div>
-<p>This page shows how to choose the number of change-points without
+<p>This chapter shows how to choose the number of change-points without
 tuning <code>pen</code> directly: by reading the cost trajectory (the
 elbow method), or by asking <code>Dynp</code> for the exact optimum for
 each count.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://edelweiss611428.github.io/rupturesRcpp/">rupturesRcpp</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
-<h2 id="elbow-method-model-selection-gethistory-plotelbow-and-predictnbkps----">Elbow-method model selection: <code>$getHistory()</code>,
-<code>$plotElbow()</code>, and <code>$predict(nBkps = ...)</code><a class="anchor" aria-label="anchor" href="#elbow-method-model-selection-gethistory-plotelbow-and-predictnbkps----"></a>
+<h2 id="elbow-method">Elbow method<a class="anchor" aria-label="anchor" href="#elbow-method"></a>
 </h2>
 <p><code>binSeg</code> and <code>Window</code> both build up their
 segmentation by adding one change-point at a time: <code>binSeg</code>
@@ -89,7 +97,7 @@ by recursively splitting the segment that most reduces cost,
 <code>$getHistory()</code> exposes that trajectory directly, so you can
 inspect it, or choose the number of change-points via the “elbow
 method”, instead of only tuning <code>pen</code>.</p>
-<p>The examples below use the piecewise VAR series from <a href="rupturesRcpp.html">Get started</a>:</p>
+<p>The examples below use the piecewise VAR series from <a href="case-studies.html">Case studies</a>:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">tsMat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>, filter <span class="op">=</span> <span class="fl">0.9</span>, method <span class="op">=</span> <span class="st">"recursive"</span><span class="op">)</span>,</span>
@@ -115,7 +123,7 @@ object (cost vs. number of change-points); look for where the marginal
 decrease in cost flattens out to pick <code>k</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">binSegObj</span><span class="op">$</span><span class="fu">plotElbow</span><span class="op">(</span>maxK <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
-<p><img src="model-selection_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="Elbow plot of total cost against the number of change-points, dropping sharply at one change-point and then levelling off." width="700"></p>
+<p><img src="model-selection_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="Elbow plot of total cost against the number of change-points, dropping sharply at one change-point and then levelling off." width="768"></p>
 <p>Once a <code>k</code> is chosen, <code>$predict()</code> accepts it
 directly via <code>nBkps</code>, which takes precedence over
 <code>pen</code> when both are supplied:</p>
@@ -133,7 +141,7 @@ change-points as it found local maxima for; if you ask for more,
 shortfall via a message rather than erroring.</p>
 </div>
 <div class="section level2">
-<h2 id="exact-optimal-segmentation-via-dynp">Exact optimal segmentation via <code>Dynp</code><a class="anchor" aria-label="anchor" href="#exact-optimal-segmentation-via-dynp"></a>
+<h2 id="exact-segmentation-with-dynp">Exact segmentation with Dynp<a class="anchor" aria-label="anchor" href="#exact-segmentation-with-dynp"></a>
 </h2>
 <p>The caveat above (<code>binSeg</code>/<code>Window</code> returning
 their own best answer for a given <code>nBkps</code>, not necessarily
@@ -179,7 +187,7 @@ capped at 20 by default.</p>
 <span><span class="co">#&gt; [1] 100 200</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">DynpObj</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span>main <span class="op">=</span> <span class="st">"method: Dynp; costFunc: L2; nBkps: 1"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="model-selection_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="Series split into two shaded segments at the change-point t = 100 found by Dynp." width="700"></p>
+<p><img src="model-selection_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="Series split into two shaded segments at the change-point t = 100 found by Dynp." width="768"></p>
 <p>Since <code>$fit()</code> already computes the exact minimal cost for
 <em>every</em> change-point count from <code>0</code> to
 <code>nBkpsMax</code> in one pass (exposed via
@@ -204,14 +212,14 @@ independently exact and need not be nested inside the solution for
 generally well-defined. Use <code>$predict(nBkps = k)</code> to get the
 full breakpoint set for a given <code>k</code>.</p>
 </div>
-  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+  </main><aside class="col-lg-3 order-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Minh Long Nguyen, Toby Hocking, Charles Truong.</p>
+  <p>Developed by Minh Long Nguyen, Toby Hocking, Charles Truong, Huy Nhat Minh Nguyen.</p>
 </div>
 
 <div class="pkgdown-footer-right">

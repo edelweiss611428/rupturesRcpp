@@ -1,14 +1,14 @@
 # Cost functions
 
+This chapter lists the cost functions built into `rupturesRcpp`, their
+options, and how to supply your own cost as an R function. A cost
+function measures how badly a single model fits a segment; every
+segmentation class and `costFactory` takes one as a `costFunc` object.
+
 ``` r
 
 library(rupturesRcpp)
 ```
-
-This page lists the cost functions built into `rupturesRcpp`, their
-options, and how to supply your own cost as an R function. A cost
-function measures how badly a single model fits a segment; every
-segmentation class and `costFactory` takes one as a `costFunc` object.
 
 ## Built-in cost functions
 
@@ -25,15 +25,20 @@ costFuncObj$pass() #output attributes corresponding to the specified cost functi
 
 The following table shows the list of supported cost functions
 (pre-implemented ones are `PELT`-compatible; see [Segmentation
-classes](https://edelweiss611428.github.io/rupturesRcpp/articles/segmentation-classes.md)).
-Here, `n` is segment length.
+methods](https://edelweiss611428.github.io/rupturesRcpp/articles/segmentation-methods.md)).
+Here, `n` is the segment length, and the time complexity is that of one
+segment query. For `"LinearL1"`, `p` is the number of features (columns
+of `tsMat`), `J` the number of regression coefficients (covariates plus
+the intercept) and `maxIter` the maximum number of IRLS iterations:
+every query refits the regression on the segment’s rows, so it grows
+linearly in `n`.
 
 | **Cost function** | **Description** | **Parameters/active bindings** | **Dimension** | **Time complexity** |
 |----|----|----|----|----|
 | `"L1"` | Sum of `L1` distances to the segment-wise median; robust to outliers. | `costFunc` | `multi` | `O(nlog(n))` |
 | `"L2"` | Sum of squared `L2` distances to the segment-wise mean; faster but less robust than `L1`. | `costFunc` | `multi` | `O(1)` |
 | `"SIGMA"` | Log-determinant of the empirical covariance (divided by `n`, no bias correction); models varying mean&variance. | `costFunc`, `addSmallDiag`, `epsilon` | `multi` | `O(1)` |
-| `"LinearL1"` | Sum of `L1` residuals from a linear regression model, fit via Iteratively Reweighted Least Squares (IRLS); robust to outliers. | `costFunc`, `intercept`, `tol`, `maxIter` | `multi` | not `O(1)`! |
+| `"LinearL1"` | Sum of `L1` residuals from a linear regression model, fit via Iteratively Reweighted Least Squares (IRLS); robust to outliers. | `costFunc`, `intercept`, `tol`, `maxIter` | `multi` | `O(p·n·J²·maxIter)` |
 | `"LinearL2"` | Sum of squared residuals from a linear regression model with constant noise variance. | `costFunc`, `intercept` | `multi` | `O(1)` |
 | `"LinearSIGMA"` | Log-determinant of the residual covariance (divided by `n`, no degrees-of-freedom correction) from a linear regression model; models varying noise covariance around a regression mean. | `costFunc`, `intercept`, `addSmallDiag`, `epsilon` | `multi` | `O(1)` |
 | `"VAR"` | Sum of squared residuals from a vector autoregressive model with constant noise variance. | `costFunc`, `pVAR` | `multi` | `O(1)` |
@@ -62,7 +67,7 @@ costFuncObj$pass()
 #> [1] 1
 ```
 
-## User-defined cost functions: `costFunc = "Custom"`
+## User-defined cost functions
 
 If none of the built-in cost functions fit, `costFunc = "Custom"` lets
 you supply your own as a plain R function, with no C++ required. It
