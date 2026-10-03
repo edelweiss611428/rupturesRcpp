@@ -1,40 +1,39 @@
 # Welcome to rupturesRcpp
 
-[![R-CMD-check](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/edelweiss611428/rupturesRcpp/graphs/commit-activity) [![rupturesRcpp status badge](https://edelweiss611428.r-universe.dev/rupturesRcpp/badges/version)](https://edelweiss611428.r-universe.dev/rupturesRcpp)
-[![CRAN Version](https://www.r-pkg.org/badges/version/rupturesRcpp)](https://CRAN.R-project.org/package=rupturesRcpp)
-[![CRAN Downloads](https://cranlogs.r-pkg.org/badges/rupturesRcpp)](https://CRAN.R-project.org/package=rupturesRcpp) [![codecov](https://codecov.io/gh/edelweiss611428/rupturesRcpp/branch/main/graph/badge.svg)](https://app.codecov.io/gh/edelweiss611428/rupturesRcpp)
+[![R-CMD-check](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/edelweiss611428/rupturesRcpp/graphs/commit-activity) [![rupturesRcpp status badge](https://edelweiss611428.r-universe.dev/rupturesRcpp/badges/version)](https://edelweiss611428.r-universe.dev/rupturesRcpp) [![CRAN Version](https://www.r-pkg.org/badges/version/rupturesRcpp)](https://CRAN.R-project.org/package=rupturesRcpp) [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/rupturesRcpp)](https://CRAN.R-project.org/package=rupturesRcpp) [![codecov](https://codecov.io/gh/edelweiss611428/rupturesRcpp/branch/main/graph/badge.svg)](https://app.codecov.io/gh/edelweiss611428/rupturesRcpp)
 
-`rupturesRcpp` is an R package for offline change-point detection in multivariate time series. Given a whole series, it finds the times at which its behaviour changes: the mean, the variance, the autocorrelation, or the relationship with covariates. The algorithms run in C++, behind an object-oriented R6 interface.
+`rupturesRcpp` is an R package for **high-performance offline change-point detection in multivariate time series**. It provides a unified, object-oriented R6 interface to change-point detection methods implemented efficiently in C++.
 
-## Features
+The package detects **changes in the underlying structure of a time series**, including changes in mean, covariance, autoregressive dynamics, and regression relationships with covariates. It supports a range of cost functions, including custom cost function, and segmentation algorithms, from fast heuristic methods to exact dynamic-programming and penalised optimisation methods.
 
-- Cost functions and search methods implemented in C++ with Rcpp and RcppArmadillo.
-- One interface for every method: create an object, `$fit()` the data, `$predict()` the change-points and `$plot()` the result.
-- Change-points chosen by a penalty (`pen`) or by their number (`nBkps`), with elbow plots to help choose.
-- The cost and parameter estimates of each segment (`$segments()`), or of any segment without running a detection (`costFactory`).
-- Cost functions written in R, for changes the built-in costs do not cover.
 
-## Supported methods
+## Supported Methods
+
+### Cost Functions
 
 | Cost function | Detects changes in |
 |---------------|--------------------|
-| `"L1"`, `"L2"` | the mean (`"L1"` is robust to outliers) |
-| `"SIGMA"` | the mean and covariance |
-| `"VAR"` | vector autoregressive dynamics |
-| `"LinearL2"`, `"LinearL1"` | a linear regression on covariates (`"LinearL1"` is robust to outliers) |
-| `"LinearSIGMA"` | a linear regression and its noise covariance |
-| `"Custom"` | anything written as an R function |
+| `"L1"`, `"L2"` | Mean structure; `"L1"` provides greater robustness to outliers |
+| `"SIGMA"` | Mean and covariance structure |
+| `"VAR"` | Vector autoregressive dynamics |
+| `"LinearL2"`, `"LinearL1"` | Linear regression relationships with covariates; `"LinearL1"` provides greater robustness to outliers |
+| `"LinearSIGMA"` | Regression relationships and residual covariance |
+| `"Custom"` | User-defined structural changes through an R cost function |
 
-| Segmentation method | Search |
-|---------|---------------------------|
-| `binSeg` | binary segmentation: greedy and fast |
-| `Window` | sliding window: local gains, fast |
-| `PELT` | optimal for a penalty, with pruning |
-| `Dynp` | optimal for a number of change-points, by dynamic programming |
+### Segmentation Methods
 
-## About the project
+| Method | Search strategy |
+|---------|-----------------|
+| `binSeg` | Binary segmentation; a fast greedy search |
+| `Window` | Sliding-window search based on local changes |
+| `PELT` | Penalised optimisation with pruning |
+| `Dynp` | Dynamic programming for a specified number of change-points |
 
-`rupturesRcpp` ports the Python library [ruptures](https://centre-borelli.github.io/ruptures-docs/) to R. It was created during Google Summer of Code 2025 for The R Project for Statistical Computing by [@edelweiss611428](https://github.com/edelweiss611428), with mentors [@tdhock](https://github.com/tdhock) and [@deepcharles](https://github.com/deepcharles). The project archive is on the [gsoc-2025 branch](https://github.com/edelweiss611428/rupturesRcpp/blob/gsoc-2025/README.md).
+## About the Project
+
+`rupturesRcpp` provides an R implementation of functionality inspired by the Python library [ruptures](https://centre-borelli.github.io/ruptures-docs/), with a focus on efficient C++ implementations and an R-native object-oriented interface.
+
+The package was developed during **Google Summer of Code 2025** for [The R Project for Statistical Computing](https://www.r-project.org/) by [@edelweiss611428](https://github.com/edelweiss611428), under the mentorship of [@tdhock](https://github.com/tdhock) and [@deepcharles](https://github.com/deepcharles). The original GSoC project archive is available on the [gsoc-2025 branch](https://github.com/edelweiss611428/rupturesRcpp/blob/gsoc-2025/README.md).
 
 ## Installation
 
@@ -46,6 +45,3 @@ install.packages("rupturesRcpp",
 
 # CRAN release (1.0.3)
 install.packages("rupturesRcpp")
-```
-
-[Getting started](https://edelweiss611428.github.io/rupturesRcpp/articles/getting-started.html) explains the difference between the two and runs a first detection. The [package website](https://edelweiss611428.github.io/rupturesRcpp/) has the full documentation.
