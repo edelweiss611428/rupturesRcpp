@@ -4,7 +4,7 @@
 
 `rupturesRcpp` is an R package for **high-performance offline change-point detection in multivariate time series**. It provides a unified, object-oriented R6 interface to change-point detection methods implemented efficiently in C++.
 
-The package detects **changes in the underlying structure of a time series**, including changes in mean, covariance, autoregressive dynamics, and regression relationships with covariates. It supports a range of cost functions, including custom cost function, and segmentation algorithms, from fast heuristic methods to exact dynamic-programming and penalised optimisation methods.
+The package detects **changes in the underlying structure of a time series**, including changes in mean, covariance, autoregressive dynamics, and regression relationships with covariates. It supports a range of cost functions, and segmentation algorithms, from fast heuristic methods to exact dynamic-programming and penalised optimisation methods.
 
 
 ## Supported Methods
