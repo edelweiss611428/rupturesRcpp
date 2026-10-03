@@ -1,130 +1,51 @@
-# Welcome to `rupturesRcpp`
+# Welcome to rupturesRcpp
 
 [![R-CMD-check](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/edelweiss611428/rupturesRcpp/graphs/commit-activity) [![rupturesRcpp status badge](https://edelweiss611428.r-universe.dev/rupturesRcpp/badges/version)](https://edelweiss611428.r-universe.dev/rupturesRcpp)
-[![CRAN Version](https://www.r-pkg.org/badges/version/rupturesRcpp)](https://CRAN.R-project.org/package=rupturesRcpp) 
+[![CRAN Version](https://www.r-pkg.org/badges/version/rupturesRcpp)](https://CRAN.R-project.org/package=rupturesRcpp)
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/rupturesRcpp)](https://CRAN.R-project.org/package=rupturesRcpp) [![codecov](https://codecov.io/gh/edelweiss611428/rupturesRcpp/branch/main/graph/badge.svg)](https://app.codecov.io/gh/edelweiss611428/rupturesRcpp)
 
-## Description
+`rupturesRcpp` is an R package for offline change-point detection in multivariate time series. Given a whole series, it finds the times at which its behaviour changes: the mean, the variance, the autocorrelation, or the relationship with covariates. The algorithms run in C++, behind an object-oriented R6 interface.
 
-<p>The R package provides an efficient, object-oriented R6 interface for offline change point detection, implemented in C++ for high performance. This was created as part of the Google Summer of Code 2025 program (see <a href="https://github.com/edelweiss611428/rupturesRcpp/blob/gsoc-2025/README.md">edelweiss611428/rupturesRcpp at gsoc-2025</a> for the project archive).</p>
+## Features
 
-<pre>
-+------------------------------------------------------------+
-|                                                            |
-|          Google Summer of Code 2025 Program                |
-|                                                            | 
-|  Project: rupturesRcpp                                     |
-|  Contributor: @edelweiss611428                             |
-|  Mentors: @tdhock & @deepcharles                           |
-|  Organisation: The R Project for Statistical Computing     |
-|                                                            |
-+------------------------------------------------------------+
-</pre>
+- Cost functions and search methods implemented in C++ with Rcpp and RcppArmadillo.
+- One interface for every method: create an object, `$fit()` the data, `$predict()` the change-points and `$plot()` the result.
+- Change-points chosen by a penalty (`pen`) or by their number (`nBkps`), with elbow plots to help choose.
+- The cost and parameter estimates of each segment (`$segments()`), or of any segment without running a detection (`costFactory`).
+- Cost functions written in R, for changes the built-in costs do not cover.
 
+## Supported methods
+
+| Cost function | Detects changes in |
+|---------------|--------------------|
+| `"L1"`, `"L2"` | the mean (`"L1"` is robust to outliers) |
+| `"SIGMA"` | the mean and covariance |
+| `"VAR"` | vector autoregressive dynamics |
+| `"LinearL2"`, `"LinearL1"` | a linear regression on covariates (`"LinearL1"` is robust to outliers) |
+| `"LinearSIGMA"` | a linear regression and its noise covariance |
+| `"Custom"` | anything written as an R function |
+
+| Segmentation method | Search |
+|---------|---------------------------|
+| `binSeg` | binary segmentation: greedy and fast |
+| `Window` | sliding window: local gains, fast |
+| `PELT` | optimal for a penalty, with pruning |
+| `Dynp` | optimal for a number of change-points, by dynamic programming |
+
+## About the project
+
+`rupturesRcpp` ports the Python library [ruptures](https://centre-borelli.github.io/ruptures-docs/) to R. It was created during Google Summer of Code 2025 for The R Project for Statistical Computing by [@edelweiss611428](https://github.com/edelweiss611428), with mentors [@tdhock](https://github.com/tdhock) and [@deepcharles](https://github.com/deepcharles). The project archive is on the [gsoc-2025 branch](https://github.com/edelweiss611428/rupturesRcpp/blob/gsoc-2025/README.md).
 
 ## Installation
 
-To install the newest version of the package, use the following R code: 
-
 ```r
-library(devtools)
-install_github("edelweiss611428/rupturesRcpp") 
+# Development version, documented on the package website
+install.packages("rupturesRcpp",
+                 repos = c("https://edelweiss611428.r-universe.dev",
+                           "https://cloud.r-project.org"))
+
+# CRAN release (1.0.3)
+install.packages("rupturesRcpp")
 ```
 
-## Getting started
-
-To detect change-points using `rupturesRcpp` you need three main components:
-
-- **Cost function** (`costFunc`)
-- **Segmentation method** (`binSeg`, `Window`, `PELT`, `Dynp`)
-- **Linear penalty threshold**
-
-Each `component` is implemented using an R6-based object-oriented design for modularity and maintainability.
-
-For example, on a 2d series whose mean and variance change after `t = 100`:
-
-```r
-library("rupturesRcpp")
-
-set.seed(1)
-tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
-              c(rnorm(100,0), rnorm(100,5,5)))
-
-binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = costFunc$new("SIGMA"))
-binSegObj$fit(tsMat)
-binSegObj$predict(pen = 100)
-```
-<pre>
-[1] 100 200
-</pre>
-
-```r
-binSegObj$plot(d = 1:2,
-               main = "method: binSeg; costFunc: SIGMA; pen: 100")
-```
-<img width="2492" height="872" alt="image" src="https://github.com/user-attachments/assets/f8750edf-13d8-4363-b158-9beb744bef0b" />
-
-### Cost functions
-
-| **Cost function** | **Description**                                                                                  |
-|-------------------|--------------------------------------------------------------------------------------------------|
-| `"L1"`            | Sum of `L1` distances to the segment-wise median; robust to outliers.                            |
-| `"L2"`            | Sum of squared `L2` distances to the segment-wise mean; faster but less robust than `L1`.        |
-| `"SIGMA"`         | Log-determinant of the empirical covariance (divided by `n`, no bias correction); models varying mean&variance.                           |
-| `"LinearL1"`      | Sum of `L1` residuals from a linear regression model; robust to outliers.                        |
-| `"LinearL2"`      | Sum of squared residuals from a linear regression model with constant noise variance.            |
-| `"LinearSIGMA"`   | Log-determinant of the residual covariance (divided by `n`, no degrees-of-freedom correction) from a linear regression model.                       |
-| `"VAR"`           | Sum of squared residuals from a vector autoregressive model with constant noise variance.        |
-| `"Custom"`        | User-defined cost, supplied as a plain R function.                                               |
-
-### Segmentation methods
-
-| **R6 Class**     | **Method**                | **Description**                                                                |
-|------------------|---------------------------|--------------------------------------------------------------------------------|
-| `binSeg`         | Binary Segmentation       | Recursively splits the signal at points that minimise the cost.                |
-| `Window`         | Slicing Window            | Detects change-points using local gains over sliding windows.                  |
-| `PELT`           | Pruned Exact Linear Time  | Optimal segmentation with pruning for linear-time performance.                 |
-| `Dynp`           | Exact Dynamic Programming | Globally optimal segmentation for a specified number of change-points.         |
-
-## Documentation
-
-The [package website](https://edelweiss611428.github.io/rupturesRcpp/) has three parts:
-
-- [Getting started](https://edelweiss611428.github.io/rupturesRcpp/articles/getting-started.html): installation and a first detection.
-- [Documentation](https://edelweiss611428.github.io/rupturesRcpp/articles/documentation.html): the basic functions and how the package is organised, then [Cost functions](https://edelweiss611428.github.io/rupturesRcpp/articles/cost-functions.html), [Segmentation methods](https://edelweiss611428.github.io/rupturesRcpp/articles/segmentation-methods.html), [Model selection](https://edelweiss611428.github.io/rupturesRcpp/articles/model-selection.html) and [Segment costs and parameters](https://edelweiss611428.github.io/rupturesRcpp/articles/segment-costs-and-parameters.html).
-- [Case studies](https://edelweiss611428.github.io/rupturesRcpp/articles/case-studies.html): longer worked examples.
-
-The website follows the development version on `main`, which can differ from the CRAN release. Each class is also documented in R, e.g. `?PELT` or `?costFactory`, and in the [function reference](https://edelweiss611428.github.io/rupturesRcpp/reference/).
-
-## Future development
-
-- Improve the `"L1"` cost module, potentially allowing queries in `O(log(n))` time using data structures such as a persistent segment tree with `O(nlog(n))` precomputation.
-- Clean and enhance the existing object-oriented interface for improved efficiency, robustness, and accessibility (see https://github.com/edelweiss611428/R6BinSeg/tree/main for an idea).
-- Implement `$get_params()` for segmentation modules.
-- Implement methods for model selection/diagnostics.
-- Implement additional cost functions (e.g., `"Poisson"`).
-- Implement other offline change-point detection classes (e.g., `BottomUp`).
-- Improve `$plot()` method for models involving both dependent and independent variables.
-
-
-## Contributing
-
-We welcome all contributions, whether big or small. If you encounter a bug or have a feature request, please open an issue to let us know. 
-
-Feel free to fork the repository and make your changes. For significant updates, it’s best to discuss them with us first. When your changes are ready, submit a pull request.
-
-Thanks for helping us improve this project!
-
-## License
-
-This project is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) License. 
-
-
-## References
-
-- Hocking, T. D. (2024). *Finite Sample Complexity Analysis of Binary Segmentation*. arXiv preprint arXiv:2410.08654. 
-- Truong, C., Oudre, L., & Vayatis, N. (2020). *Selective review of offline change point detection methods*. Signal Processing, 167, 107299. 
-- Killick, R., Fearnhead, P., & Eckley, I. A. (2012). *Optimal detection of change points with a linear computational cost*. Journal of the American Statistical Association, 107(500), 1590–1598. 
-
-
-
+[Getting started](https://edelweiss611428.github.io/rupturesRcpp/articles/getting-started.html) explains the difference between the two and runs a first detection. The [package website](https://edelweiss611428.github.io/rupturesRcpp/) has the full documentation.
