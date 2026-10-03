@@ -6,7 +6,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Documentation • rupturesRcpp</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -40,8 +41,6 @@
     <li><a class="dropdown-item" href="../articles/segmentation-methods.html">Segmentation methods</a></li>
     <li><a class="dropdown-item" href="../articles/model-selection.html">Model selection</a></li>
     <li><a class="dropdown-item" href="../articles/segment-costs-and-parameters.html">Segment costs and parameters</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../reference/index.html">Function reference</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../articles/case-studies.html">Case studies</a></li>
@@ -68,10 +67,6 @@
       <li><a class="guide-chapter" href="segmentation-methods.html">Segmentation methods</a></li>
       <li><a class="guide-chapter" href="model-selection.html">Model selection</a></li>
       <li><a class="guide-chapter" href="segment-costs-and-parameters.html">Segment costs and parameters</a></li>
-    </ul>
-<p class="guide-nav-part">Reference</p>
-    <ul>
-<li><a href="../reference/index.html">Function reference</a></li>
     </ul></nav><main id="main" class="col-lg-7 order-1 order-lg-2"><div class="page-header">
       <h1>Documentation</h1>
       <!-- Kept from pkgdown's own template. Pandoc drops these when unused, but pkgdown's
@@ -144,26 +139,16 @@ change-points.</td>
 <div class="section level2">
 <h2 id="how-the-package-is-organised">How the package is organised<a class="anchor" aria-label="anchor" href="#how-the-package-is-organised"></a>
 </h2>
-<p>A detection with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
-change-points
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mn>1</mn></msub><mo>&lt;</mo><mi>…</mi><mo>&lt;</mo><msub><mi>t</mi><mi>K</mi></msub></mrow><annotation encoding="application/x-tex">t_1 &lt; \dots &lt; t_K</annotation></semantics></math>,
-where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mn>0</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t_0 = 0</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">t_{K+1} = n</annotation></semantics></math>,
-minimises the total cost of the segments plus a penalty
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
-per change-point:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi>K</mi></munderover><mi>c</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>y</mi><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mi>k</mi></msub><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mo>:</mo><msub><mi>t</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>λ</mi><mi>K</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">\sum_{k=0}^{K} c\left(y_{(t_k+1):t_{k+1}}\right) + \lambda K.</annotation></semantics></math></p>
-<p>The cost function sets
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>,
-the segmentation method searches over the change-points, and model
-selection sets
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>,
-or fixes
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
-instead. The package follows the same split.</p>
+<p>A detection with <span class="math inline">K</span> change-points
+<span class="math inline">t_1 &lt; \dots &lt; t_K</span>, where <span class="math inline">t_0 = 0</span> and <span class="math inline">t_{K+1}
+= n</span>, minimises the total cost of the segments plus a penalty
+<span class="math inline">\lambda</span> per change-point:</p>
+<p><span class="math display">\sum_{k=0}^{K}
+c\left(y_{(t_k+1):t_{k+1}}\right) + \lambda K.</span></p>
+<p>The cost function sets <span class="math inline">c</span>, the
+segmentation method searches over the change-points, and model selection
+sets <span class="math inline">\lambda</span>, or fixes <span class="math inline">K</span> instead. The package follows the same
+split.</p>
 <figure class="pkg-map"><div class="pkg-map-root"><code>rupturesRcpp</code></div>
 <ul class="pkg-map-branches">
 <li>

@@ -23,17 +23,15 @@ same methods, so code written for one runs with the others.
 
 ## How the package is organised
 
-A detection with $`K`$ change-points $`t_1 < \dots < t_K`$, where
-$`t_0 = 0`$ and $`t_{K+1} = n`$, minimises the total cost of the
-segments plus a penalty $`\lambda`$ per change-point:
+A detection with K change-points t_1 \< \dots \< t_K, where t_0 = 0 and
+t\_{K+1} = n, minimises the total cost of the segments plus a penalty
+\lambda per change-point:
 
-``` math
-\sum_{k=0}^{K} c\left(y_{(t_k+1):t_{k+1}}\right) + \lambda K.
-```
+\sum\_{k=0}^{K} c\left(y\_{(t_k+1):t\_{k+1}}\right) + \lambda K.
 
-The cost function sets $`c`$, the segmentation method searches over the
-change-points, and model selection sets $`\lambda`$, or fixes $`K`$
-instead. The package follows the same split.
+The cost function sets c, the segmentation method searches over the
+change-points, and model selection sets \lambda, or fixes K instead. The
+package follows the same split.
 
 `rupturesRcpp`
 

@@ -74,8 +74,8 @@ packageVersion("rupturesRcpp")
 #> [1] '2.0.0'
 ```
 
-Both series below change in mean and variance at $`t = 100`$. `tsMat`
-has one row per time point and one column per feature.
+Both series below change in mean and variance at t = 100. `tsMat` has
+one row per time point and one column per feature.
 
 ``` r
 
@@ -98,7 +98,7 @@ binSegObj$predict(pen = 100)
 
 `$predict()` returns the end of each segment, so the last value is
 always the number of observations. Here it finds the one change-point at
-$`t = 100`$. The penalty `pen` sets how many change-points are kept.
+t = 100. The penalty `pen` sets how many change-points are kept.
 
 ``` r
 
