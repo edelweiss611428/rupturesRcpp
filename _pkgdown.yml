@@ -1,6 +1,7 @@
 url: https://edelweiss611428.github.io/rupturesRcpp/
 template:
   bootstrap: 5
+  math-rendering: katex
 
 authors:
   sidebar:
@@ -30,9 +31,6 @@ navbar:
         href: articles/model-selection.html
       - text: Segment costs and parameters
         href: articles/segment-costs-and-parameters.html
-      - text: -------
-      - text: Function reference
-        href: reference/index.html
     cases:
       text: Case studies
       href: articles/case-studies.html
