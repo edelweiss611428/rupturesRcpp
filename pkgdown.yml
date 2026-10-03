@@ -1,0 +1,13 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  articles/cost-functions: cost-functions.html
+  articles/model-selection: model-selection.html
+  articles/rupturesRcpp: rupturesRcpp.html
+  articles/segment-costs-and-parameters: segment-costs-and-parameters.html
+  articles/segmentation-classes: segmentation-classes.html
+last_built: 2026-10-03T02:45Z
+urls:
+  reference: https://edelweiss611428.github.io/rupturesRcpp/reference
+  article: https://edelweiss611428.github.io/rupturesRcpp/articles
