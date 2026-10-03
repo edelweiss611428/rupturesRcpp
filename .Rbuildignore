@@ -2,3 +2,6 @@
 ^\.Rproj\.user$
 ^\.github$
 ^LICENSE\.md$
+^_pkgdown\.yml$
+^docs$
+^vignettes/articles$

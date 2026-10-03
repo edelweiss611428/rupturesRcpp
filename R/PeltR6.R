@@ -26,8 +26,8 @@
 #'
 #' See `$eval()` method for more details on computation of cost.
 #'
-#' Some examples are provided below. See the [GitHub README](https://github.com/edelweiss611428/rupturesRcpp/blob/main/README.md)
-#' for detailed basic usage!
+#' Some examples are provided below. See the [package website](https://edelweiss611428.github.io/rupturesRcpp/)
+#' for detailed usage!
 #'
 #' @examples
 #'

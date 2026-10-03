@@ -11,6 +11,7 @@ Authors@R:
     )
 Description: A collection of efficient implementations of popular offline change-point detection algorithms, featuring a consistent, object-oriented interface for practical use.
 Encoding: UTF-8
+URL: https://edelweiss611428.github.io/rupturesRcpp/, https://github.com/edelweiss611428/rupturesRcpp
 BugReports: https://github.com/edelweiss611428/rupturesRcpp/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
