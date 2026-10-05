@@ -1,17 +1,19 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Navbar: the Documentation label links to the Documentation page; its menu opens on
-  // hover or keyboard focus instead (see extra.css), so swap pkgdown's toggle button for a link.
-  var docsToggle = document.getElementById("dropdown-documentation");
-  var docsFirst = docsToggle && docsToggle.parentElement.querySelector(".dropdown-menu a");
-  if (docsFirst) {
-    var docsLink = document.createElement("a");
-    docsLink.id = docsToggle.id;
-    docsLink.className = docsToggle.className;
-    docsLink.href = docsFirst.getAttribute("href");
-    docsLink.setAttribute("aria-haspopup", "true");
-    docsLink.textContent = docsToggle.textContent;
-    docsToggle.replaceWith(docsLink);
-  }
+  // Navbar: the Documentation and Case studies labels link to their overview pages; their menus
+  // open on hover or keyboard focus instead (see extra.css), so swap pkgdown's toggle buttons for links.
+  ["dropdown-documentation", "dropdown-case-studies"].forEach(function (id) {
+    var toggle = document.getElementById(id);
+    var firstLink = toggle && toggle.parentElement.querySelector(".dropdown-menu a");
+    if (firstLink) {
+      var link = document.createElement("a");
+      link.id = toggle.id;
+      link.className = toggle.className;
+      link.href = firstLink.getAttribute("href");
+      link.setAttribute("aria-haspopup", "true");
+      link.textContent = toggle.textContent;
+      toggle.replaceWith(link);
+    }
+  });
 
   // Documentation pages: mark the current page in the sidebar and in the navbar, and add
   // previous/next links at the end of the page, in the order the sidebar lists them.

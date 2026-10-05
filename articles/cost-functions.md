@@ -88,8 +88,7 @@ exogenous series or weight vector) that the package itself is never told
 about. Because each call crosses back into R, it is substantially slower
 per call than the built-in costs, so prefer one of those when it fits.
 
-As a sanity check, re-implementing `"L2"` as a `"Custom"` cost gives
-identical numbers:
+For example, `"L2"` re-implemented as a `"Custom"` cost:
 
 ``` r
 
@@ -116,129 +115,34 @@ customCF$pass()
 #> NULL
 ```
 
-``` r
-
-set.seed(1)
-tsMat = cbind(c(rnorm(100,0), rnorm(100,5,5)),
-              c(rnorm(100,0), rnorm(100,5,5))) # the series from the 2-regime SIGMA worked example
-
-customObj = PELT$new(minSize = 1L, jump = 1L, costFunc = customCF)
-customObj$fit(tsMat)
-customObj$eval(0, 150)
-#> [1] 3943.78
-```
-
-which matches
-
-``` r
-
-L2Obj = PELT$new(costFunc = costFunc$new("L2"))
-L2Obj$fit(tsMat)
-L2Obj$eval(0, 150)
-#> [1] 3943.78
-```
-
-exactly.
-
 ### Risk of data mismatch
 
 The segmentation logic of existing modules only depends on being able to
 compute the cost for an arbitrary segment `(a,b]`; it does not depend on
 how the data are stored. Therefore, with a custom cost function, a
 mismatch can occur if the function relies on external data that are not
-part of the object passed to `$fit()`.
+part of the object passed to `$fit()`. The [Custom cost
+functions](https://edelweiss611428.github.io/rupturesRcpp/articles/case-study-custom.html#risk-of-data-mismatch)
+case study shows an example.
 
-**Data mismatch example**
+## Using a cost function
 
-For example, a custom Poisson cost can silently use externally captured
-data that do not match the data passed to `$fit()`:
+A `costFunc` object is passed to a segmentation class or to
+`costFactory`:
 
-``` r
-
-set.seed(1)
-counts = as.matrix(c(rpois(250, 5), rpois(250, 0)))
-counts2 = as.matrix(rpois(500, 5))
-
-poissonCost = function(segment, a, b) {
-  y = as.vector(counts[(a + 1):b])
-  lambda_hat = mean(y)
-  if (lambda_hat <= 0) return(0)
-  -2 * sum(dpois(y, lambda_hat, log = TRUE))
-}
-
-binSegObj = binSeg$new(
-  minSize = 5L,
-  costFunc = costFunc$new("Custom", evalFun = poissonCost)
-)
-binSegObj$fit(counts2) # counts2 has NO change-point by design.
-binSegObj$predict(nBkps = 1)
-#> [1] 250 500
-```
-
-Here, `counts` contains a change-point at 250, but `counts2` does not.
-Since `poissonCost` implicitly uses `counts` rather than `counts2`, the
-detected segmentation can be inconsistent with the data supplied to
-`$fit()`.
-
-``` r
-
-binSegObj$plot()
-```
-
-![Count series with no change-point, split at t = 250 because the custom
-cost reads a different
-series.](cost-functions_files/figure-html/unnamed-chunk-8-1.png)
-
-**Implicit external data example**. The actual use case is a custom cost
-function that closes over data the package was never explicitly given.
-For example, below, `externalSeries` is captured purely through lexical
-scope (it is never passed to `$fit()`), and `evalFun` uses `a` and `b`
-to align it with each candidate segment:
-
-``` r
-
-set.seed(1)
-tsMat2 = cbind(c(rnorm(100, 0), rnorm(100, 4)))
-externalSeries = as.matrix(rnorm(200)) # captured by closure, never passed to `$fit()`
-
-externalRegCost = function(segment, a, b){
-  x = externalSeries[(a+1):b, , drop = FALSE]
-  sum(lm(segment ~ x)$residuals^2)
-}
-
-customObj2 = PELT$new(minSize = 2L, jump = 1L,
-                       costFunc = costFunc$new("Custom", evalFun = externalRegCost))
-customObj2$fit(tsMat2)
-customObj2$predict(pen = 15)
-#> [1] 100 200
-```
-
-This matches the built-in `"LinearL2"` cost told about `externalSeries`
-directly, via `covariates`:
-
-``` r
-
-linObj = PELT$new(minSize = 2L, jump = 1L, costFunc = costFunc$new("LinearL2"))
-linObj$fit(tsMat2, externalSeries)
-linObj$predict(pen = 15)
-#> [1] 100 200
-```
-
-`$describe()` reports `evalFun`/`paramFun` as `<function>`/`NULL` rather
-than printing the closure itself:
-
-``` r
-
-customObj2$describe(printConfig = TRUE)
-#> Pruned Exact Linear Time (PELT) 
-#> minSize      : 2L
-#> jump         : 1L
-#> costFunc     : "Custom"
-#> evalFun      : <function>
-#> paramFun     : NULL
-#> fitted       : TRUE
-#> n            : 200L
-#> p            : 1L
-```
-
-`"Custom"` is supported by `PELT`, `binSeg`, `Window` and `Dynp` alike.
+- [Segmentation
+  methods](https://edelweiss611428.github.io/rupturesRcpp/articles/segmentation-methods.html#classes):
+  `binSeg`, `Window`, `PELT` and `Dynp` search for change-points under
+  the chosen cost.
+- [Segment costs and
+  parameters](https://edelweiss611428.github.io/rupturesRcpp/articles/segment-costs-and-parameters.html#costs-without-a-detection-algorithm):
+  `costFactory` evaluates segments you choose, without a detection.
+- Case studies: [Change in mean and
+  variance](https://edelweiss611428.github.io/rupturesRcpp/articles/case-study-sigma.md)
+  (`"SIGMA"`), [Change in autoregressive
+  dynamics](https://edelweiss611428.github.io/rupturesRcpp/articles/case-study-var.md)
+  (`"VAR"`), [Tuning the
+  penalty](https://edelweiss611428.github.io/rupturesRcpp/articles/case-study-pen.md)
+  (`"L2"`) and [Custom cost
+  functions](https://edelweiss611428.github.io/rupturesRcpp/articles/case-study-custom.md)
+  (`"Custom"`).

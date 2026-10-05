@@ -3,13 +3,17 @@ pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   articles/case-studies: case-studies.html
+  articles/case-study-custom: case-study-custom.html
+  articles/case-study-pen: case-study-pen.html
+  articles/case-study-sigma: case-study-sigma.html
+  articles/case-study-var: case-study-var.html
   articles/cost-functions: cost-functions.html
   articles/documentation: documentation.html
   articles/getting-started: getting-started.html
   articles/model-selection: model-selection.html
   articles/segment-costs-and-parameters: segment-costs-and-parameters.html
   articles/segmentation-methods: segmentation-methods.html
-last_built: 2026-10-03T04:39Z
+last_built: 2026-10-05T23:52Z
 urls:
   reference: https://edelweiss611428.github.io/rupturesRcpp/reference
   article: https://edelweiss611428.github.io/rupturesRcpp/articles

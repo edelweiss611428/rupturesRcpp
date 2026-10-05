@@ -37,6 +37,18 @@ A `PELT` object, for example, can be initialised as follows:
 detectionObj = PELT$new(minSize = 1L, jump = 1L, costFunc = costFunc$new("L2"))
 ```
 
+The [case
+studies](https://edelweiss611428.github.io/rupturesRcpp/articles/case-studies.md)
+run these classes from data to change-points: `binSeg` in [Change in
+mean and
+variance](https://edelweiss611428.github.io/rupturesRcpp/articles/case-study-sigma.md)
+and [Change in autoregressive
+dynamics](https://edelweiss611428.github.io/rupturesRcpp/articles/case-study-var.md),
+and `PELT` in [Tuning the
+penalty](https://edelweiss611428.github.io/rupturesRcpp/articles/case-study-pen.md)
+and [Custom cost
+functions](https://edelweiss611428.github.io/rupturesRcpp/articles/case-study-custom.md).
+
 ## Methods
 
 All segmentation objects (`binSeg`, `Window`, `PELT`, `Dynp`) implement

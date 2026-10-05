@@ -43,7 +43,17 @@
     <li><a class="dropdown-item" href="../articles/segment-costs-and-parameters.html">Segment costs and parameters</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../articles/case-studies.html">Case studies</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-case-studies" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Case studies</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-case-studies">
+<li><a class="dropdown-item" href="../articles/case-studies.html">Overview</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/case-study-sigma.html">Change in mean and variance</a></li>
+    <li><a class="dropdown-item" href="../articles/case-study-var.html">Change in autoregressive dynamics</a></li>
+    <li><a class="dropdown-item" href="../articles/case-study-pen.html">Tuning the penalty</a></li>
+    <li><a class="dropdown-item" href="../articles/case-study-custom.html">Custom cost functions</a></li>
+  </ul>
+</li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/edelweiss611428/rupturesRcpp/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -255,8 +265,8 @@ exogenous series or weight vector) that the package itself is never told
 about. Because each call crosses back into R, it is substantially slower
 per call than the built-in costs, so prefer one of those when it
 fits.</p>
-<p>As a sanity check, re-implementing <code>"L2"</code> as a
-<code>"Custom"</code> cost gives identical numbers:</p>
+<p>For example, <code>"L2"</code> re-implemented as a
+<code>"Custom"</code> cost:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myL2eval</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">segment</span>, <span class="va">a</span>, <span class="va">b</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">segment</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">segment</span><span class="op">)</span></span>
@@ -279,22 +289,6 @@ fits.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $paramFun</span></span>
 <span><span class="co">#&gt; NULL</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">tsMat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">5</span>,<span class="fl">5</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>              <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>,<span class="fl">5</span>,<span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="co"># the series from the 2-regime SIGMA worked example</span></span>
-<span></span>
-<span><span class="va">customObj</span> <span class="op">=</span> <span class="va"><a href="../reference/PELT.html">PELT</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>minSize <span class="op">=</span> <span class="fl">1L</span>, jump <span class="op">=</span> <span class="fl">1L</span>, costFunc <span class="op">=</span> <span class="va">customCF</span><span class="op">)</span></span>
-<span><span class="va">customObj</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span><span class="va">tsMat</span><span class="op">)</span></span>
-<span><span class="va">customObj</span><span class="op">$</span><span class="fu">eval</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">150</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 3943.78</span></span></code></pre></div>
-<p>which matches</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">L2Obj</span> <span class="op">=</span> <span class="va"><a href="../reference/PELT.html">PELT</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>costFunc <span class="op">=</span> <span class="va"><a href="../reference/costFunc.html">costFunc</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="st">"L2"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">L2Obj</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span><span class="va">tsMat</span><span class="op">)</span></span>
-<span><span class="va">L2Obj</span><span class="op">$</span><span class="fu">eval</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">150</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 3943.78</span></span></code></pre></div>
-<p>exactly.</p>
 <div class="section level3">
 <h3 id="risk-of-data-mismatch">Risk of data mismatch<a class="anchor" aria-label="anchor" href="#risk-of-data-mismatch"></a>
 </h3>
@@ -302,85 +296,31 @@ fits.</p>
 to compute the cost for an arbitrary segment <code>(a,b]</code>; it does
 not depend on how the data are stored. Therefore, with a custom cost
 function, a mismatch can occur if the function relies on external data
-that are not part of the object passed to <code>$fit()</code>.</p>
-<p><strong>Data mismatch example</strong></p>
-<p>For example, a custom Poisson cost can silently use externally
-captured data that do not match the data passed to
-<code>$fit()</code>:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">counts</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">250</span>, <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">250</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">counts2</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">poissonCost</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">segment</span>, <span class="va">a</span>, <span class="va">b</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">y</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">counts</span><span class="op">[</span><span class="op">(</span><span class="va">a</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span><span class="op">:</span><span class="va">b</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">lambda_hat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="va">lambda_hat</span> <span class="op">&lt;=</span> <span class="fl">0</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
-<span>  <span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">dpois</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">lambda_hat</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">binSegObj</span> <span class="op">=</span> <span class="va"><a href="../reference/binSeg.html">binSeg</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  minSize <span class="op">=</span> <span class="fl">5L</span>,</span>
-<span>  costFunc <span class="op">=</span> <span class="va"><a href="../reference/costFunc.html">costFunc</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="st">"Custom"</span>, evalFun <span class="op">=</span> <span class="va">poissonCost</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">binSegObj</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span><span class="va">counts2</span><span class="op">)</span> <span class="co"># counts2 has NO change-point by design.</span></span>
-<span><span class="va">binSegObj</span><span class="op">$</span><span class="fu">predict</span><span class="op">(</span>nBkps <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 250 500</span></span></code></pre></div>
-<p>Here, <code>counts</code> contains a change-point at 250, but
-<code>counts2</code> does not. Since <code>poissonCost</code> implicitly
-uses <code>counts</code> rather than <code>counts2</code>, the detected
-segmentation can be inconsistent with the data supplied to
-<code>$fit()</code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">binSegObj</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="cost-functions_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="Count series with no change-point, split at t = 250 because the custom cost reads a different series." width="768"></p>
-<p><strong>Implicit external data example</strong>. The actual use case
-is a custom cost function that closes over data the package was never
-explicitly given. For example, below, <code>externalSeries</code> is
-captured purely through lexical scope (it is never passed to
-<code>$fit()</code>), and <code>evalFun</code> uses <code>a</code> and
-<code>b</code> to align it with each candidate segment:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">tsMat2</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">externalSeries</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span><span class="op">)</span> <span class="co"># captured by closure, never passed to `$fit()`</span></span>
-<span></span>
-<span><span class="va">externalRegCost</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">segment</span>, <span class="va">a</span>, <span class="va">b</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="va">x</span> <span class="op">=</span> <span class="va">externalSeries</span><span class="op">[</span><span class="op">(</span><span class="va">a</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span><span class="op">:</span><span class="va">b</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">segment</span> <span class="op">~</span> <span class="va">x</span><span class="op">)</span><span class="op">$</span><span class="va">residuals</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">customObj2</span> <span class="op">=</span> <span class="va"><a href="../reference/PELT.html">PELT</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>minSize <span class="op">=</span> <span class="fl">2L</span>, jump <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>                       costFunc <span class="op">=</span> <span class="va"><a href="../reference/costFunc.html">costFunc</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="st">"Custom"</span>, evalFun <span class="op">=</span> <span class="va">externalRegCost</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">customObj2</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span><span class="va">tsMat2</span><span class="op">)</span></span>
-<span><span class="va">customObj2</span><span class="op">$</span><span class="fu">predict</span><span class="op">(</span>pen <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 100 200</span></span></code></pre></div>
-<p>This matches the built-in <code>"LinearL2"</code> cost told about
-<code>externalSeries</code> directly, via <code>covariates</code>:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">linObj</span> <span class="op">=</span> <span class="va"><a href="../reference/PELT.html">PELT</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>minSize <span class="op">=</span> <span class="fl">2L</span>, jump <span class="op">=</span> <span class="fl">1L</span>, costFunc <span class="op">=</span> <span class="va"><a href="../reference/costFunc.html">costFunc</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="st">"LinearL2"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">linObj</span><span class="op">$</span><span class="fu">fit</span><span class="op">(</span><span class="va">tsMat2</span>, <span class="va">externalSeries</span><span class="op">)</span></span>
-<span><span class="va">linObj</span><span class="op">$</span><span class="fu">predict</span><span class="op">(</span>pen <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 100 200</span></span></code></pre></div>
-<p><code>$describe()</code> reports
-<code>evalFun</code>/<code>paramFun</code> as
-<code>&lt;function&gt;</code>/<code>NULL</code> rather than printing the
-closure itself:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">customObj2</span><span class="op">$</span><span class="fu">describe</span><span class="op">(</span>printConfig <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Pruned Exact Linear Time (PELT) </span></span>
-<span><span class="co">#&gt; minSize      : 2L</span></span>
-<span><span class="co">#&gt; jump         : 1L</span></span>
-<span><span class="co">#&gt; costFunc     : "Custom"</span></span>
-<span><span class="co">#&gt; evalFun      : &lt;function&gt;</span></span>
-<span><span class="co">#&gt; paramFun     : NULL</span></span>
-<span><span class="co">#&gt; fitted       : TRUE</span></span>
-<span><span class="co">#&gt; n            : 200L</span></span>
-<span><span class="co">#&gt; p            : 1L</span></span></code></pre></div>
-<p><code>"Custom"</code> is supported by <code>PELT</code>,
-<code>binSeg</code>, <code>Window</code> and <code>Dynp</code>
-alike.</p>
+that are not part of the object passed to <code>$fit()</code>. The <a href="case-study-custom.html#risk-of-data-mismatch">Custom cost
+functions</a> case study shows an example.</p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="using-a-cost-function">Using a cost function<a class="anchor" aria-label="anchor" href="#using-a-cost-function"></a>
+</h2>
+<p>A <code>costFunc</code> object is passed to a segmentation class or
+to <code>costFactory</code>:</p>
+<ul>
+<li>
+<a href="segmentation-methods.html#classes">Segmentation
+methods</a>: <code>binSeg</code>, <code>Window</code>, <code>PELT</code>
+and <code>Dynp</code> search for change-points under the chosen
+cost.</li>
+<li>
+<a href="segment-costs-and-parameters.html#costs-without-a-detection-algorithm">Segment
+costs and parameters</a>: <code>costFactory</code> evaluates segments
+you choose, without a detection.</li>
+<li>Case studies: <a href="case-study-sigma.html">Change in mean and
+variance</a> (<code>"SIGMA"</code>), <a href="case-study-var.html">Change in autoregressive dynamics</a>
+(<code>"VAR"</code>), <a href="case-study-pen.html">Tuning the
+penalty</a> (<code>"L2"</code>) and <a href="case-study-custom.html">Custom cost functions</a>
+(<code>"Custom"</code>).</li>
+</ul>
 </div>
   </main><aside class="col-lg-3 order-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
