@@ -6,8 +6,9 @@ Each case study is a complete example on its own page, from data to change-point
 
 | Case study | Cost function | Method | Also shows |
 |---|---|---|---|
-| [Change in mean and variance](case-study-sigma.html) | `"SIGMA"` | `binSeg` | `$describe()` and `$plot()` |
-| [Change in autoregressive dynamics](case-study-var.html) | `"VAR"` | `binSeg` | Changing an object through its active bindings |
+| [Change in mean and variance](case-study-sigma.html) | `"SIGMA"` | `binSeg` | `$describe()`, `$plot()` and the elbow method |
+| [Change in autoregressive dynamics](case-study-var.html) | `"VAR"` | `binSeg` | Changing an object through its active bindings, and the elbow method |
+| [Tuning the penalty](case-study-pen.html) | `"L2"` | `PELT` | Choosing `pen` from a grid of values |
 | [Custom cost functions](case-study-custom.html) | `"Custom"` | `PELT`, `binSeg` | Data from outside `$fit()` |
 
 Case studies on real data are to be added.

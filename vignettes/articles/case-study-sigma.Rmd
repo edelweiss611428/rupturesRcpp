@@ -36,7 +36,7 @@ binSegObj$describe(printConfig = TRUE)
 
 To obtain an estimated segmentation, we can use the `$predict()` method and specify a non-negative penalty value `pen`, which should be properly tuned. This returns a sorted integer vector of end-points, including the number of observations by design.
 
-Here, we set `pen = 100`.
+Here, we set `pen = 100` by hand. See [Tuning the penalty](case-study-pen.html) for how `pen` could be tuned.
 
 ```{r}
 binSegObj$predict(pen = 100)
@@ -47,4 +47,16 @@ After running `$predict()`, the segmentation output is temporarily saved to the 
 ```{r, message = FALSE, fig.height = 5, fig.alt = "Two simulated series split into two shaded segments at the detected change-point, t = 100."}
 binSegObj$plot(d = 1:2,
                main = "method: binSeg; costFunc: SIGMA; pen: 100")
+```
+
+Instead of setting `pen`, we can choose the number of change-points with the elbow method (see [Model selection](model-selection.html#elbow-method)). `$plotElbow()` plots the cost against the number of change-points.
+
+```{r, fig.height = 3.5, fig.alt = "Elbow plot of total cost against the number of change-points, dropping sharply at one change-point and then falling only slowly."}
+binSegObj$plotElbow(maxK = 10)
+```
+
+The cost drops sharply at one change-point and then falls only slowly, so we take `nBkps = 1`. This gives the same change-point as `pen = 100`.
+
+```{r}
+binSegObj$predict(nBkps = 1)
 ```

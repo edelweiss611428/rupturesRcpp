@@ -84,4 +84,4 @@ A `costFunc` object is passed to a segmentation class or to `costFactory`:
 
 - [Segmentation methods](segmentation-methods.html#classes): `binSeg`, `Window`, `PELT` and `Dynp` search for change-points under the chosen cost.
 - [Segment costs and parameters](segment-costs-and-parameters.html#costs-without-a-detection-algorithm): `costFactory` evaluates segments you choose, without a detection.
-- Case studies: [Change in mean and variance](case-study-sigma.html) (`"SIGMA"`), [Change in autoregressive dynamics](case-study-var.html) (`"VAR"`) and [Custom cost functions](case-study-custom.html) (`"Custom"`).
+- Case studies: [Change in mean and variance](case-study-sigma.html) (`"SIGMA"`), [Change in autoregressive dynamics](case-study-var.html) (`"VAR"`), [Tuning the penalty](case-study-pen.html) (`"L2"`) and [Custom cost functions](case-study-custom.html) (`"Custom"`).

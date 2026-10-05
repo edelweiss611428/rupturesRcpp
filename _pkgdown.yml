@@ -41,6 +41,8 @@ navbar:
         href: articles/case-study-sigma.html
       - text: Change in autoregressive dynamics
         href: articles/case-study-var.html
+      - text: Tuning the penalty
+        href: articles/case-study-pen.html
       - text: Custom cost functions
         href: articles/case-study-custom.html
 
@@ -72,4 +74,5 @@ articles:
   - articles/case-studies
   - articles/case-study-sigma
   - articles/case-study-var
+  - articles/case-study-pen
   - articles/case-study-custom
