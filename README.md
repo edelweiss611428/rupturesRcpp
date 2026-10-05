@@ -45,3 +45,6 @@ install.packages("rupturesRcpp",
 
 # CRAN release (1.0.3)
 install.packages("rupturesRcpp")
+```
+
+Documentation and case studies are available on the [package website](https://edelweiss611428.github.io/rupturesRcpp/). See [Getting started](https://edelweiss611428.github.io/rupturesRcpp/articles/getting-started.html) for the differences between the two versions and a first detection.
