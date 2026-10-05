@@ -1,0 +1,61 @@
+---
+title: "Change in autoregressive dynamics"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 8, fig.height = 3)
+```
+
+This case study detects a change in autoregressive dynamics with the `"VAR"` cost and `binSeg`, and shows how to change an existing object through its active bindings. The series is piecewise vector autoregressive with constant noise variance.
+
+```{r setup, message = FALSE}
+library(rupturesRcpp)
+```
+
+```{r}
+set.seed(1)
+tsMat = matrix(c(filter(rnorm(100), filter = 0.9, method = "recursive"),
+                 filter(rnorm(100), filter = -0.9, method = "recursive")))
+```
+
+Suppose a `binSeg` object has already been fitted with the `"L2"` cost:
+
+```{r}
+binSegObj = binSeg$new(minSize = 1L, jump = 1L, costFunc = costFunc$new("L2"))
+binSegObj$fit(tsMat)
+```
+
+Here, the most suitable cost function is `"VAR"`. We will modify the current `binSegObj` as follows:
+
+```{r}
+VARObj = costFunc$new("VAR")
+binSegObj$costFunc = VARObj
+```
+
+Modifying `costFunc` (or any other binding, such as `tsMat`) automatically triggers `self$fit()` once the object has been fitted.
+
+```{r}
+binSegObj$describe(printConfig = TRUE)
+```
+
+We can then perform binary segmentation with `pen = 25`, set by hand, and plot the segmentation results. See [Tuning the penalty](case-study-pen.html) for how `pen` could be tuned.
+
+```{r, message = FALSE, fig.alt = "Simulated autoregressive series with the change-points found by binSeg with the VAR cost marked by dashed lines."}
+binSegObj$predict(pen = 25)
+binSegObj$plot(d = 1L,
+               main = "method: binSeg; costFunc: VAR; pen: 25")
+```
+
+The warning is expected: with `minSize = 1L`, some candidate segments have too few observations to fit the VAR model, so their cost falls back to an approximate solve.
+
+Instead of setting `pen`, we can choose the number of change-points with the elbow method (see [Model selection](model-selection.html#elbow-method)). `$plotElbow()` plots the cost against the number of change-points.
+
+```{r, fig.height = 3.5, fig.alt = "Elbow plot of total cost against the number of change-points, dropping sharply at one change-point and then levelling off."}
+binSegObj$plotElbow(maxK = 10)
+```
+
+The cost drops sharply at one change-point and then levels off, so we take `nBkps = 1`. This gives the same change-point as `pen = 25`.
+
+```{r}
+binSegObj$predict(nBkps = 1)
+```

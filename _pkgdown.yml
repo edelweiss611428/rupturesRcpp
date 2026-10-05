@@ -33,7 +33,18 @@ navbar:
         href: articles/segment-costs-and-parameters.html
     cases:
       text: Case studies
-      href: articles/case-studies.html
+      menu:
+      - text: Overview
+        href: articles/case-studies.html
+      - text: -------
+      - text: Change in mean and variance
+        href: articles/case-study-sigma.html
+      - text: Change in autoregressive dynamics
+        href: articles/case-study-var.html
+      - text: Tuning the penalty
+        href: articles/case-study-pen.html
+      - text: Custom cost functions
+        href: articles/case-study-custom.html
 
 reference:
 - title: Costs
@@ -61,3 +72,7 @@ articles:
 - title: Case studies
   contents:
   - articles/case-studies
+  - articles/case-study-sigma
+  - articles/case-study-var
+  - articles/case-study-pen
+  - articles/case-study-custom

@@ -32,6 +32,8 @@ A `PELT` object, for example, can be initialised as follows:
 detectionObj = PELT$new(minSize = 1L, jump = 1L, costFunc = costFunc$new("L2"))
 ```
 
+The [case studies](case-studies.html) run these classes from data to change-points: `binSeg` in [Change in mean and variance](case-study-sigma.html) and [Change in autoregressive dynamics](case-study-var.html), and `PELT` in [Tuning the penalty](case-study-pen.html) and [Custom cost functions](case-study-custom.html).
+
 ## Methods
 
 All segmentation objects (`binSeg`, `Window`, `PELT`, `Dynp`) implement the following methods:
