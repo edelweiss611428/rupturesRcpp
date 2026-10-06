@@ -125,10 +125,11 @@ compiler is needed.</p>
 </div>
 <div class="tab-pane" id="from-source" role="tabpanel" aria-labelledby="from-source-tab">
 
-<p>Building from GitHub needs a C++ toolchain: Rtools on Windows, the
-Xcode command line tools on macOS (<code>xcode-select --install</code>),
-or a C++ compiler on Linux (for example <code>r-base-dev</code> on
-Debian and Ubuntu).</p>
+<p>Building from GitHub requires a C++ toolchain: Rtools on Windows; the
+Xcode Command Line Tools on macOS (<code>xcode-select --install</code>)
+and a GNU Fortran compiler (see the <a href="https://cran.r-project.org/bin/macosx/tools/" class="external-link">CRAN macOS tools</a>
+page); or a C++ compiler on Linux (for example, <code>r-base-dev</code>
+on Debian and Ubuntu).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"edelweiss611428/rupturesRcpp"</span><span class="op">)</span></span></code></pre></div>
