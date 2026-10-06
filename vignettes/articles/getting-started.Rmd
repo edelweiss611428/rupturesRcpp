@@ -30,7 +30,7 @@ install.packages("rupturesRcpp",
 
 ### From source
 
-Building from GitHub needs a C++ toolchain: Rtools on Windows, the Xcode command line tools on macOS (`xcode-select --install`), or a C++ compiler on Linux (for example `r-base-dev` on Debian and Ubuntu).
+Building from GitHub requires a C++ toolchain: Rtools on Windows; the Xcode Command Line Tools on macOS (`xcode-select --install`) and a GNU Fortran compiler (see the [CRAN macOS tools](https://cran.r-project.org/bin/macosx/tools/) page); or a C++ compiler on Linux (for example, `r-base-dev` on Debian and Ubuntu).
 
 ```{r, eval = FALSE}
 # install.packages("remotes")
