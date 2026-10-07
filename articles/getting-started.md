@@ -11,15 +11,6 @@ mean, its variance, its autocorrelation, or its relationship with other
 variables. Detection is offline: the whole series is available at once,
 and the goal is the set of change-points that best explains it.
 
-The cost functions and search methods follow the Python library
-[ruptures](https://centre-borelli.github.io/ruptures-docs/), whose
-methods are reviewed by [Truong, Oudre and Vayatis
-(2020)](https://doi.org/10.1016/j.sigpro.2019.107299). `rupturesRcpp`
-implements them in C++ with Rcpp and RcppArmadillo, wraps them in R6
-classes, and also accepts cost functions written in R. The package was
-created during Google Summer of Code 2025 for the R Project for
-Statistical Computing.
-
 ## Installation
 
 Choose how to install. This site documents the development version.
