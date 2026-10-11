@@ -7,6 +7,8 @@
 The package detects **changes in the underlying structure of a time series**, including changes in mean, covariance, autoregressive dynamics, and regression relationships with covariates. It supports a range of cost functions, and segmentation algorithms, from fast heuristic methods to exact dynamic-programming and penalised optimisation methods.
 
 
+Documentation and case studies are available on the [package website](https://edelweiss611428.github.io/rupturesRcpp/). See [Getting started](https://edelweiss611428.github.io/rupturesRcpp/articles/getting-started.html) for the differences between the two versions and a first detection.
+
 ## Supported Methods
 
 ### Cost Functions
@@ -47,4 +49,3 @@ install.packages("rupturesRcpp",
 install.packages("rupturesRcpp")
 ```
 
-Documentation and case studies are available on the [package website](https://edelweiss611428.github.io/rupturesRcpp/). See [Getting started](https://edelweiss611428.github.io/rupturesRcpp/articles/getting-started.html) for the differences between the two versions and a first detection.
