@@ -22,9 +22,12 @@ automatically triggers \verb{$fit()} again.
 \item \code{"L2"}: \code{mean}.
 \item \code{"SIGMA"}: \code{mean} and \code{cov} (plus \code{epsilon} on the diagonal if \code{addSmallDiag = TRUE}).
 \item \code{"VAR"}, \code{"LinearL2"} and \code{"LinearL1"}: \code{coef}, intercept first.
-\item \code{"LinearSIGMA"}: \code{coef} and \code{cov}.
+\item \code{"LinearSIGMA"}: \code{coef} and \code{cov} (plus \code{epsilon} on the diagonal if \code{addSmallDiag = TRUE}).
 \item \code{"Custom"}: \code{params}, the output of \code{paramFun}; an empty list if \code{paramFun} is \code{NULL}.
 }
+
+Both \code{cov}s are biased maximum-likelihood estimates: divided by the segment length \code{b - a}, with no Bessel
+(\code{n - 1}) or degrees-of-freedom correction.
 }
 \section{Methods}{
 

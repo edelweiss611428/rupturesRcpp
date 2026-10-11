@@ -650,17 +650,17 @@ Window = R6Class(
     #' where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a \ge b - 1}, return 0.
     #'
     #' - **SIGMA cost function**:
-    #' \deqn{c_{\sum}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
+    #' \deqn{c_{\Sigma}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
     #' the empirical covariance matrix of the segment without Bessel's correction. Here, if `addSmallDiag = TRUE`, a small
     #' bias `epsilon` is added to the diagonal of estimated covariance matrices to improve numerical stability. \cr
     #' \cr
-    #' By default, `addSmallDiag = TRUE` and `epsilon = 1e-6`. In case `addSmallDiag = TRUE`, if the computed determinant of covariance matrix is either 0 (singular)
-    #' or smaller than `p*log(epsilon)` - the lower bound, return `(b - a)*p*log(epsilon)`, otherwise, output an error message.
+    #' By default, `addSmallDiag = TRUE` and `epsilon = 1e-6`. In case `addSmallDiag = TRUE`, if the covariance matrix is numerically singular (its log-determinant cannot be computed)
+    #' or its log-determinant is smaller than the lower bound `p*log(epsilon)`, return `(b - a)*p*log(epsilon)`, otherwise, output an error message.
     #'
     #' - **VAR(r) cost function**:
-    #' \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
-    #' where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
-    #' \eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where `n` is the time series length), return 0.
+    #' \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = \max(a, r)+1}^{b} \left\| y_t - \hat c - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
+    #' where \eqn{\hat c} and \eqn{\hat A_j} are the OLS estimates of the intercept and VAR coefficients on the segment. The lagged values \eqn{y_{t-j}} may come from before \eqn{a+1}, so only the first \eqn{r} observations of the whole series lack a full set of lags. If the system is singular, an approximate (minimum-norm) least-squares solve is used. If
+    #' \eqn{b-a < p*r+1} (i.e., not enough observations), or \eqn{a > n-r} (where `n` is the time series length), return 0.
     #'
     #' - **"LinearL2"** for piecewise linear regression process with **constant noise variance**
     #' \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
@@ -668,7 +668,7 @@ Window = R6Class(
     #'
     #' - **"LinearSIGMA"** for piecewise linear regression process with **varying noise covariance**
     #' \deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
-    #' is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
+    #' is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, divided by \eqn{b-a} with no degrees-of-freedom correction for the fitted coefficients, and otherwise estimated
     #' the same way as in the SIGMA cost function.
     #'
     #' - **"LinearL1"** for piecewise linear regression process under **L1 (least absolute deviations) loss**
@@ -724,7 +724,7 @@ Window = R6Class(
     #' if the gains of its \eqn{k_\text{thresh}} neighbors to the left and right are all smaller than its gain,
     #' where \eqn{k_\text{thresh}} is defined as
     #' \deqn{
-    #' k_\text{thresh} = \max \left( \frac{\max(2\text{radius}, 2 \cdot \text{minSize})}{2 \cdot \text{jump}}, 1 \right)
+    #' k_\text{thresh} = \max \left( \left\lfloor \frac{\max(2\text{radius}, 2 \cdot \text{minSize})}{2 \cdot \text{jump}} \right\rfloor, 1 \right)
     #' }
     #'
     #' After candidate local change-points and computing the local gains, the algorithm selects the "optimal" set of break-points given the linear penalty threshold.
@@ -737,7 +737,7 @@ Window = R6Class(
     #'   \text{TotalCost} = - \sum_{i=1}^{k} G_i + \lambda \cdot k,
     #' }
     #' where \eqn{\lambda} is a linear penalty applied per change-point. We then optimise over
-    #' \eqn{k} to minimise the penalised cost function.
+    #' \eqn{k = 1, \dots, n_\text{lcps}} to minimise the penalised cost function. \eqn{k = 0} is not a candidate, so at least one change-point is returned whenever a local change-point exists, however large the penalty.
     #'
     #' This approach allows detecting multiple change-points in a time series while controlling
     #' model complexity through the linear penalty threshold.

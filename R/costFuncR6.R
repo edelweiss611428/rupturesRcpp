@@ -16,17 +16,17 @@
 #' where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a \ge b - 1}, return 0.
 #'
 #' - **SIGMA cost function**:
-#' \deqn{c_{\sum}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
+#' \deqn{c_{\Sigma}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
 #' the empirical covariance matrix of the segment without Bessel's correction. Here, if `addSmallDiag = TRUE`, a small
 #' bias `epsilon` is added to the diagonal of estimated covariance matrices to improve numerical stability. \cr
 #' \cr
-#' By default, `addSmallDiag = TRUE` and `epsilon = 1e-6`. In case `addSmallDiag = TRUE`, if the computed determinant of covariance matrix is either 0 (singular)
-#' or smaller than `p*log(epsilon)` - the lower bound, return `(b - a)*p*log(epsilon)`, otherwise, output an error message.
+#' By default, `addSmallDiag = TRUE` and `epsilon = 1e-6`. In case `addSmallDiag = TRUE`, if the covariance matrix is numerically singular (its log-determinant cannot be computed)
+#' or its log-determinant is smaller than the lower bound `p*log(epsilon)`, return `(b - a)*p*log(epsilon)`, otherwise, output an error message.
 #'
 #' - **VAR(r) cost function**:
-#' \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
-#' where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
-#' \eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where `n` is the time series length), return 0.
+#' \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = \max(a, r)+1}^{b} \left\| y_t - \hat c - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
+#' where \eqn{\hat c} and \eqn{\hat A_j} are the OLS estimates of the intercept and VAR coefficients on the segment. The lagged values \eqn{y_{t-j}} may come from before \eqn{a+1}, so only the first \eqn{r} observations of the whole series lack a full set of lags. If the system is singular, an approximate (minimum-norm) least-squares solve is used. If
+#' \eqn{b-a < p*r+1} (i.e., not enough observations), or \eqn{a > n-r} (where `n` is the time series length), return 0.
 #'
 #' - **"LinearL2"** for piecewise linear regression process with **constant noise variance**
 #' \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
@@ -34,7 +34,7 @@
 #'
 #' - **"LinearSIGMA"** for piecewise linear regression process with **varying noise covariance**
 #' \deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
-#' is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
+#' is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, divided by \eqn{b-a} with no degrees-of-freedom correction for the fitted coefficients, and otherwise estimated
 #' the same way as in the SIGMA cost function (including the `addSmallDiag`/`epsilon` stabilisation and lower-bound fallback).
 #'
 #' - **"LinearL1"** for piecewise linear regression process under **L1 (least absolute deviations) loss**
