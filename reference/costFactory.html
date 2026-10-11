@@ -65,9 +65,11 @@ automatically triggers <code>$fit()</code> again.</p>
 <li><p><code>"L2"</code>: <code>mean</code>.</p></li>
 <li><p><code>"SIGMA"</code>: <code>mean</code> and <code>cov</code> (plus <code>epsilon</code> on the diagonal if <code>addSmallDiag = TRUE</code>).</p></li>
 <li><p><code>"VAR"</code>, <code>"LinearL2"</code> and <code>"LinearL1"</code>: <code>coef</code>, intercept first.</p></li>
-<li><p><code>"LinearSIGMA"</code>: <code>coef</code> and <code>cov</code>.</p></li>
+<li><p><code>"LinearSIGMA"</code>: <code>coef</code> and <code>cov</code> (plus <code>epsilon</code> on the diagonal if <code>addSmallDiag = TRUE</code>).</p></li>
 <li><p><code>"Custom"</code>: <code>params</code>, the output of <code>paramFun</code>; an empty list if <code>paramFun</code> is <code>NULL</code>.</p></li>
-</ul></div>
+</ul><p>Both <code>cov</code>s are biased maximum-likelihood estimates: divided by the segment length <code>b - a</code>, with no Bessel
+(<code>n - 1</code>) or degrees-of-freedom correction.</p>
+    </div>
     <div class="section level2">
     <h2 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h2>
 

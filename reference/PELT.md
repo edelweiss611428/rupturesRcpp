@@ -293,25 +293,29 @@ The segment cost is evaluated as follows:
   \\\bar{y}\_{(a+1)...b}\\ is the empirical mean of the segment. If \\a
   \ge b - 1\\, return 0.
 
-- **SIGMA cost function**: \$\$c\_{\sum}(y\_{(a+1)...b}) := (b - a)\log
-  \det \hat{\Sigma}\_{(a+1)...b}\$\$ where \\\hat{\Sigma}\_{(a+1)...b}\\
-  is the empirical covariance matrix of the segment without Bessel's
-  correction. Here, if `addSmallDiag = TRUE`, a small bias `epsilon` is
-  added to the diagonal of estimated covariance matrices to improve
-  numerical stability.  
+- **SIGMA cost function**: \$\$c\_{\Sigma}(y\_{(a+1)...b}) := (b -
+  a)\log \det \hat{\Sigma}\_{(a+1)...b}\$\$ where
+  \\\hat{\Sigma}\_{(a+1)...b}\\ is the empirical covariance matrix of
+  the segment without Bessel's correction. Here, if
+  `addSmallDiag = TRUE`, a small bias `epsilon` is added to the diagonal
+  of estimated covariance matrices to improve numerical stability.  
     
   By default, `addSmallDiag = TRUE` and `epsilon = 1e-6`. In case
-  `addSmallDiag = TRUE`, if the computed determinant of covariance
-  matrix is either 0 (singular) or smaller than `p*log(epsilon)` - the
-  lower bound, return `(b - a)*p*log(epsilon)`, otherwise, output an
-  error message.
+  `addSmallDiag = TRUE`, if the covariance matrix is numerically
+  singular (its log-determinant cannot be computed) or its
+  log-determinant is smaller than the lower bound `p*log(epsilon)`,
+  return `(b - a)*p*log(epsilon)`, otherwise, output an error message.
 
 - **VAR(r) cost function**: \$\$c\_{\mathrm{VAR}}(y\_{(a+1)...b}) :=
-  \sum\_{t = a+r+1}^{b} \left\\ y_t - \sum\_{j=1}^r \hat A_j y\_{t-j}
-  \right\\\_2^2\$\$ where \\\hat A_j\\ are the estimated VAR
-  coefficients, commonly estimated via the OLS criterion. If system is
-  singular, \\a-b \< p\*r+1\\ (i.e., not enough observations), or \\a
-  \ge n-p\\ (where `n` is the time series length), return 0.
+  \sum\_{t = \max(a, r)+1}^{b} \left\\ y_t - \hat c - \sum\_{j=1}^r \hat
+  A_j y\_{t-j} \right\\\_2^2\$\$ where \\\hat c\\ and \\\hat A_j\\ are
+  the OLS estimates of the intercept and VAR coefficients on the
+  segment. The lagged values \\y\_{t-j}\\ may come from before \\a+1\\,
+  so only the first \\r\\ observations of the whole series lack a full
+  set of lags. If the system is singular, an approximate (minimum-norm)
+  least-squares solve is used. If \\b-a \< p\*r+1\\ (i.e., not enough
+  observations), or \\a \> n-r\\ (where `n` is the time series length),
+  return 0.
 
 **"LinearL2"** for piecewise linear regression process with **constant
 noise variance** \$\$c\_{\text{LinearL2}}(y\_{(a+1):b}) :=
@@ -323,8 +327,10 @@ shorter than the minimum number of points needed for OLS, return 0.
   **varying noise covariance** \$\$c\_{\text{LinearSIGMA}}(y\_{(a+1):b})
   := (b-a)\log \det \hat\Sigma\_{(a+1):b}\$\$ where
   \\\hat\Sigma\_{(a+1):b}\\ is the empirical covariance matrix of OLS
-  residuals \\y - X\hat{\beta}\\ on segment \\(a+1):b\\, estimated the
-  same way as in the SIGMA cost function.
+  residuals \\y - X\hat{\beta}\\ on segment \\(a+1):b\\, divided by
+  \\b-a\\ with no degrees-of-freedom correction for the fitted
+  coefficients, and otherwise estimated the same way as in the SIGMA
+  cost function.
 
 - **"LinearL1"** for piecewise linear regression process under **L1
   (least absolute deviations) loss**
@@ -362,11 +368,11 @@ of break-points that globally minimises a penalised cost function.
 the number of candidate change-points, achieving efficient computation.
 
 Let \\\[c_1, \dots, c_k, c\_{k+1}\]\\ denote the set of segment
-end-points with \\c_1 \< c_2 \< \dots \< c_k \< c\_{k+1} = n\\, where
-\\k\\ is the number of detected change-points and \\n\\ is the total
-number of data points. Let \\c\_{(c_i, c\_{i+1}\]}\\ be the cost of
-segment \\(c_i, c\_{i+1}\]\\. The total penalised cost is \$\$
-\text{TotalCost} = \sum\_{i=1}^{k+1} c\_{(c_i, c\_{i+1}\]} + \lambda
+end-points with \\0 = c_0 \< c_1 \< c_2 \< \dots \< c_k \< c\_{k+1} =
+n\\, where \\k\\ is the number of detected change-points and \\n\\ is
+the total number of data points. Let \\c\_{(c\_{i-1}, c_i\]}\\ be the
+cost of segment \\(c\_{i-1}, c_i\]\\. The total penalised cost is \$\$
+\text{TotalCost} = \sum\_{i=1}^{k+1} c\_{(c\_{i-1}, c_i\]} + \lambda
 \cdot k, \$\$ where \\\lambda\\ is a linear penalty applied per
 change-point. `PELT` finds the set of endpoints that minimises this cost
 exactly.

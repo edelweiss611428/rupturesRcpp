@@ -337,25 +337,29 @@ The segment cost is evaluated as follows:
   \\\bar{y}\_{(a+1)...b}\\ is the empirical mean of the segment. If \\a
   \ge b - 1\\, return 0.
 
-- **SIGMA cost function**: \$\$c\_{\sum}(y\_{(a+1)...b}) := (b - a)\log
-  \det \hat{\Sigma}\_{(a+1)...b}\$\$ where \\\hat{\Sigma}\_{(a+1)...b}\\
-  is the empirical covariance matrix of the segment without Bessel's
-  correction. Here, if `addSmallDiag = TRUE`, a small bias `epsilon` is
-  added to the diagonal of estimated covariance matrices to improve
-  numerical stability.  
+- **SIGMA cost function**: \$\$c\_{\Sigma}(y\_{(a+1)...b}) := (b -
+  a)\log \det \hat{\Sigma}\_{(a+1)...b}\$\$ where
+  \\\hat{\Sigma}\_{(a+1)...b}\\ is the empirical covariance matrix of
+  the segment without Bessel's correction. Here, if
+  `addSmallDiag = TRUE`, a small bias `epsilon` is added to the diagonal
+  of estimated covariance matrices to improve numerical stability.  
     
   By default, `addSmallDiag = TRUE` and `epsilon = 1e-6`. In case
-  `addSmallDiag = TRUE`, if the computed determinant of covariance
-  matrix is either 0 (singular) or smaller than `p*log(epsilon)` - the
-  lower bound, return `(b - a)*p*log(epsilon)`, otherwise, output an
-  error message.
+  `addSmallDiag = TRUE`, if the covariance matrix is numerically
+  singular (its log-determinant cannot be computed) or its
+  log-determinant is smaller than the lower bound `p*log(epsilon)`,
+  return `(b - a)*p*log(epsilon)`, otherwise, output an error message.
 
 - **VAR(r) cost function**: \$\$c\_{\mathrm{VAR}}(y\_{(a+1)...b}) :=
-  \sum\_{t = a+r+1}^{b} \left\\ y_t - \sum\_{j=1}^r \hat A_j y\_{t-j}
-  \right\\\_2^2\$\$ where \\\hat A_j\\ are the estimated VAR
-  coefficients, commonly estimated via the OLS criterion. If system is
-  singular, \\a-b \< p\*r+1\\ (i.e., not enough observations), or \\a
-  \ge n-p\\ (where `n` is the time series length), return 0.
+  \sum\_{t = \max(a, r)+1}^{b} \left\\ y_t - \hat c - \sum\_{j=1}^r \hat
+  A_j y\_{t-j} \right\\\_2^2\$\$ where \\\hat c\\ and \\\hat A_j\\ are
+  the OLS estimates of the intercept and VAR coefficients on the
+  segment. The lagged values \\y\_{t-j}\\ may come from before \\a+1\\,
+  so only the first \\r\\ observations of the whole series lack a full
+  set of lags. If the system is singular, an approximate (minimum-norm)
+  least-squares solve is used. If \\b-a \< p\*r+1\\ (i.e., not enough
+  observations), or \\a \> n-r\\ (where `n` is the time series length),
+  return 0.
 
 - **"LinearL2"** for piecewise linear regression process with **constant
   noise variance** \$\$c\_{\text{LinearL2}}(y\_{(a+1):b}) :=
@@ -367,8 +371,10 @@ The segment cost is evaluated as follows:
   **varying noise covariance** \$\$c\_{\text{LinearSIGMA}}(y\_{(a+1):b})
   := (b-a)\log \det \hat\Sigma\_{(a+1):b}\$\$ where
   \\\hat\Sigma\_{(a+1):b}\\ is the empirical covariance matrix of OLS
-  residuals \\y - X\hat{\beta}\\ on segment \\(a+1):b\\, estimated the
-  same way as in the SIGMA cost function.
+  residuals \\y - X\hat{\beta}\\ on segment \\(a+1):b\\, divided by
+  \\b-a\\ with no degrees-of-freedom correction for the fitted
+  coefficients, and otherwise estimated the same way as in the SIGMA
+  cost function.
 
 - **"LinearL1"** for piecewise linear regression process under **L1
   (least absolute deviations) loss**
@@ -417,8 +423,9 @@ The algorithm scans the data with a fixed-size window to detect
 candidate local change-points (lcps) if the gains of its
 \\k\_\text{thresh}\\ neighbors to the left and right are all smaller
 than its gain, where \\k\_\text{thresh}\\ is defined as \$\$
-k\_\text{thresh} = \max \left( \frac{\max(2\text{radius}, 2 \cdot
-\text{minSize})}{2 \cdot \text{jump}}, 1 \right) \$\$
+k\_\text{thresh} = \max \left( \left\lfloor \frac{\max(2\text{radius}, 2
+\cdot \text{minSize})}{2 \cdot \text{jump}} \right\rfloor, 1 \right)
+\$\$
 
 After candidate local change-points and computing the local gains, the
 algorithm selects the "optimal" set of break-points given the linear
@@ -431,7 +438,10 @@ change-points are detected, for example if the window size is too large.
 The total cost for the selected \\k\\ change-points is then calculated
 as \$\$ \text{TotalCost} = - \sum\_{i=1}^{k} G_i + \lambda \cdot k, \$\$
 where \\\lambda\\ is a linear penalty applied per change-point. We then
-optimise over \\k\\ to minimise the penalised cost function.
+optimise over \\k = 1, \dots, n\_\text{lcps}\\ to minimise the penalised
+cost function. \\k = 0\\ is not a candidate, so at least one
+change-point is returned whenever a local change-point exists, however
+large the penalty.
 
 This approach allows detecting multiple change-points in a time series
 while controlling model complexity through the linear penalty threshold.

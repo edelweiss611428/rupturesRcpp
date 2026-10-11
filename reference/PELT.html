@@ -291,20 +291,20 @@ where \(\tilde{y}_{(a+1)...b}\) is the coordinate-wise median of the segment. If
 $$c_{L_2}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)...b} \|_2^2$$
 where \(\bar{y}_{(a+1)...b}\) is the empirical mean of the segment. If \(a \ge b - 1\), return 0.</p></li>
 <li><p><strong>SIGMA cost function</strong>:
-$$c_{\sum}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}$$ where \(\hat{\Sigma}_{(a+1)...b}\) is
+$$c_{\Sigma}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}$$ where \(\hat{\Sigma}_{(a+1)...b}\) is
 the empirical covariance matrix of the segment without Bessel's correction. Here, if <code>addSmallDiag = TRUE</code>, a small
 bias <code>epsilon</code> is added to the diagonal of estimated covariance matrices to improve numerical stability. <br><br>
-By default, <code>addSmallDiag = TRUE</code> and <code>epsilon = 1e-6</code>. In case <code>addSmallDiag = TRUE</code>, if the computed determinant of covariance matrix is either 0 (singular)
-or smaller than <code>p*log(epsilon)</code> - the lower bound, return <code>(b - a)*p*log(epsilon)</code>, otherwise, output an error message.</p></li>
+By default, <code>addSmallDiag = TRUE</code> and <code>epsilon = 1e-6</code>. In case <code>addSmallDiag = TRUE</code>, if the covariance matrix is numerically singular (its log-determinant cannot be computed)
+or its log-determinant is smaller than the lower bound <code>p*log(epsilon)</code>, return <code>(b - a)*p*log(epsilon)</code>, otherwise, output an error message.</p></li>
 <li><p><strong>VAR(r) cost function</strong>:
-$$c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2$$
-where \(\hat A_j\) are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
-\(a-b &lt; p*r+1\) (i.e., not enough observations), or \(a \ge n-p\) (where <code>n</code> is the time series length), return 0.</p></li>
+$$c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = \max(a, r)+1}^{b} \left\| y_t - \hat c - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2$$
+where \(\hat c\) and \(\hat A_j\) are the OLS estimates of the intercept and VAR coefficients on the segment. The lagged values \(y_{t-j}\) may come from before \(a+1\), so only the first \(r\) observations of the whole series lack a full set of lags. If the system is singular, an approximate (minimum-norm) least-squares solve is used. If
+\(b-a &lt; p*r+1\) (i.e., not enough observations), or \(a &gt; n-r\) (where <code>n</code> is the time series length), return 0.</p></li>
 </ul><p><strong>"LinearL2"</strong> for piecewise linear regression process with <strong>constant noise variance</strong>
 $$c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2$$ where \(\hat{\beta}\) are OLS estimates on segment \((a+1):b\). If segment is shorter than the minimum number of
 points needed for OLS, return 0.</p><ul><li><p><strong>"LinearSIGMA"</strong> for piecewise linear regression process with <strong>varying noise covariance</strong>
 $$c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}$$ where \(\hat\Sigma_{(a+1):b}\)
-is the empirical covariance matrix of OLS residuals \(y - X\hat{\beta}\) on segment \((a+1):b\), estimated
+is the empirical covariance matrix of OLS residuals \(y - X\hat{\beta}\) on segment \((a+1):b\), divided by \(b-a\) with no degrees-of-freedom correction for the fitted coefficients, and otherwise estimated
 the same way as in the SIGMA cost function.</p></li>
 <li><p><strong>"LinearL1"</strong> for piecewise linear regression process under <strong>L1 (least absolute deviations) loss</strong>
 $$c_{\text{LinearL1}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_1$$ where \(\hat{\beta}\)
@@ -336,12 +336,12 @@ Unlike the other regression costs, this has no \(O(1)\)-per-segment closed form.
 <h4 id="details-3">Details<a class="anchor" aria-label="anchor" href="#details-3"></a></h4>
 <p>The <code>PELT</code> algorithm detects multiple change-points by finding the set of break-points that globally minimises
 a penalised cost function. <code>PELT</code> uses dynamic programming combined with a pruning rule to reduce the number of candidate change-points, achieving efficient computation.</p>
-<p>Let \([c_1, \dots, c_k, c_{k+1}]\) denote the set of segment end-points with \(c_1 &lt; c_2 &lt; \dots &lt; c_k &lt; c_{k+1} = n\),
+<p>Let \([c_1, \dots, c_k, c_{k+1}]\) denote the set of segment end-points with \(0 = c_0 &lt; c_1 &lt; c_2 &lt; \dots &lt; c_k &lt; c_{k+1} = n\),
 where \(k\) is the number of detected change-points and \(n\) is the total number of data points.
-Let \(c_{(c_i, c_{i+1}]}\) be the cost of segment \((c_i, c_{i+1}]\).
+Let \(c_{(c_{i-1}, c_i]}\) be the cost of segment \((c_{i-1}, c_i]\).
 The total penalised cost is
 $$
-  \text{TotalCost} = \sum_{i=1}^{k+1} c_{(c_i, c_{i+1}]} + \lambda \cdot k,
+  \text{TotalCost} = \sum_{i=1}^{k+1} c_{(c_{i-1}, c_i]} + \lambda \cdot k,
 $$
 where \(\lambda\) is a linear penalty applied per change-point. <code>PELT</code> finds the set of endpoints that minimises this cost exactly.</p>
 <p>The pruning step eliminates candidate change-points that cannot lead to an optimal solution,
