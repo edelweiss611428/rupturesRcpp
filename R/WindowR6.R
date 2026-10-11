@@ -724,7 +724,7 @@ Window = R6Class(
     #' if the gains of its \eqn{k_\text{thresh}} neighbors to the left and right are all smaller than its gain,
     #' where \eqn{k_\text{thresh}} is defined as
     #' \deqn{
-    #' k_\text{thresh} = \max \left( \frac{\max(2\text{radius}, 2 \cdot \text{minSize})}{2 \cdot \text{jump}}, 1 \right)
+    #' k_\text{thresh} = \max \left( \left\lfloor \frac{\max(2\text{radius}, 2 \cdot \text{minSize})}{2 \cdot \text{jump}} \right\rfloor, 1 \right)
     #' }
     #'
     #' After candidate local change-points and computing the local gains, the algorithm selects the "optimal" set of break-points given the linear penalty threshold.
