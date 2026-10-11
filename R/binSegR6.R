@@ -607,7 +607,7 @@ binSeg = R6Class(
     #' where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a \ge b - 1}, return 0.
     #'
     #' - **SIGMA cost function**:
-    #' \deqn{c_{\sum}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
+    #' \deqn{c_{\Sigma}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
     #' the empirical covariance matrix of the segment without Bessel's correction. Here, if `addSmallDiag = TRUE`, a small
     #' bias `epsilon` is added to the diagonal of estimated covariance matrices to improve numerical stability. \cr
     #' \cr

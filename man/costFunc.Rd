@@ -18,7 +18,7 @@ where \eqn{\tilde{y}_{(a+1)...b}} is the coordinate-wise median of the segment. 
 \deqn{c_{L_2}(y_{(a+1)...b}) := \sum_{t = a+1}^{b} \| y_t - \bar{y}_{(a+1)...b} \|_2^2}
 where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a \ge b - 1}, return 0.
 \item \strong{SIGMA cost function}:
-\deqn{c_{\sum}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
+\deqn{c_{\Sigma}(y_{(a+1)...b}) := (b - a)\log \det \hat{\Sigma}_{(a+1)...b}} where \eqn{\hat{\Sigma}_{(a+1)...b}} is
 the empirical covariance matrix of the segment without Bessel's correction. Here, if \code{addSmallDiag = TRUE}, a small
 bias \code{epsilon} is added to the diagonal of estimated covariance matrices to improve numerical stability. \cr
 \cr
