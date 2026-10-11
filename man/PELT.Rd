@@ -242,7 +242,7 @@ or its log-determinant is smaller than the lower bound \code{p*log(epsilon)}, re
 \item \strong{VAR(r) cost function}:
 \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = \max(a, r)+1}^{b} \left\| y_t - \hat c - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
 where \eqn{\hat c} and \eqn{\hat A_j} are the OLS estimates of the intercept and VAR coefficients on the segment. The lagged values \eqn{y_{t-j}} may come from before \eqn{a+1}, so only the first \eqn{r} observations of the whole series lack a full set of lags. If system is singular,
-\eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where \code{n} is the time series length), return 0.
+\eqn{b-a < p*r+1} (i.e., not enough observations), or \eqn{a > n-r} (where \code{n} is the time series length), return 0.
 }
 
 \strong{"LinearL2"} for piecewise linear regression process with \strong{constant noise variance}
