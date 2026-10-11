@@ -284,12 +284,12 @@ Performs \code{PELT} given a linear penalty value.
 The \code{PELT} algorithm detects multiple change-points by finding the set of break-points that globally minimises
 a penalised cost function. \code{PELT} uses dynamic programming combined with a pruning rule to reduce the number of candidate change-points, achieving efficient computation.
 
-Let \eqn{[c_1, \dots, c_k, c_{k+1}]} denote the set of segment end-points with \eqn{c_1 < c_2 < \dots < c_k < c_{k+1} = n},
+Let \eqn{[c_1, \dots, c_k, c_{k+1}]} denote the set of segment end-points with \eqn{0 = c_0 < c_1 < c_2 < \dots < c_k < c_{k+1} = n},
 where \eqn{k} is the number of detected change-points and \eqn{n} is the total number of data points.
-Let \eqn{c_{(c_i, c_{i+1}]}} be the cost of segment \eqn{(c_i, c_{i+1}]}.
+Let \eqn{c_{(c_{i-1}, c_i]}} be the cost of segment \eqn{(c_{i-1}, c_i]}.
 The total penalised cost is
 \deqn{
-  \text{TotalCost} = \sum_{i=1}^{k+1} c_{(c_i, c_{i+1}]} + \lambda \cdot k,
+  \text{TotalCost} = \sum_{i=1}^{k+1} c_{(c_{i-1}, c_i]} + \lambda \cdot k,
 }
 where \eqn{\lambda} is a linear penalty applied per change-point. \code{PELT} finds the set of endpoints that minimises this cost exactly.
 

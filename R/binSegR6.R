@@ -679,12 +679,12 @@ binSeg = R6Class(
     #' This process continues until no further splits are possible (e.g., each segment is of minimal length or each breakpoint
     #' corresponds to a single data point).
     #'
-    #' Then, the algorithm selects the "optimal" set of break-points given the linear penalty threshold. Let \eqn{[c_1, \dots, c_k, c_{k+1}]} denote the set of segment end-points with \eqn{c_1 < c_2 < \dots < c_k < c_{k+1} = n},
+    #' Then, the algorithm selects the "optimal" set of break-points given the linear penalty threshold. Let \eqn{[c_1, \dots, c_k, c_{k+1}]} denote the set of segment end-points with \eqn{0 = c_0 < c_1 < c_2 < \dots < c_k < c_{k+1} = n},
     #' where \eqn{k} is the number of detected change-points and \eqn{n} is the total number of data points.
-    #' and \eqn{k} is the number of change-points. Let \eqn{c_{(c_i, c_{i+1}]}} be the cost of segment \eqn{(c_i, c_{i+1}]}.
+    #' and \eqn{k} is the number of change-points. Let \eqn{c_{(c_{i-1}, c_i]}} be the cost of segment \eqn{(c_{i-1}, c_i]}.
     #' The total penalised cost is then
     #' \deqn{
-    #'   \text{TotalCost} = \sum_{i=1}^{k+1} c_{(c_i, c_{i+1}]} + \lambda \cdot k,
+    #'   \text{TotalCost} = \sum_{i=1}^{k+1} c_{(c_{i-1}, c_i]} + \lambda \cdot k,
     #' }
     #' where \eqn{\lambda} is a linear penalty applied per change-point. We then optimise over
     #' \eqn{k} to minimise the penalised cost function.
