@@ -70,7 +70,7 @@
 <div class="page-header"><h1 id="welcome-to-rupturesrcpp">Welcome to rupturesRcpp<a class="anchor" aria-label="anchor" href="#welcome-to-rupturesrcpp"></a>
 </h1></div>
 <p><a href="https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/edelweiss611428/rupturesRcpp/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a> <a href="https://GitHub.com/edelweiss611428/rupturesRcpp/graphs/commit-activity" class="external-link"><img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" alt="Maintenance"></a> <a href="https://edelweiss611428.r-universe.dev/rupturesRcpp" class="external-link"><img src="https://edelweiss611428.r-universe.dev/rupturesRcpp/badges/version" alt="rupturesRcpp status badge"></a> <a href="https://CRAN.R-project.org/package=rupturesRcpp" class="external-link"><img src="https://www.r-pkg.org/badges/version/rupturesRcpp" alt="CRAN Version"></a> <a href="https://CRAN.R-project.org/package=rupturesRcpp" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/rupturesRcpp" alt="CRAN Downloads"></a> <a href="https://app.codecov.io/gh/edelweiss611428/rupturesRcpp" class="external-link"><img src="https://codecov.io/gh/edelweiss611428/rupturesRcpp/branch/main/graph/badge.svg" alt="codecov"></a></p>
-<p><code>rupturesRcpp</code> is an R package for <strong>high-performance offline change-point detection in multivariate time series</strong>. It provides a unified, object-oriented R6 interface to change-point detection methods implemented efficiently in C++.</p>
+<p><code>rupturesRcpp</code> is an R package for <strong>high-performance offline change-point detection in multivariate time series</strong>. It provides a unified, object-oriented R6 interface to change-point detection methods implemented efficiently in C++. It is inspired by the highly popular Python library <a href="https://centre-borelli.github.io/ruptures-docs/" class="external-link">ruptures</a>.</p>
 <p>The package detects <strong>changes in the underlying structure of a time series</strong>, including changes in mean, covariance, autoregressive dynamics, and regression relationships with covariates. It supports a range of cost functions, and segmentation algorithms, from fast heuristic methods to exact dynamic-programming and penalised optimisation methods.</p>
 <p>Documentation and case studies are available on the <a href="https://edelweiss611428.github.io/rupturesRcpp/">package website</a>. See <a href="https://edelweiss611428.github.io/rupturesRcpp/articles/getting-started.html">Getting started</a> for the differences between the two versions and a first detection.</p>
 <div class="section level2">
@@ -150,12 +150,6 @@
 </div>
 </div>
 <div class="section level2">
-<h2 id="about-the-project">About the Project<a class="anchor" aria-label="anchor" href="#about-the-project"></a>
-</h2>
-<p><code>rupturesRcpp</code> provides an R implementation of functionality inspired by the Python library <a href="https://centre-borelli.github.io/ruptures-docs/" class="external-link">ruptures</a>, with a focus on efficient C++ implementations and an R-native object-oriented interface.</p>
-<p>The package was developed during <strong>Google Summer of Code 2025</strong> for <a href="https://www.r-project.org/" class="external-link">The R Project for Statistical Computing</a> by <a href="https://github.com/edelweiss611428" class="external-link">@edelweiss611428</a>, under the mentorship of <a href="https://github.com/tdhock" class="external-link">@tdhock</a> and <a href="https://github.com/deepcharles" class="external-link">@deepcharles</a>. The original GSoC project archive is available on the <a href="https://github.com/edelweiss611428/rupturesRcpp/blob/gsoc-2025/README.md" class="external-link">gsoc-2025 branch</a>.</p>
-</div>
-<div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -166,6 +160,11 @@
 <span></span>
 <span><span class="co"># CRAN release (1.0.3)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"rupturesRcpp"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="acknowledgement">Acknowledgement<a class="anchor" aria-label="anchor" href="#acknowledgement"></a>
+</h2>
+<p>The package was developed during <strong>Google Summer of Code 2025</strong> for <a href="https://www.r-project.org/" class="external-link">The R Project for Statistical Computing</a> by <a href="https://github.com/edelweiss611428" class="external-link">@edelweiss611428</a>, under the mentorship of <a href="https://github.com/tdhock" class="external-link">@tdhock</a> and <a href="https://github.com/deepcharles" class="external-link">@deepcharles</a>. The original GSoC project archive is available on the <a href="https://github.com/edelweiss611428/rupturesRcpp/blob/gsoc-2025/README.md" class="external-link">gsoc-2025 branch</a>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
