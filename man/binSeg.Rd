@@ -243,8 +243,8 @@ bias \code{epsilon} is added to the diagonal of estimated covariance matrices to
 By default, \code{addSmallDiag = TRUE} and \code{epsilon = 1e-6}. In case \code{addSmallDiag = TRUE}, if the covariance matrix is numerically singular (its log-determinant cannot be computed)
 or its log-determinant is smaller than the lower bound \code{p*log(epsilon)}, return \code{(b - a)*p*log(epsilon)}, otherwise, output an error message.
 \item \strong{VAR(r) cost function}:
-\deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
-where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
+\deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = \max(a, r)+1}^{b} \left\| y_t - \hat c - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
+where \eqn{\hat c} and \eqn{\hat A_j} are the OLS estimates of the intercept and VAR coefficients on the segment. The lagged values \eqn{y_{t-j}} may come from before \eqn{a+1}, so only the first \eqn{r} observations of the whole series lack a full set of lags. If system is singular,
 \eqn{a-b < p*r+1} (i.e., not enough observations), or \eqn{a \ge n-p} (where \code{n} is the time series length), return 0.
 \item \strong{"LinearL2"} for piecewise linear regression process with \strong{constant noise variance}
 \deqn{c_{\text{LinearL2}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_2^2} where \eqn{\hat{\beta}} are OLS estimates on segment \eqn{(a+1):b}. If segment is shorter than the minimum number of
