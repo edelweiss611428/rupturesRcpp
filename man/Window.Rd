@@ -320,7 +320,7 @@ The total cost for the selected \eqn{k} change-points is then calculated as
   \text{TotalCost} = - \sum_{i=1}^{k} G_i + \lambda \cdot k,
 }
 where \eqn{\lambda} is a linear penalty applied per change-point. We then optimise over
-\eqn{k} to minimise the penalised cost function.
+\eqn{k = 1, \dots, n_\text{lcps}} to minimise the penalised cost function. \eqn{k = 0} is not a candidate, so at least one change-point is returned whenever a local change-point exists, however large the penalty.
 
 This approach allows detecting multiple change-points in a time series while controlling
 model complexity through the linear penalty threshold.
