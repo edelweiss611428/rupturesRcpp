@@ -20,8 +20,8 @@
 #' the empirical covariance matrix of the segment without Bessel's correction. Here, if `addSmallDiag = TRUE`, a small
 #' bias `epsilon` is added to the diagonal of estimated covariance matrices to improve numerical stability. \cr
 #' \cr
-#' By default, `addSmallDiag = TRUE` and `epsilon = 1e-6`. In case `addSmallDiag = TRUE`, if the computed determinant of covariance matrix is either 0 (singular)
-#' or smaller than `p*log(epsilon)` - the lower bound, return `(b - a)*p*log(epsilon)`, otherwise, output an error message.
+#' By default, `addSmallDiag = TRUE` and `epsilon = 1e-6`. In case `addSmallDiag = TRUE`, if the covariance matrix is numerically singular (its log-determinant cannot be computed)
+#' or its log-determinant is smaller than the lower bound `p*log(epsilon)`, return `(b - a)*p*log(epsilon)`, otherwise, output an error message.
 #'
 #' - **VAR(r) cost function**:
 #' \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}

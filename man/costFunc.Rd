@@ -22,8 +22,8 @@ where \eqn{\bar{y}_{(a+1)...b}} is the empirical mean of the segment. If \eqn{a 
 the empirical covariance matrix of the segment without Bessel's correction. Here, if \code{addSmallDiag = TRUE}, a small
 bias \code{epsilon} is added to the diagonal of estimated covariance matrices to improve numerical stability. \cr
 \cr
-By default, \code{addSmallDiag = TRUE} and \code{epsilon = 1e-6}. In case \code{addSmallDiag = TRUE}, if the computed determinant of covariance matrix is either 0 (singular)
-or smaller than \code{p*log(epsilon)} - the lower bound, return \code{(b - a)*p*log(epsilon)}, otherwise, output an error message.
+By default, \code{addSmallDiag = TRUE} and \code{epsilon = 1e-6}. In case \code{addSmallDiag = TRUE}, if the covariance matrix is numerically singular (its log-determinant cannot be computed)
+or its log-determinant is smaller than the lower bound \code{p*log(epsilon)}, return \code{(b - a)*p*log(epsilon)}, otherwise, output an error message.
 \item \strong{VAR(r) cost function}:
 \deqn{c_{\mathrm{VAR}}(y_{(a+1)...b}) := \sum_{t = a+r+1}^{b} \left\| y_t - \sum_{j=1}^r \hat A_j y_{t-j} \right\|_2^2}
 where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via the OLS criterion. If system is singular,
