@@ -15,7 +15,7 @@ URL: https://edelweiss611428.github.io/rupturesRcpp/, https://github.com/edelwei
 BugReports: https://github.com/edelweiss611428/rupturesRcpp/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-License: CC BY 4.0
+License: MIT + file LICENSE
 LinkingTo: 
     Rcpp,
     RcppArmadillo
