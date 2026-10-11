@@ -17,7 +17,7 @@
 #' - `"L2"`: `mean`.
 #' - `"SIGMA"`: `mean` and `cov` (plus `epsilon` on the diagonal if `addSmallDiag = TRUE`).
 #' - `"VAR"`, `"LinearL2"` and `"LinearL1"`: `coef`, intercept first.
-#' - `"LinearSIGMA"`: `coef` and `cov`.
+#' - `"LinearSIGMA"`: `coef` and `cov` (plus `epsilon` on the diagonal if `addSmallDiag = TRUE`).
 #' - `"Custom"`: `params`, the output of `paramFun`; an empty list if `paramFun` is `NULL`.
 #'
 #' Both `cov`s are biased maximum-likelihood estimates: divided by the segment length `b - a`, with no Bessel
