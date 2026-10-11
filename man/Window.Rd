@@ -266,7 +266,7 @@ where \eqn{\hat A_j} are the estimated VAR coefficients, commonly estimated via 
 points needed for OLS, return 0.
 \item \strong{"LinearSIGMA"} for piecewise linear regression process with \strong{varying noise covariance}
 \deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
-is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
+is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, divided by \eqn{b-a} with no degrees-of-freedom correction for the fitted coefficients, and otherwise estimated
 the same way as in the SIGMA cost function.
 \item \strong{"LinearL1"} for piecewise linear regression process under \strong{L1 (least absolute deviations) loss}
 \deqn{c_{\text{LinearL1}}(y_{(a+1):b}) := \sum_{t=a+1}^b \| y_t - X_t \hat{\beta} \|_1} where \eqn{\hat{\beta}}

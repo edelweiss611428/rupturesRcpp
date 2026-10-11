@@ -668,7 +668,7 @@ Window = R6Class(
     #'
     #' - **"LinearSIGMA"** for piecewise linear regression process with **varying noise covariance**
     #' \deqn{c_{\text{LinearSIGMA}}(y_{(a+1):b}) := (b-a)\log \det \hat\Sigma_{(a+1):b}} where \eqn{\hat\Sigma_{(a+1):b}}
-    #' is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, estimated
+    #' is the empirical covariance matrix of OLS residuals \eqn{y - X\hat{\beta}} on segment \eqn{(a+1):b}, divided by \eqn{b-a} with no degrees-of-freedom correction for the fitted coefficients, and otherwise estimated
     #' the same way as in the SIGMA cost function.
     #'
     #' - **"LinearL1"** for piecewise linear regression process under **L1 (least absolute deviations) loss**

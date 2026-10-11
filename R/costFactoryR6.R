@@ -20,6 +20,9 @@
 #' - `"LinearSIGMA"`: `coef` and `cov`.
 #' - `"Custom"`: `params`, the output of `paramFun`; an empty list if `paramFun` is `NULL`.
 #'
+#' Both `cov`s are biased maximum-likelihood estimates: divided by the segment length `b - a`, with no Bessel
+#' (`n - 1`) or degrees-of-freedom correction.
+#'
 #' @section Methods:
 #' \describe{
 #'   \item{\code{$new()}}{Initialises a `costFactory` object.}
