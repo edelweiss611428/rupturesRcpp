@@ -38,5 +38,6 @@ Collate:
     'WindowR6.R'
     'binSegR6.R'
     'costFactoryR6.R'
+    'plotUtils.R'
     'rupturesRcpp-package.R'
     'zzz.R'

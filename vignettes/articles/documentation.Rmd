@@ -16,7 +16,7 @@ Every segmentation class (`binSeg`, `Window`, `PELT` and `Dynp`) has the same me
 | `$fit(tsMat)` | Attaches the time series: a matrix with one row per time point. |
 | `$predict(pen = ...)` | Returns the change-points for a penalty per change-point. |
 | `$predict(nBkps = ...)` | Returns the change-points for a given number of change-points. |
-| `$plot()` | Plots the series with the detected segments. |
+| `$plot()` | Plots the series with the detected segments, or the fitted values and residuals of each segment. |
 | `$segments()` | Gives the cost and parameter estimates of each segment. |
 | `$eval(a, b)` | Gives the cost of the segment `(a, b]`. |
 

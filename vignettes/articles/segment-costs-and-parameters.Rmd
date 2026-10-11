@@ -39,6 +39,35 @@ sapply(segs, `[[`, "Cost")
 
 Re-fitting (including through an active binding such as `$minSize` or `$costFunc`) clears the segmentation saved by the last `$predict()`, so `$predict()` must be run again before calling `$segments()`.
 
+## Fitted values and residuals
+
+`$plot()` can also draw the fit that each segment's `Params` imply, through its `type` argument: `"fitted"` overlays the fitted values on the series, `"residuals"` plots the residuals over time, and `"diagnostics"` plots the residuals against the fitted values next to a box plot of the residuals of each segment. The fitted value is the segment mean for `"L2"` and `"SIGMA"`, the median for `"L1"`, and $X_t \hat{\beta}$ for `"LinearL2"`, `"LinearSIGMA"`, `"LinearL1"` and `"VAR"`. These options are not available for `"Custom"` costs.
+
+They are most useful for the regression costs, where the change is in how `tsMat` depends on `covariates` and may not show in the raw series. Below, the slope on the covariate changes sign at `t = 100`, while the response has the same distribution throughout:
+
+```{r}
+set.seed(1)
+x = cbind(rnorm(200))
+y = cbind(c(2 * x[1:100], -2 * x[101:200]) + rnorm(200, sd = 0.5))
+
+linObj = PELT$new(minSize = 5L, costFunc = costFunc$new("LinearL2"))
+linObj$fit(y, x)
+linObj$predict(pen = 30)
+```
+
+`$plot()` takes `endPts`, so the residuals without a change-point can be compared with those of the detected segmentation. A single regression line does not fit either half, while one line per segment leaves only the noise:
+
+```{r, message = FALSE, fig.height = 5, fig.alt = "Residuals over time of a single regression fit, large throughout, above the residuals of the two-segment fit, small on both sides of the change-point at t = 100."}
+linObj$plot(endPts = 200, type = "residuals", main = "No change-point") /
+  linObj$plot(type = "residuals", main = "Change-point at t = 100")
+```
+
+`type = "diagnostics"` checks the fit of each segment, for example for leftover structure in the residuals or a change in their spread:
+
+```{r, message = FALSE, fig.height = 3.5, fig.alt = "Residuals against fitted values, scattered evenly around zero, next to box plots of the residuals of the two segments, which have about the same spread."}
+linObj$plot(type = "diagnostics")
+```
+
 ## Costs without a detection algorithm
 
 Sometimes you don't need a detection algorithm at all, only fast cost evaluation and parameter estimation for segments whose boundaries you already have (e.g., cross-validating a `pen` value against known change-points, or just querying a segment's fitted parameters). `costFactory` wraps the same `C++` cost modules used internally by `PELT`/`binSeg`/`Window`/`Dynp`, exposing only `$eval()`, `$get_params()` and `$segments()`, with no segmentation logic.

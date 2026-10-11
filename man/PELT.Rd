@@ -36,7 +36,7 @@ for detailed usage!
 \item{\code{$eval()}}{Evaluates the cost of a segment.}
 \item{\code{$predict()}}{Performs \code{PELT} given a linear penalty value.}
 \item{\code{$segments()}}{Returns the cost and parameter estimates of each segment from the latest \verb{$predict()}.}
-\item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style.}
+\item{\code{$plot()}}{Plots change-point segmentation in \code{ggplot} style, or the fitted values and residuals of each segment.}
 \item{\code{$clone()}}{Clones the \code{R6} object.}
 }
 }
@@ -70,6 +70,19 @@ PELTObj$plot()
 PELTObj$costFunc = costFunc$new(costFunc = "SIGMA")
 PELTObj$predict(pen = 50)
 PELTObj$plot()
+
+## LinearL2 example
+# The slope on the covariate changes sign at t = 100
+set.seed(1)
+x = as.matrix(rnorm(200))
+y = as.matrix(c(2*x[1:100], -2*x[101:200]) + rnorm(200, sd = 0.5))
+PELTObj = PELT$new(minSize = 5L, costFunc = costFunc$new("LinearL2"))
+PELTObj$fit(y, covariates = x)
+PELTObj$predict(pen = 30)
+# Fitted values, residuals and residual diagnostics of each segment
+PELTObj$plot(type = "fitted")
+PELTObj$plot(type = "residuals")
+PELTObj$plot(type = "diagnostics")
 
 }
 \references{
@@ -351,7 +364,9 @@ Plots change-point segmentation
   tsCol = "#5B9BD5",
   bgCol = c("#A3C4F3", "#FBB1BD"),
   bgAlpha = 0.5,
-  ncol = 1L
+  ncol = 1L,
+  type = "series",
+  fitCol = "#D55E00"
 )}\if{html}{\out{</div>}}
 }
 
@@ -377,16 +392,38 @@ Plots change-point segmentation
 \item{\code{bgAlpha}}{Numeric. Background transparency. Default: \code{0.5}.}
 
 \item{\code{ncol}}{Integer. Number of columns in facet layout. Default: \code{1L}.}
+
+\item{\code{type}}{Character. What to plot. One of:
+\itemize{
+\item \code{"series"}: the raw series, with the segments shaded and the change-points marked.
+\item \code{"fitted"}: the series with the fitted values of each segment overlaid.
+\item \code{"residuals"}: the residuals (series minus fitted values) over time.
+\item \code{"diagnostics"}: the residuals against the fitted values, next to a box plot of the residuals of each segment.
+}
+
+Default: \code{"series"}.}
+
+\item{\code{fitCol}}{Character. Color of the fitted values (\code{type = "fitted"}) and of the zero line (\code{type = "residuals"}
+and \code{type = "diagnostics"}). Default: \code{"#D55E00"}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Details}{
 Plots change-point segmentation results. Based on \code{ggplot2}. Multiple plots can easily be
 horizontally and vertically stacked using \code{patchwork}'s operators \code{/} and \code{|}, respectively.
+
+For \code{type = "fitted"}, \code{"residuals"} and \code{"diagnostics"}, the fitted value of each observation comes from the
+parameter estimates of its segment, as returned by \verb{$segments()}: the segment mean for \code{"L2"} and \code{"SIGMA"}, the
+coordinate-wise median for \code{"L1"}, and \eqn{X_t \hat{\beta}} for \code{"LinearL2"}, \code{"LinearSIGMA"}, \code{"LinearL1"} and
+\code{"VAR"} (whose regressors are an intercept and the lagged series). These options are most useful for the
+regression costs, where a change in the relationship between \code{tsMat} and \code{covariates} can be invisible in the raw
+series. They are not available for \code{"Custom"} cost functions. Observations without a fitted value, i.e. the
+first \code{pVAR} observations for \code{"VAR"} and segments too short to estimate their parameters, are left out.
 }
 
 \subsection{Returns}{
-An object of classes \code{gg} and \code{ggplot}.
+An object of classes \code{gg} and \code{ggplot}. For \code{type = "diagnostics"}, a \code{patchwork} object, which also
+inherits from \code{gg} and \code{ggplot}.
 }
 }
 \if{html}{\out{<hr>}}

@@ -66,6 +66,19 @@
 #' WindowObj$predict(pen = 50)
 #' WindowObj$plot()
 #'
+#' ## LinearL2 example
+#' # The slope on the covariate changes sign at t = 100
+#' set.seed(1)
+#' x = as.matrix(rnorm(200))
+#' y = as.matrix(c(2*x[1:100], -2*x[101:200]) + rnorm(200, sd = 0.5))
+#' WindowObj = Window$new(minSize = 5L, costFunc = costFunc$new("LinearL2"))
+#' WindowObj$fit(y, covariates = x)
+#' WindowObj$predict(pen = 30)
+#' # Fitted values, residuals and residual diagnostics of each segment
+#' WindowObj$plot(type = "fitted")
+#' WindowObj$plot(type = "residuals")
+#' WindowObj$plot(type = "diagnostics")
+#'
 #' @section Methods:
 #' \describe{
 #'   \item{\code{$new()}}{Initialises a `Window` object.}
@@ -76,7 +89,7 @@
 #'   \item{\code{$segments()}}{Returns the cost and parameter estimates of each segment from the latest `$predict()`.}
 #'   \item{\code{$getHistory()}}{Retrieves the full cost history and sequentially added breakpoints.}
 #'   \item{\code{$plotElbow()}}{Plots the elbow curve (Total Cost vs. Number of Change-Points).}
-#'   \item{\code{$plot()}}{Plots change-point segmentation in `ggplot` style.}
+#'   \item{\code{$plot()}}{Plots change-point segmentation in `ggplot` style, or the fitted values and residuals of each segment.}
 #'   \item{\code{$clone()}}{Clones the `R6` object.}
 #' }
 #'
@@ -914,17 +927,39 @@ Window = R6Class(
     #' @param bgCol Character vector. Segment colors, recycled to length of `endPts`. Default: `c("#A3C4F3", "#FBB1BD")`.
     #' @param bgAlpha Numeric. Background transparency. Default: `0.5`.
     #' @param ncol Integer. Number of columns in facet layout. Default: `1L`.
+    #' @param type Character. What to plot. One of:
+    #'   - `"series"`: the raw series, with the segments shaded and the change-points marked.
+    #'   - `"fitted"`: the series with the fitted values of each segment overlaid.
+    #'   - `"residuals"`: the residuals (series minus fitted values) over time.
+    #'   - `"diagnostics"`: the residuals against the fitted values, next to a box plot of the residuals of each segment.
+    #'
+    #'   Default: `"series"`.
+    #' @param fitCol Character. Color of the fitted values (`type = "fitted"`) and of the zero line (`type = "residuals"`
+    #' and `type = "diagnostics"`). Default: `"#D55E00"`.
     #'
     #' @details Plots change-point segmentation results. Based on `ggplot2`. Multiple plots can easily be
     #' horizontally and vertically stacked using `patchwork`'s operators `/` and `|`, respectively.
     #'
-    #' @return An object of classes `gg` and `ggplot`.
+    #' For `type = "fitted"`, `"residuals"` and `"diagnostics"`, the fitted value of each observation comes from the
+    #' parameter estimates of its segment, as returned by `$segments()`: the segment mean for `"L2"` and `"SIGMA"`, the
+    #' coordinate-wise median for `"L1"`, and \eqn{X_t \hat{\beta}} for `"LinearL2"`, `"LinearSIGMA"`, `"LinearL1"` and
+    #' `"VAR"` (whose regressors are an intercept and the lagged series). These options are most useful for the
+    #' regression costs, where a change in the relationship between `tsMat` and `covariates` can be invisible in the raw
+    #' series. They are not available for `"Custom"` cost functions. Observations without a fitted value, i.e. the
+    #' first `pVAR` observations for `"VAR"` and segments too short to estimate their parameters, are left out.
+    #'
+    #' @return An object of classes `gg` and `ggplot`. For `type = "diagnostics"`, a `patchwork` object, which also
+    #' inherits from `gg` and `ggplot`.
 
     plot = function(d = 1L, endPts, dimNames, main, xlab, tsWidth = 0.25,
                     tsCol = "#5B9BD5",
                     bgCol = c("#A3C4F3", "#FBB1BD"),
                     bgAlpha = 0.5,
-                    ncol = 1L){
+                    ncol = 1L,
+                    type = "series",
+                    fitCol = "#D55E00"){
+
+      type = .checkPlotType(type)
 
 
       if(missing(main)){
@@ -995,42 +1030,22 @@ Window = R6Class(
         stop("Dimensions must be between [1,p]!")
       }
 
-      # Build long-format dataframe for all selected dimensions
-      tsList <- lapply(seq_along(d), function(i) {
-        data.frame(
-          time = 1:private$.n,
-          value = private$.tsMat[, d[i]],
-          dimension = dimNames[i]
-        )
-      })
+      fitted = NULL
 
-      allTsDf <- do.call(rbind, tsList)
+      if(type != "series"){
 
-      # Create segment info
-      segInt <- data.frame(
-        xmin = c(1, endPts[-length(endPts)]),
-        xmax = endPts,
-        fill = rep(bgCol, length.out = length(endPts))
-      )
+        if(!private$.fitted){
+          stop("`$fit()` must be run before plotting fitted values or residuals!")
+        }
 
-      # Build plot with facet_wrap
-      ggplot(allTsDf, aes(x = time, y = value)) +
-        scale_fill_identity() +
-        geom_rect(
-          data = segInt,
-          aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = fill),
-          inherit.aes = FALSE,
-          alpha = bgAlpha
-        ) +
-        geom_line(color = tsCol, linewidth = tsWidth) +
-        geom_vline(xintercept = endPts[-length(endPts)], linetype = "dashed", color = "black", linewidth = tsWidth) +
-        facet_wrap(~ dimension, scales = "free_y", ncol = ncol) +
-        theme_minimal() +
-        theme(
-          panel.grid = element_blank(),
-          strip.text = element_text(face = "bold")
-        ) +
-        labs(x = xlab, y = NULL, title = main)
+        fitted = .segmentFitted(private$.costFunc$pass(), private$.tsMat, private$.covariates, endPts,
+                                function(a, b) private$.windowModule$get_params(a, b))
+
+      }
+
+      .plotSegmentation(private$.tsMat, endPts, d, dimNames, main, xlab, tsWidth, tsCol, bgCol, bgAlpha, ncol,
+                        type = type, fitted = fitted, fitCol = fitCol,
+                        costLabel = .costLabel(private$.costFunc$pass()))
     }
 
   )

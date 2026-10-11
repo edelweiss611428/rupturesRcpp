@@ -43,7 +43,7 @@ All segmentation objects (`binSeg`, `Window`, `PELT`, `Dynp`) implement the foll
 - `$predict(pen, nBkps)`: Performs change-point detection given a linear penalty value, or a target number of change-points via `nBkps` (which takes precedence over `pen` when both are supplied).
 - `$eval(a,b)`: Evaluates the cost of a segment (a,b].
 - `$segments()`: Returns the cost and parameter estimates of each segment from the latest `$predict()` (see [Segment costs and parameters](segment-costs-and-parameters.html)).
-- `$plot(d, endPts,...)`: Plots change-point segmentation in `ggplot` style.
+- `$plot(d, endPts,...)`: Plots change-point segmentation in `ggplot` style. With `type = "fitted"`, `"residuals"` or `"diagnostics"`, it plots the fitted values and residuals of each segment instead of the raw series (see [Segment costs and parameters](segment-costs-and-parameters.html#fitted-values-and-residuals)).
 
 `binSeg`, `Window`, and `Dynp` additionally implement:
 
