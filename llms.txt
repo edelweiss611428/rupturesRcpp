@@ -60,7 +60,7 @@ install.packages("rupturesRcpp",
                  repos = c("https://edelweiss611428.r-universe.dev",
                            "https://cloud.r-project.org"))
 
-# CRAN release (1.0.3)
+# CRAN release (2.0.0)
 install.packages("rupturesRcpp")
 ```
 
